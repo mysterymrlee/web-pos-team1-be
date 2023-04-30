@@ -2,15 +2,17 @@ package com.ssg.webpos.domain;
 
 import com.ssg.webpos.domain.enums.DeliveryStatus;
 import com.ssg.webpos.domain.enums.DeliveryType;
-import lombok.Data;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Table(name = "delivery")
+@AllArgsConstructor
 public class Delivery extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

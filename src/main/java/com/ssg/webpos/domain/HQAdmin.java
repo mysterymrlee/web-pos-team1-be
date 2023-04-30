@@ -1,18 +1,16 @@
 package com.ssg.webpos.domain;
 
 import com.ssg.webpos.domain.enums.RoleHQadmin;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Table(name = "hq_admin")
-@NoArgsConstructor
 @AllArgsConstructor
 public class HQAdmin extends BaseTime {
     @Id
