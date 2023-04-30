@@ -1,1 +1,1 @@
-# 웹 기반 POS
+# web-pos-team1-be
