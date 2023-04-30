@@ -1,14 +1,16 @@
 package com.ssg.webpos.domain;
 
-import lombok.Data;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Table(name = "settlement_month")
+@AllArgsConstructor
 public class SettlementMonth {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

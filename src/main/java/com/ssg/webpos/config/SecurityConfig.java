@@ -32,9 +32,9 @@ public class SecurityConfig {
                 .and()
                 .authorizeRequests()
                 .antMatchers(PERMIT_URL).permitAll()
-                .antMatchers("/api/v1/branchadmin-manager/**").hasRole("ROLE_MANAGER")
-                .antMatchers("/api/v1/branchadmin-staff/**").hasRole("ROLE_STAFF")
-                .antMatchers("/api/v1/hqadmin/**").hasRole("ROLE_HQ")
+                .antMatchers("/api/v1/branchadmin-manager/**").hasRole("MANAGER") // "ROLE_" 자동생성됨
+                .antMatchers("/api/v1/branchadmin-staff/**").hasRole("STAFF")
+                .antMatchers("/api/v1/hqadmin/**").hasRole("HQ")
                 .anyRequest().permitAll()
                 .and()
                 .logout()

@@ -1,18 +1,16 @@
 package com.ssg.webpos.domain;
 
 import com.ssg.webpos.domain.enums.CouponStatus;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @Entity
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
-@NoArgsConstructor
 @Table(name = "coupon")
 public class Coupon extends BaseTime {
     @Id

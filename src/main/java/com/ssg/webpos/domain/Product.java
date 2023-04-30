@@ -1,6 +1,6 @@
 package com.ssg.webpos.domain;
 
-import lombok.Data;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -8,8 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Table(name = "product")
+@AllArgsConstructor
 public class Product extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -39,9 +41,8 @@ public class Product extends BaseTime {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id")
-    @Column(nullable = true)
     private Event event;
 
-    @OneToMany(mappedBy = "order_product")
+    @OneToMany(mappedBy = "product")
     private List<OrderProduct> orderProductList = new ArrayList<>();
 }

@@ -1,15 +1,13 @@
 package com.ssg.webpos.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Table(name = "stock_report")
-@NoArgsConstructor
 @AllArgsConstructor
 // 주말 재고 리포트
 public class StockReport extends BaseTime {
@@ -20,4 +18,11 @@ public class StockReport extends BaseTime {
     private int saturdayStockQty;
     private int sundayStockQty;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
+    private Product product;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id")
+    private Store store;
 }

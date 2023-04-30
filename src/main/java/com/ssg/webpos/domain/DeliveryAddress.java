@@ -1,17 +1,15 @@
 package com.ssg.webpos.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Table(name = "delivery_list")
 @AllArgsConstructor
-@NoArgsConstructor
 public class DeliveryAddress extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

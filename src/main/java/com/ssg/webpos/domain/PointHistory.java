@@ -1,15 +1,13 @@
 package com.ssg.webpos.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@Data
-@NoArgsConstructor
+@Getter
+@Setter
 @AllArgsConstructor
 @Table(name = "point_history")
 public class PointHistory extends BaseTime {
