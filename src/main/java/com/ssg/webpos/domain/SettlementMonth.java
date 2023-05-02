@@ -1,16 +1,21 @@
 package com.ssg.webpos.domain;
 
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
 @Table(name = "settlement_month")
 @AllArgsConstructor
+@NoArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public class SettlementMonth {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -33,4 +38,8 @@ public class SettlementMonth {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
     private Order order;
+
+    @CreatedDate
+    @Column(updatable = false)
+    private LocalDateTime createdDate;
 }

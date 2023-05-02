@@ -12,6 +12,7 @@ import java.util.List;
 @Setter
 @Table(name = "event")
 @AllArgsConstructor
+@NoArgsConstructor
 public class Event extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

@@ -10,6 +10,7 @@ import javax.validation.constraints.NotNull;
 @Setter
 @Table(name = "delivery_list")
 @AllArgsConstructor
+@NoArgsConstructor
 public class DeliveryAddress extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

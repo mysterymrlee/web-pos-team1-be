@@ -12,6 +12,7 @@ import java.time.LocalDate;
 @Setter
 @Table(name = "hq_admin")
 @AllArgsConstructor
+@NoArgsConstructor
 public class HQAdmin extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

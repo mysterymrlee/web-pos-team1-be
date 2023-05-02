@@ -11,6 +11,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "coupon")
 public class Coupon extends BaseTime {
     @Id

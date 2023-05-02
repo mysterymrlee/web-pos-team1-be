@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @Setter
 @Table(name = "delivery")
 @AllArgsConstructor
+@NoArgsConstructor
 public class Delivery extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
