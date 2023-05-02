@@ -13,6 +13,7 @@ import java.util.List;
 @Setter
 @Table(name = "pos")
 @AllArgsConstructor
+@NoArgsConstructor
 public class Pos extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

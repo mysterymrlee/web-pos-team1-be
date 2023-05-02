@@ -11,6 +11,7 @@ import java.time.LocalDate;
 @Setter
 @Table(name = "branch_admin")
 @AllArgsConstructor
+@NoArgsConstructor
 public class BranchAdmin extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

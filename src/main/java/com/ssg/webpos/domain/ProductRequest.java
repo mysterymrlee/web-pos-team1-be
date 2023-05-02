@@ -10,6 +10,7 @@ import javax.validation.constraints.NotNull;
 @Setter
 @Table(name = "product_request")
 @AllArgsConstructor
+@NoArgsConstructor
 // 상품 발주 신청
 public class ProductRequest {
     @Id

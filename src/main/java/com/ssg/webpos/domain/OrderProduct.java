@@ -9,6 +9,7 @@ import javax.persistence.*;
 @Setter
 @Table(name = "order_product")
 @AllArgsConstructor
+@NoArgsConstructor
 public class OrderProduct extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
