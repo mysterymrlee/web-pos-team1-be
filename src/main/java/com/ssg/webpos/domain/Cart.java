@@ -7,13 +7,13 @@ import javax.persistence.*;
 @Entity
 @Getter
 @Setter
-@Table(name = "order_product")
+@Table(name = "cart")
 @AllArgsConstructor
 @NoArgsConstructor
 public class Cart extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "order_product_id")
+    @Column(name = "cart_id")
     private Long id;
     
     private int qty; // 주문 수량
