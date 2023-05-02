@@ -13,7 +13,9 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "user")
+@ToString
 public class User extends BaseTime {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "user_id")
