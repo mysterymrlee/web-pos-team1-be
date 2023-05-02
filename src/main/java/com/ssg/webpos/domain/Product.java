@@ -13,6 +13,7 @@ import java.util.List;
 @Table(name = "product")
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class Product extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -45,5 +46,5 @@ public class Product extends BaseTime {
     private Event event;
 
     @OneToMany(mappedBy = "product")
-    private List<OrderProduct> orderProductList = new ArrayList<>();
+    private List<Cart> orderProductList = new ArrayList<>();
 }
