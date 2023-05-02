@@ -4,8 +4,12 @@ import com.ssg.webpos.domain.Order;
 import com.ssg.webpos.domain.Cart;
 import com.ssg.webpos.domain.Pos;
 import com.ssg.webpos.domain.Product;
+import com.ssg.webpos.domain.enums.OrderStatus;
+import com.ssg.webpos.domain.enums.PayMethod;
+import com.ssg.webpos.dto.CartAddDTO;
 import com.ssg.webpos.repository.cart.CartRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
+import com.ssg.webpos.repository.pos.PosRepository;
 import com.ssg.webpos.repository.product.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,36 +22,33 @@ public class CartService {
   private final OrderRepository orderRepository;
   private final CartRepository cartRepository;
   private final ProductRepository productRepository;
-
-  // pos 당 order 하나 생성
-  public void createCart(Pos pos) {
-    Order order = Order.createOrder(pos);
-    orderRepository.save(order);
-  }
-
+  private final PosRepository posRepository;
   // 상품 주문하기
   @Transactional
-  public void addCart(Pos pos, Product newProduct, int qty) {
+  public void addCart(CartAddDTO cartAddDTO) {
     // pos id로 해당 pos의 order 찾기
-    Order order = orderRepository.findByPosId(pos.getId());
-
+    Order order = orderRepository.findByPosId(cartAddDTO.getPosId());
+    Pos pos = posRepository.findById(cartAddDTO.getPosId()).get();
     // order가 존재하지 않는다면
     if(order == null) {
       order = Order.createOrder(pos);
+      order.setOrderStatus(OrderStatus.SUCCESS);
+      order.setPayMethod(PayMethod.CREDIT_CARD);
+      order.setTotalPrice(0);
       orderRepository.save(order);
     }
-    Product product = productRepository.findById(newProduct.getId()).get();
+    Product product = productRepository.findById(cartAddDTO.getProductId()).get();
+    order.changeTotalPrice(product.getSalePrice() * cartAddDTO.getQty());
     Cart cart = cartRepository.findByOrderIdAndProductId(order.getId(), product.getId());
 
     // order에 상품이 존재하지 않는다면 orderProduct 생성 후 추가
     if(cart == null) {
-      cart = Cart.createOrderProduct(order, product, qty);
-      cartRepository.save(cart);
+      cart = Cart.createOrderProduct(order, product, cartAddDTO.getQty());
     } else {
       // 상품이 order에 이미 존재한다면 수량만 증가
-      Cart cart1 = new Cart(cart.getProduct(), cart.getOrder());
-      cart1.addQty(qty);
-      cartRepository.save(cart1);
+      cart.addQty(cartAddDTO.getQty());
     }
+
+    cartRepository.save(cart);
   }
 }

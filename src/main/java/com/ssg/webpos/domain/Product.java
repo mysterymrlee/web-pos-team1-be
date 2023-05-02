@@ -46,5 +46,5 @@ public class Product extends BaseTime {
     private Event event;
 
     @OneToMany(mappedBy = "product")
-    private List<Cart> orderProductList = new ArrayList<>();
+    private List<Cart> cartList = new ArrayList<>();
 }

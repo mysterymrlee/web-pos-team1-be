@@ -27,11 +27,11 @@ public class Cart extends BaseTime {
     private Order order;
 
     public static Cart createOrderProduct(Order order, Product product, int qty) {
-        Cart orderProduct = new Cart();
-        orderProduct.setOrder(order);
-        orderProduct.setProduct(product);
-        orderProduct.setQty(qty);
-        return orderProduct;
+        Cart cart = new Cart();
+        cart.setOrder(order);
+        cart.setProduct(product);
+        cart.setQty(qty);
+        return cart;
     }
 
     // 이미 담겨있는 물건을 또 담을 경우 수량만 증가

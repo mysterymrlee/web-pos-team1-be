@@ -2,6 +2,7 @@ package com.ssg.webpos.domain;
 
 import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.domain.enums.PayMethod;
+import com.ssg.webpos.dto.CartAddDTO;
 import lombok.*;
 
 import javax.persistence.*;
@@ -15,7 +16,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
+//@ToString
 @Table(name = "orders")
 public class Order extends BaseTime {
     @Id
@@ -62,5 +63,14 @@ public class Order extends BaseTime {
         order.setPos(pos);
         return order;
     }
-    
+
+    public void changeTotalPrice(int updatePrice) {
+        this.totalPrice += updatePrice;
+    }
+
+    public Order(OrderStatus orderStatus, PayMethod payMethod, int totalPrice) {
+        this.orderStatus = orderStatus;
+        this.payMethod = payMethod;
+        this.totalPrice = totalPrice;
+    }
 }
