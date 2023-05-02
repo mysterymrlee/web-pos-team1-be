@@ -14,9 +14,10 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
+@ToString
 @Table(name = "orders")
 public class Order extends BaseTime {
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "order_id")
@@ -50,9 +51,15 @@ public class Order extends BaseTime {
     @OneToMany(mappedBy = "order")
     private List<SettlementDay> settlementDayList = new ArrayList<>();
     @OneToMany(mappedBy = "order")
-    private List<OrderProduct> orderProductList = new ArrayList<>();
+    private List<Cart> orderProductList = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pos_id")
     private Pos pos;
+
+    public static Order createOrder(Pos pos) {
+        Order order = new Order();
+        order.setPos(pos);
+        return order;
+    }
 }
