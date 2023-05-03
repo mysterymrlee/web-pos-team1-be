@@ -16,7 +16,7 @@ import java.util.List;
 @ToString
 public class Product extends BaseTime {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_id")
     private Long id;
     @NotNull

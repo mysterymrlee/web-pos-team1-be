@@ -15,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 public class Event extends BaseTime {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "event_id")
     private Long id;
     private String name;

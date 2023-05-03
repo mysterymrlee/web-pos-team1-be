@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @Table(name = "coupon")
 public class Coupon extends BaseTime {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "coupon_id")
     private Long id;
     @NotNull

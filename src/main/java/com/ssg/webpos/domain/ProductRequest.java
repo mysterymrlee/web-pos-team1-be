@@ -14,7 +14,7 @@ import javax.validation.constraints.NotNull;
 // 상품 발주 신청
 public class ProductRequest {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_request_id")
     private Long id;
 

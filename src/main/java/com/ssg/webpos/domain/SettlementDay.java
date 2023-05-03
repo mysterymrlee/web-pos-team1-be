@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 public class SettlementDay extends BaseTime {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "settlement_day_id")
     private Long id;
 
@@ -28,16 +28,8 @@ public class SettlementDay extends BaseTime {
     private LocalDate settlementDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "branch_admin_id")
-    private BranchAdmin branchAdmin;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id")
     private Store store;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id")
-    private Order order;
 
     @CreatedDate
     @Column(updatable = false)

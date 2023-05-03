@@ -16,7 +16,7 @@ import java.util.List;
 @Builder
 public class Store extends BaseTime {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "store_id")
     private Long id;
     @NotNull
@@ -29,9 +29,6 @@ public class Store extends BaseTime {
     private int postCode;
     @NotNull
     private String address;
-
-    @OneToMany(mappedBy = "store")
-    private List<Order> orderList = new ArrayList<>();
 
     @OneToMany(mappedBy = "store")
     private List<SettlementDay> settlementDayList = new ArrayList<>();

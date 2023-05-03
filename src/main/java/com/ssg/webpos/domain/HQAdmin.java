@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class HQAdmin extends BaseTime {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "hq_admin_id")
     private Long id;
     @NotNull
