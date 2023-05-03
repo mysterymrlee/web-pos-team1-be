@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class BranchAdmin extends BaseTime {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "branch_admin_id")
     private Long id;
 

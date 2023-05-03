@@ -14,7 +14,7 @@ import javax.validation.constraints.NotNull;
 // 주말 재고 리포트
 public class StockReport extends BaseTime {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "stock_report_id")
     private Long id;
     private int saturdayStockQty;

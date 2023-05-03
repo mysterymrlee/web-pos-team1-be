@@ -13,7 +13,7 @@ import javax.validation.constraints.NotNull;
 @Table(name = "point_history")
 public class PointHistory extends BaseTime {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "point_history_id")
     private Long id;
     @NotNull
