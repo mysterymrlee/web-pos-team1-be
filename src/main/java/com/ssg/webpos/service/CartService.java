@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,14 +24,15 @@ public class CartService {
   private final CartRepository cartRepository;
   private final ProductRepository productRepository;
   private final PosRepository posRepository;
-  // 상품 주문하기
+
+  // 장바구니 담기
   @Transactional
   public void addCart(CartAddDTO cartAddDTO) {
     // pos id로 해당 pos의 order 찾기
     Order order = orderRepository.findByPosId(cartAddDTO.getPosId());
     Pos pos = posRepository.findById(cartAddDTO.getPosId()).get();
     // order가 존재하지 않는다면
-    if(order == null) {
+    if (order == null) {
       order = Order.createOrder(pos);
       order.setOrderStatus(OrderStatus.SUCCESS);
       order.setPayMethod(PayMethod.CREDIT_CARD);
@@ -42,13 +44,22 @@ public class CartService {
     Cart cart = cartRepository.findByOrderIdAndProductId(order.getId(), product.getId());
 
     // order에 상품이 존재하지 않는다면 orderProduct 생성 후 추가
-    if(cart == null) {
+    if (cart == null) {
       cart = Cart.createOrderProduct(order, product, cartAddDTO.getQty());
     } else {
       // 상품이 order에 이미 존재한다면 수량만 증가
       cart.addQty(cartAddDTO.getQty());
     }
-
     cartRepository.save(cart);
+  }
+  // 장바구니 상품 개별 삭제
+  @Transactional
+  public void delCart(Long cartId) {
+    Cart findCart = cartRepository.findById(cartId).get();
+    Order findOrder = orderRepository.findById(findCart.getOrder().getId()).get();
+    Product findProduct = findCart.getProduct();
+    findOrder.minusTotalPrice(findCart.getQty() * findProduct.getSalePrice());
+
+    cartRepository.deleteById(cartId);
   }
 }
