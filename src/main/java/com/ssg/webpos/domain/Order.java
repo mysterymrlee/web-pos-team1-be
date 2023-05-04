@@ -20,7 +20,7 @@ import java.util.List;
 @Table(name = "orders")
 public class Order extends BaseTime {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_id")
     private Long id;
     private LocalDateTime orderDate;
@@ -46,11 +46,7 @@ public class Order extends BaseTime {
     private Delivery delivery;
     @OneToMany(mappedBy = "order")
     private List<Coupon> couponList = new ArrayList<>();
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "store_id")
-    private Store store;
-    @OneToMany(mappedBy = "order")
-    private List<SettlementDay> settlementDayList = new ArrayList<>();
+
     @OneToMany(mappedBy = "order")
     private List<Cart> orderProductList = new ArrayList<>();
 

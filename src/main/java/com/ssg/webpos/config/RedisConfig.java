@@ -1,6 +1,6 @@
 package com.ssg.webpos.config;
 
-import com.ssg.webpos.dto.CartDto;
+import com.ssg.webpos.dto.CartAddDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.context.annotation.Bean;
@@ -9,6 +9,8 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+
+import java.util.List;
 
 @Configuration
 @Slf4j
@@ -31,8 +33,8 @@ public class RedisConfig {
   }
 
   @Bean
-  public RedisTemplate<String, CartDto> redisTemplate() {
-    RedisTemplate<String, CartDto> redisTemplate = new RedisTemplate<>();
+  public RedisTemplate<String, List<CartAddDTO>> redisTemplate() {
+    RedisTemplate<String, List<CartAddDTO>> redisTemplate = new RedisTemplate<>();
     redisTemplate.setConnectionFactory(redisConnectionFactory());
     return redisTemplate;
   }
