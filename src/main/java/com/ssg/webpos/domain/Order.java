@@ -73,4 +73,8 @@ public class Order extends BaseTime {
         this.payMethod = payMethod;
         this.totalPrice = totalPrice;
     }
+
+    public void minusTotalPrice(int updatePrice) {
+        this.totalPrice -= updatePrice;
+    }
 }

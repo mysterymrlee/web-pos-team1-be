@@ -1,11 +1,13 @@
 package com.ssg.webpos.dto;
 
-import com.ssg.webpos.domain.Order;
-import com.ssg.webpos.domain.Product;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
 
 @Data
-public class CartAddDTO {
+@NoArgsConstructor
+public class CartAddDTO implements Serializable {
   private Long posId;
   private Long productId;
   private int qty;

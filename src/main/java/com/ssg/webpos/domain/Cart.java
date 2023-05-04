@@ -12,10 +12,10 @@ import javax.persistence.*;
 @NoArgsConstructor
 public class Cart extends BaseTime {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "cart_id")
     private Long id;
-    
+
     private int qty; // 주문 수량
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -47,5 +47,13 @@ public class Cart extends BaseTime {
     public Cart(Product product, Order order) {
         this.product = product;
         this.order = order;
+    }
+
+    @Override
+    public String toString() {
+        return "Cart{" +
+            "id=" + id +
+            ", qty=" + qty +
+            '}';
     }
 }
