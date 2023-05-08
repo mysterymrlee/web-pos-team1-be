@@ -48,7 +48,7 @@ public class Order extends BaseTime {
     private List<Coupon> couponList = new ArrayList<>();
 
     @OneToMany(mappedBy = "order")
-    private List<Cart> orderProductList = new ArrayList<>();
+    private List<Cart> cartList = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pos_id")
@@ -72,5 +72,15 @@ public class Order extends BaseTime {
         this.orderStatus = orderStatus;
         this.payMethod = payMethod;
         this.totalPrice = totalPrice;
+    }
+
+    @Override
+    public String toString() {
+        return "Order{" +
+            "id=" + id +
+            ", orderStatus=" + orderStatus +
+            ", payMethod=" + payMethod +
+            ", totalQuantity=" + totalQuantity +
+            '}';
     }
 }
