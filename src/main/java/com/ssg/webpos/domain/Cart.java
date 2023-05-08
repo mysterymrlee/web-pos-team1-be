@@ -1,6 +1,8 @@
 package com.ssg.webpos.domain;
 
+import com.ssg.webpos.dto.CartAddDTO;
 import lombok.*;
+import org.aspectj.weaver.ast.Or;
 
 import javax.persistence.*;
 
@@ -41,7 +43,7 @@ public class Cart extends BaseTime {
 
     public void setOrder(Order order) {
         this.order = order;
-        order.getOrderProductList().add(this);
+        order.getCartList().add(this);
     }
 
     public Cart(Product product, Order order) {

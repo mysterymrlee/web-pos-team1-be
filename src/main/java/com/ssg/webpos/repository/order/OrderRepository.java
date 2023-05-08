@@ -1,6 +1,8 @@
 package com.ssg.webpos.repository.order;
 
 import com.ssg.webpos.domain.Order;
+import com.ssg.webpos.domain.Pos;
+import com.ssg.webpos.domain.enums.OrderStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 
