@@ -25,23 +25,23 @@ public class CartRedisImplRepository implements CartRedisRepository{
   @Override
   public void save(CartAddDTO cartAddDTO) {
     System.out.println("====CartRedisImplRepository.save 시작====");
-    System.out.println("before hashOperations.get(\"CART\", cartDto.getPosId()) = " + hashOperations.get("CART", String.valueOf(cartAddDTO.getPosId())));
+    System.out.println("before hashOperations.get(\"CART\", cartDto.getPosId()) = " + hashOperations.get("CART", String.valueOf(cartAddDTO.getPosStoreCompositeId())));
     System.out.println("cartDto = " + cartAddDTO);
 
     // 저장하기 위한 List<CartDto> 선언
     List<CartAddDTO> cartAddDTOList = null;
-    if (hashOperations.get("CART", String.valueOf(cartAddDTO.getPosId())) == null) {
+    if (hashOperations.get("CART", String.valueOf(cartAddDTO.getPosStoreCompositeId())) == null) {
       System.out.println("CartRedisImplRepository.save / if");
       cartAddDTOList = new ArrayList<>();
     } else {
       System.out.println("CartRedisImplRepository.save / else");
-      cartAddDTOList = (List<CartAddDTO>) hashOperations.get("CART", String.valueOf(cartAddDTO.getPosId()));
+      cartAddDTOList = (List<CartAddDTO>) hashOperations.get("CART", String.valueOf(cartAddDTO.getPosStoreCompositeId()));
     }
     // Redis에 List<CartDto> 저장
     cartAddDTOList.add(cartAddDTO);
-    hashOperations.put("CART", String.valueOf(cartAddDTO.getPosId()), cartAddDTOList);
+    hashOperations.put("CART", String.valueOf(cartAddDTO.getPosStoreCompositeId()), cartAddDTOList);
 
-    System.out.println("after hashOperations.get(\"CART\", cartDto.getPosId()) = " + hashOperations.get("CART", String.valueOf(cartAddDTO.getPosId())));
+    System.out.println("after hashOperations.get(\"CART\", cartDto.getPosId()) = " + hashOperations.get("CART", String.valueOf(cartAddDTO.getPosStoreCompositeId())));
     System.out.println("cartDto = " + cartAddDTO);
     System.out.println("====CartRedisImplRepository.save 끝====");
   }

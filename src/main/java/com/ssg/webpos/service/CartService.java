@@ -1,9 +1,6 @@
 package com.ssg.webpos.service;
 
-import com.ssg.webpos.domain.Order;
-import com.ssg.webpos.domain.Cart;
-import com.ssg.webpos.domain.Pos;
-import com.ssg.webpos.domain.Product;
+import com.ssg.webpos.domain.*;
 import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.domain.enums.PayMethod;
 import com.ssg.webpos.dto.CartAddDTO;
@@ -15,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,9 +24,13 @@ public class CartService {
   // 장바구니 담기
   @Transactional
   public void addCart(CartAddDTO cartAddDTO) {
-    // pos id로 해당 pos의 order 찾기
-    Order order = orderRepository.findByPosId(cartAddDTO.getPosId());
-    Pos pos = posRepository.findById(cartAddDTO.getPosId()).get();
+    // pos id로 해당 pos의 order 찾기(05.07 수정)
+    Order order = orderRepository.findByPosId(cartAddDTO.getPosStoreCompositeId());
+    PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
+    posStoreCompositeId.setPos_id(cartAddDTO.getPosStoreCompositeId().getPos_id());
+    posStoreCompositeId.setStore_id(cartAddDTO.getPosStoreCompositeId().getStore_id());
+    Pos pos = posRepository.findById(cartAddDTO.getPosStoreCompositeId()).get();
+
     // order가 존재하지 않는다면
     if (order == null) {
       order = Order.createOrder(pos);

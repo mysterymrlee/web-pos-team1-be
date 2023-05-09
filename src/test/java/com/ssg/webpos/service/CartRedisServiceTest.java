@@ -1,5 +1,6 @@
 package com.ssg.webpos.service;
 
+import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.dto.CartAddDTO;
 import com.ssg.webpos.repository.CartRedisImplRepository;
 import com.ssg.webpos.repository.cart.CartRepository;
@@ -46,8 +47,11 @@ class CartRedisServiceTest {
   void addCart() throws Exception {
     //given
     Long productId = productRepository.findById(1L).get().getId();
-    Long posId = posRepository.findById(1L).get().getId();
-    CartAddDTO cartAddDTO = new CartAddDTO(posId, productId, 2);
+    PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
+    posStoreCompositeId.setPos_id(1L);
+    posStoreCompositeId.setStore_id(1L);
+    PosStoreCompositeId posStoreCompositeId1 = posRepository.findById(posStoreCompositeId).get().getId();
+    CartAddDTO cartAddDTO = new CartAddDTO(posStoreCompositeId1, productId, 2);
 
     //when
     cartRedisService.addCart(cartAddDTO);
