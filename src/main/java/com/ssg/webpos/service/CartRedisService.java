@@ -7,13 +7,13 @@ import com.ssg.webpos.domain.Product;
 import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.domain.enums.PayMethod;
 import com.ssg.webpos.dto.CartAddDTO;
+import com.ssg.webpos.dto.PhoneNumberRequestDTO;
 import com.ssg.webpos.repository.CartRedisImplRepository;
 import com.ssg.webpos.repository.cart.CartRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
 import com.ssg.webpos.repository.pos.PosRepository;
 import com.ssg.webpos.repository.product.ProductRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -27,12 +27,13 @@ public class CartRedisService {
   private final PosRepository posRepository;
 
   private final CartRedisImplRepository cartRedisImplRepository;
+
   @Transactional
-  public void addCart(CartAddDTO cartAddDTO){
+  public void addCart(CartAddDTO cartAddDTO, PhoneNumberRequestDTO phoneNumberRequestDTO) {
 
     // pos id로 해당 pos의 order 찾기
     Order order = orderRepository.findByPosId(cartAddDTO.getPosId());
-    Pos pos = posRepository.findById(cartAddDTO.getPosId()).get();
+    Pos pos = posRepository.findById(cartAddDTO.getPosId()).orElseThrow(() -> new RuntimeException("Pos not found"));
     // order가 존재하지 않는다면
     if(order == null) {
       order = Order.createOrder(pos);
@@ -52,8 +53,8 @@ public class CartRedisService {
       // 상품이 order에 이미 존재한다면 수량만 증가
       cart.addQty(cartAddDTO.getQty());
     }
-    
-    cartRedisImplRepository.save(cartAddDTO);
-    System.out.println("cartAddDTO = " + cartAddDTO);
+    cartRepository.save(cart);
+    cartRedisImplRepository.save(cartAddDTO, phoneNumberRequestDTO);
+
   }
-}
+  }
