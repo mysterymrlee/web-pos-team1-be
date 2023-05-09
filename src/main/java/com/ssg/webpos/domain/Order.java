@@ -10,6 +10,7 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -23,6 +24,22 @@ public class Order extends BaseTime {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_id")
     private Long id;
+
+    // pos
+    @ManyToOne
+    @JoinColumns({
+            @JoinColumn(name = "pos_id", referencedColumnName = "pos_id"),
+            @JoinColumn(name = "store_id", referencedColumnName = "store_id")
+    })
+    private Pos pos;
+
+    @ManyToOne
+    @JoinColumns({
+            @JoinColumn(name = "pos_id", referencedColumnName = "pos_id"),
+            @JoinColumn(name = "store_id", referencedColumnName = "store_id")
+    })
+    private Store store;
+
     private LocalDateTime orderDate;
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -50,10 +67,6 @@ public class Order extends BaseTime {
     @OneToMany(mappedBy = "order")
     private List<Cart> cartList = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pos_id")
-    private Pos pos;
-
     public static Order createOrder(Pos pos) {
         Order order = new Order();
         order.setPos(pos);
@@ -77,10 +90,22 @@ public class Order extends BaseTime {
     @Override
     public String toString() {
         return "Order{" +
-            "id=" + id +
-            ", orderStatus=" + orderStatus +
-            ", payMethod=" + payMethod +
-            ", totalQuantity=" + totalQuantity +
-            '}';
+                "id=" + id +
+                ", orderStatus=" + orderStatus +
+                ", payMethod=" + payMethod +
+                ", totalQuantity=" + totalQuantity +
+                '}';
+    }
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Order)) return false;
+        Order order = (Order) o;
+        return Objects.equals(id, order.id) &&
+                Objects.equals(pos, order.pos);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, pos);
     }
 }

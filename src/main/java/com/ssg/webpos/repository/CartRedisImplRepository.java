@@ -44,7 +44,6 @@ public class CartRedisImplRepository implements CartRedisRepository{
     posData.put("point",point);
     System.out.println("posData = " + posData);
     hashOperations.put("CART", String.valueOf(cartAddDTO.getPosId()), posData);
-
   }
 
   @Override
