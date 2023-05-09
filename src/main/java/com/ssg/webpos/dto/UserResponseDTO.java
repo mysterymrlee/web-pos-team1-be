@@ -1,5 +1,5 @@
 package com.ssg.webpos.dto;
 
-public class UserResponseDto {
+public class UserResponseDTO {
 
 }
