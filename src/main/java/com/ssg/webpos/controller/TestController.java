@@ -19,15 +19,12 @@ public class TestController {
   @Autowired
   private CartRedisRepository cartRedisRepository;
 
-  @PostMapping
-  public void add(@RequestBody CartAddDTO cartAddDTO){
-    cartRedisRepository.save(cartAddDTO);
-  }
+//  @PostMapping
+//  public void add(@RequestBody CartAddDTO cartAddDTO){
+//    cartRedisRepository.save(cartAddDTO);
+//  }
 
-  @GetMapping
-  public Map<String, List<CartAddDTO>> all() throws Exception {
-    return cartRedisRepository.findAll();
-  }
+
 
 //  public List<CartDto> findAllCarts() throws Exception {
 //    Map<String, CartDto> all = cartRedisRepository.findAll();

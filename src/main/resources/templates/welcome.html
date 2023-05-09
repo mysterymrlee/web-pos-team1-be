@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+
+<!-- jQuery -->
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js" ></script>
+<!-- iamport.payment.js -->
+<script type="text/javascript" src="https://cdn.iamport.kr/js/iamport.payment-1.1.8.js"></script>
+<script>
+    function payment(pg_mid, payment_method){
+    IMP.init('imp65716835');
+    var pg_mid;
+    var amount = 500;
+<!--    var amount = parseInt(prompt("결제 금액을 입력하세요:"));-->
+
+    alert(pg_mid);
+
+    const data = {
+        pg: pg_mid,
+        pay_method: payment_method,
+        merchant_uid: 'cart_' + new Date().getTime(),
+        name: "고구마",
+        amount: amount,
+        buyer_tel : '010-1234-5678',
+        buyer_addr : '서울특별시 강남구 삼성동',
+        buyer_postcode : '123-456',
+        buyer_email: 'iamport@siot.do',
+        buyer_name: '구매자',
+        m_redirect_url : 'http://naver.com' //알리페이 m_redirect_url 필요
+    };
+
+    IMP.request_pay(data, response => {
+        alert('callback!:' + JSON.stringify(response));
+        jQuery.ajax({
+            url: "/payment/callback_receive",
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            data: JSON.stringify(response)
+        }).done(function(data) {
+            alert("Please, Check your payment result page!");
+        })
+    })
+
+
+}
+</script>
+<body>
+<div>
+    <button type="button" onClick = "payment('kakaopay', 'card')">카카오페이</button>
+    <button type="button" onClick = "payment('smilepay', 'card')">스마일페이</button>
+    <button type="button" onClick = "payment('kcp', 'card')">신용카드</button>
+
+<!--    <button type="button" onClick = "payment('INICIS', 'card')">신용카드</button>-->
+    <button type="button" onClick = "payment('alipay', 'card')">알리페이</button>
+
+</div>
+
+</body>
+</html>
