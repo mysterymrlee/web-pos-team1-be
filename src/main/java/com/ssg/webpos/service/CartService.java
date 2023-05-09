@@ -24,37 +24,7 @@ public class CartService {
   private final ProductRepository productRepository;
   private final PosRepository posRepository;
 
-  // 장바구니 담기 - Redis에 저장
-  @Transactional
-  public void addCart(CartAddDTO cartAddDTO) {
-    // pos id로 해당 pos의 order 찾기(05.07 수정)
-    Order order = orderRepository.findByPosId(cartAddDTO.getPosStoreCompositeId());
-    PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
-    posStoreCompositeId.setPos_id(cartAddDTO.getPosStoreCompositeId().getPos_id());
-    posStoreCompositeId.setStore_id(cartAddDTO.getPosStoreCompositeId().getStore_id());
-    Pos pos = posRepository.findById(cartAddDTO.getPosStoreCompositeId()).get();
 
-    // order가 존재하지 않는다면
-    if (order == null) {
-      order = Order.createOrder(pos);
-      order.setOrderStatus(OrderStatus.SUCCESS);
-      order.setPayMethod(PayMethod.CREDIT_CARD);
-      order.setTotalPrice(0);
-      orderRepository.save(order);
-    }
-    Product product = productRepository.findById(cartAddDTO.getProductId()).get();
-    order.changeTotalPrice(product.getSalePrice() * cartAddDTO.getQty());
-    Cart cart = cartRepository.findByOrderIdAndProductId(order.getId(), product.getId());
-
-    // order에 상품이 존재하지 않는다면 orderProduct 생성 후 추가
-    if (cart == null) {
-      cart = Cart.createOrderProduct(order, product, cartAddDTO.getQty());
-    } else {
-      // 상품이 order에 이미 존재한다면 수량만 증가
-      cart.addQty(cartAddDTO.getQty());
-    }
-    cartRepository.save(cart);
-  }
   // 장바구니 상품 개별 삭제
   @Transactional
   public void delCart(Long cartId) {
@@ -69,7 +39,7 @@ public class CartService {
   // 주문 생성 후 장바구니 상품들 주문에 추가 - DB에 저장
   @Transactional
   public Order addOrder(List<CartAddDTO> cartAddDTOList, CartAddDTO cartAddDTO, OrderDTO orderDTO) {
-    Pos pos = posRepository.findById(cartAddDTO.getPosId()).get();
+    Pos pos = posRepository.findById(cartAddDTO.getPosStoreCompositeId()).get();
     /* cartAddDTOList.get(0).getPosId(); */
 
     // 주문 생성
@@ -81,21 +51,37 @@ public class CartService {
     order.setPos(pos);
     List<Cart> cartList = order.getCartList();
 
-    for(CartAddDTO cDTO : cartAddDTOList) {
+    for (CartAddDTO cDTO : cartAddDTOList) {
       Product product = productRepository.findById(cDTO.getProductId()).get();
       if (product.getStock() < cDTO.getQty()) {
         throw new RuntimeException("재고가 부족합니다. 현재 재고 수 : " + product.getStock() + "개");
       }
-      product.minusStockQuantity(cDTO.getQty());
-
-      Cart cart = new Cart(product, order);
-      cart.setQty(cDTO.getQty());
-      cartList.add(cart);
-
-      cartRepository.save(cart);
+      int orderQty = cDTO.getQty();
+      // 장바구니에 담겨있는 상품이 있는지
+      Cart existingCart = cartList.stream()
+          .filter(cart -> cart.getProduct().equals(product))
+          .findFirst()
+          .orElse(null);
+      // 장바구니에 담겨있는 상품이 있으면 수량만 증가
+      if (existingCart != null) {
+        int currentQty = existingCart.getQty();
+        int newQty = currentQty + orderQty;
+        if (newQty > product.getStock()) {
+          throw new RuntimeException("재고가 부족합니다. 현재 재고 수 : " + product.getStock() + "개");
+        }
+        existingCart.setQty(newQty);
+      } else {
+        if (orderQty > product.getStock()) {
+          throw new RuntimeException("재고가 부족합니다. 현재 재고 수 : " + product.getStock() + "개");
+        }
+        Cart cart = new Cart(product, order);
+        cart.setQty(orderQty);
+        cartList.add(cart);
+      }
+      product.minusStockQuantity(orderQty);
+      cartRepository.saveAll(cartList);
     }
     orderRepository.save(order);
-
     return order;
   }
 
