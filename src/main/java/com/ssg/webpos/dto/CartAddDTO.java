@@ -1,5 +1,6 @@
 package com.ssg.webpos.dto;
 
+import com.ssg.webpos.domain.PosStoreCompositeId;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -10,12 +11,12 @@ import java.util.List;
 @NoArgsConstructor
 @ToString
 public class CartAddDTO implements Serializable {
-  private Long posId;
+  private PosStoreCompositeId posStoreCompositeId;
   private Long productId;
   private int qty;
 
-  public CartAddDTO(Long posId, Long productId, int qty) {
-    this.posId = posId;
+  public CartAddDTO(PosStoreCompositeId posStoreCompositeId, Long productId, int qty) {
+    this.posStoreCompositeId = posStoreCompositeId;
     this.productId = productId;
     this.qty = qty;
   }

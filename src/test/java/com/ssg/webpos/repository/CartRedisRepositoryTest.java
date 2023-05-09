@@ -181,8 +181,5 @@ public class CartRedisRepositoryTest {
 
     Assertions.assertTrue(allAfterDeletion.isEmpty());
   }
-
-
-
-  }
+}
 
