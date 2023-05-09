@@ -1,8 +1,6 @@
 package com.ssg.webpos.domain;
 
-import com.ssg.webpos.dto.CartAddDTO;
 import lombok.*;
-import org.aspectj.weaver.ast.Or;
 
 import javax.persistence.*;
 
