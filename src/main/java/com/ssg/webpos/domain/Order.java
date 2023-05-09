@@ -33,13 +33,6 @@ public class Order extends BaseTime {
     })
     private Pos pos;
 
-    @ManyToOne
-    @JoinColumns({
-            @JoinColumn(name = "pos_id", referencedColumnName = "pos_id"),
-            @JoinColumn(name = "store_id", referencedColumnName = "store_id")
-    })
-    private Store store;
-
     private LocalDateTime orderDate;
     @NotNull
     @Enumerated(EnumType.STRING)
