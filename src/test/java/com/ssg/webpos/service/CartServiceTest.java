@@ -40,11 +40,9 @@ public class CartServiceTest {
   StoreRepository storeRepository;
   @Autowired
   PosRepository posRepository;
-//  @Autowired
-//  RedisTemplate<String, Object> redisTemplate;
 
   @Test
-  void addCart() throws Exception {
+  void addCartTest() throws Exception {
     Long productId = productRepository.findById(10L).get().getId();
     Long posId = posRepository.findById(1L).get().getId();
     CartAddDTO cartAddDTO = new CartAddDTO(posId, productId, 1);
@@ -60,7 +58,7 @@ public class CartServiceTest {
 
   @Test
   @DisplayName("장바구니 삭제 후 주문테이블에서 totalPrice 반영테스트")
-  void delCart() {
+  void delCartTest() {
     Long orderId = 25L;
     Long cartId = 29L;
     Order beforeOrder = orderRepository.findById(orderId).get();
@@ -75,17 +73,18 @@ public class CartServiceTest {
 
     assertEquals(beforeTotalPrice - diffPrice, afterOrder.getTotalPrice());
   }
+
   @Test
-  void addOrder() {
+  void addOrderTest() {
     Long posId = 1L;
-    Long productId1 = 6L;
+    Long productId1 = 3L;
     Long productId2 = 6L;
     Long productId3 = 9L;
     List<CartAddDTO> cartAddDTOList = new ArrayList<>();
     // given
-    CartAddDTO cartAddDTO1 = new CartAddDTO(posId, productId1, 1);
-    CartAddDTO cartAddDTO2 = new CartAddDTO(posId, productId2, 1);
-    CartAddDTO cartAddDTO3 = new CartAddDTO(posId, productId3, 2);
+    CartAddDTO cartAddDTO1 = new CartAddDTO(posId, productId1, 5);
+    CartAddDTO cartAddDTO2 = new CartAddDTO(posId, productId2, 5);
+    CartAddDTO cartAddDTO3 = new CartAddDTO(posId, productId3, 10);
 
     cartAddDTOList.add(cartAddDTO1);
     cartAddDTOList.add(cartAddDTO2);
@@ -93,8 +92,7 @@ public class CartServiceTest {
     System.out.println("cartAddDTOList = " + cartAddDTOList);
     OrderDTO orderDTO = new OrderDTO();
 
-    int price = 0;
-    int qty = 0;
+    int price = 0, qty = 0;
     for (CartAddDTO cartAddDTO : cartAddDTOList) {
       Product product = productRepository.findById(cartAddDTO.getProductId()).get();
       price += cartAddDTO.getQty() * product.getSalePrice();
@@ -104,13 +102,118 @@ public class CartServiceTest {
     orderDTO.setFinalTotalPrice(price);
 
     // when
+    Product product1 = productRepository.findById(productId1).get();
+    int beforeStock1 = product1.getStock();
+    System.out.println("beforeStock1 = " + beforeStock1);
+
     Order savedOrder = cartService.addOrder(cartAddDTOList, cartAddDTO1, orderDTO);
+    System.out.println("savedOrder = " + savedOrder);
+
+    int afterStock1 = product1.getStock();
+    System.out.println("afterStock1 = " + afterStock1);
 
     // then
-    System.out.println("savedOrder = " + savedOrder);
     List<Cart> savedCarts = savedOrder.getCartList();
+    for(Cart cart : savedCarts) {
+      System.out.println("cart = " + cart);
+    }
     System.out.println("savedCarts = " + savedCarts);
-    assertEquals(4, savedOrder.getTotalQuantity());
+    int orderQty = savedCarts.get(0).getQty();
+    assertEquals(20, savedOrder.getTotalQuantity());
     assertEquals(3, savedCarts.size());
+    assertEquals(beforeStock1 - orderQty, afterStock1);
+  }
+
+  @Test
+  void cancelOrderTest() {
+    // beforeStock : 70, orderQty : 5, afterStock : 65
+    Long orderId = addOrder();
+    Order findOrder = orderRepository.findById(orderId).get();
+    System.out.println("findOrder = " + findOrder);
+    // 재고 수량 저장을 위한 리스트
+    List<Product> productList = new ArrayList<>();
+    List<Product> allProductList = productRepository.findAll();
+    List<Cart> cartList = findOrder.getCartList();
+
+    for (Cart cart : cartList) {
+      Product product = cart.getProduct();
+      System.out.println("product = " + product);
+      productList.add(product);
+    }
+    System.out.println("productList = " + productList);
+
+    Order cancelOrder = orderRepository.findById(orderId).get();
+
+    // 주문 취소로 인한 재고 수량 증가 확인
+    for (Product cartProduct : productList) {
+      int index = allProductList.indexOf(cartProduct);
+      Product findProduct = allProductList.get(index);
+      int beforeStock = findProduct.getStock();
+      System.out.println("beforeStock = " + beforeStock);
+      cartService.cancelOrder(orderId);
+      int canceledQty = (int) findOrder.getCartList().stream()
+          .filter(cart -> cart.getProduct().equals(cartProduct))
+          .mapToLong(Cart::getQty)
+          .sum();
+      System.out.println("canceledQty = " + canceledQty);
+
+      int expectedStock = beforeStock + canceledQty;
+      int actualStock = productRepository.findById(cartProduct.getId()).get().getStock();
+      System.out.println("expectedStock = " + expectedStock);
+      System.out.println("actualStock = " + actualStock);
+
+      assertEquals(OrderStatus.CANCEL, cancelOrder.getOrderStatus());
+      assertEquals(expectedStock, actualStock);
+    }
+  }
+
+  Long addOrder() {
+    Long posId = 1L;
+    Long productId1 = 3L;
+    Long productId2 = 6L;
+    Long productId3 = 9L;
+    List<CartAddDTO> cartAddDTOList = new ArrayList<>();
+    // given
+    CartAddDTO cartAddDTO1 = new CartAddDTO(posId, productId1, 5);
+    CartAddDTO cartAddDTO2 = new CartAddDTO(posId, productId2, 5);
+    CartAddDTO cartAddDTO3 = new CartAddDTO(posId, productId3, 10);
+
+    cartAddDTOList.add(cartAddDTO1);
+    cartAddDTOList.add(cartAddDTO2);
+    cartAddDTOList.add(cartAddDTO3);
+    System.out.println("cartAddDTOList = " + cartAddDTOList);
+    OrderDTO orderDTO = new OrderDTO();
+
+    int price = 0, qty = 0;
+    for (CartAddDTO cartAddDTO : cartAddDTOList) {
+      Product product = productRepository.findById(cartAddDTO.getProductId()).get();
+      price += cartAddDTO.getQty() * product.getSalePrice();
+      qty += cartAddDTO.getQty();
+    }
+    orderDTO.setTotalQuantity(qty);
+    orderDTO.setFinalTotalPrice(price);
+
+    // when
+    Product product1 = productRepository.findById(productId1).get();
+    int beforeStock1 = product1.getStock();
+    System.out.println("beforeStock1 = " + beforeStock1);
+
+    Order savedOrder = cartService.addOrder(cartAddDTOList, cartAddDTO1, orderDTO);
+    System.out.println("savedOrder = " + savedOrder);
+
+    int afterStock1 = product1.getStock();
+    System.out.println("afterStock1 = " + afterStock1);
+
+    // then
+    List<Cart> savedCarts = savedOrder.getCartList();
+    for(Cart cart : savedCarts) {
+      System.out.println("cart = " + cart);
+    }
+    System.out.println("savedCarts = " + savedCarts);
+    int orderQty = savedCarts.get(0).getQty();
+    assertEquals(20, savedOrder.getTotalQuantity());
+    assertEquals(3, savedCarts.size());
+    assertEquals(beforeStock1 - orderQty, afterStock1);
+    return savedOrder.getId();
   }
 }

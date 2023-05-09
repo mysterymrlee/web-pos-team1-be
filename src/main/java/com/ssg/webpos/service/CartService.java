@@ -70,6 +70,8 @@ public class CartService {
   @Transactional
   public Order addOrder(List<CartAddDTO> cartAddDTOList, CartAddDTO cartAddDTO, OrderDTO orderDTO) {
     Pos pos = posRepository.findById(cartAddDTO.getPosId()).get();
+    /* cartAddDTOList.get(0).getPosId(); */
+
     // 주문 생성
     Order order = new Order();
     System.out.println("order = " + order);
@@ -81,29 +83,35 @@ public class CartService {
 
     for(CartAddDTO cDTO : cartAddDTOList) {
       Product product = productRepository.findById(cDTO.getProductId()).get();
+      if (product.getStock() < cDTO.getQty()) {
+        throw new RuntimeException("재고가 부족합니다. 현재 재고 수 : " + product.getStock() + "개");
+      }
+      product.minusStockQuantity(cDTO.getQty());
+
       Cart cart = new Cart(product, order);
       cart.setQty(cDTO.getQty());
       cartList.add(cart);
+
       cartRepository.save(cart);
     }
     orderRepository.save(order);
 
-//    for (CartAddDTO cDTO : cartAddDTOList) {
-//      Product product = productRepository.findById(cDTO.getProductId()).get();
-//      // 이미 담겨있는 상품인 경우 수량만 더해줌
-//      Cart existCart = cartRepository.findByProductAndOrder(product, order);
-//      if (existCart != null) {
-//        existCart.addQty(cDTO.getQty());
-//        cartRepository.save(existCart);
-//      } else {
-//        Cart cart = new Cart(product, order);
-//        cart.setQty(cDTO.getQty());
-//        cartList.add(cart);
-//        cartRepository.save(cart);
-//      }
-//    }
-//    orderRepository.save(order);
-
     return order;
+  }
+
+  @Transactional
+  public void cancelOrder(Long orderId) {
+    Order order = orderRepository.findById(orderId).get();
+    order.setOrderStatus(OrderStatus.CANCEL);
+
+    // 재고 수량 증가
+    List<Cart> cartList = order.getCartList();
+    for (Cart cart : cartList) {
+      Product product = cart.getProduct();
+      int qty = cart.getQty();
+      product.plusStockQuantity(qty);
+    }
+
+    orderRepository.save(order);
   }
 }
