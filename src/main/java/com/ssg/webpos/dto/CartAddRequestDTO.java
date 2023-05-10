@@ -5,10 +5,9 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.util.List;
-
 @Data
 @NoArgsConstructor
 @ToString
-public class PhoneNumberRequestDTO {
-  private List<PhoneNumberDTO> phoneNumberList;
+public class CartAddRequestDTO {
+  private List<CartAddDTO> cartItemList;
 }

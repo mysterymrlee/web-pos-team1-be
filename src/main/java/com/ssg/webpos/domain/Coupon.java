@@ -39,4 +39,19 @@ public class Coupon extends BaseTime {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @Override
+    public String toString() {
+        return "Coupon{" +
+            "id=" + id +
+            ", serialNumber='" + serialNumber + '\'' +
+            ", name='" + name + '\'' +
+            ", content='" + content + '\'' +
+            ", deductedPrice=" + deductedPrice +
+            ", expiredDate=" + expiredDate +
+            ", couponStatus=" + couponStatus +
+            ", order=" + order +
+            ", user=" + user +
+            '}';
+    }
 }

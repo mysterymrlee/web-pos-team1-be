@@ -1,7 +1,7 @@
 package com.ssg.webpos.repository;
 
 import com.ssg.webpos.domain.User;
-import com.ssg.webpos.dto.PhoneNumberRequestDTO;
+import com.ssg.webpos.dto.PhoneNumberDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,11 +21,11 @@ class UserRepositoryTest {
   @Transactional
   @Test
   void 전화번호일치() {
-    PhoneNumberRequestDTO phoneNumberRequestDto = new PhoneNumberRequestDTO();
-    phoneNumberRequestDto.setPhoneNumber("01022223333");
+    PhoneNumberDTO phoneNumberDto = new PhoneNumberDTO();
+    phoneNumberDto.setPhoneNumber("01022223333");
 
     // when
-    Optional<User> findUser = userRepository.findByPhoneNumber(phoneNumberRequestDto.getPhoneNumber());
+    Optional<User> findUser = userRepository.findByPhoneNumber(phoneNumberDto.getPhoneNumber());
     System.out.println("findUser = " + findUser);
 
     // then
@@ -36,11 +36,11 @@ class UserRepositoryTest {
   @Test
   void 전화번호불일치() {
     //given
-    PhoneNumberRequestDTO phoneNumberRequestDto = new PhoneNumberRequestDTO();
-    phoneNumberRequestDto.setPhoneNumber("01011112226");
+    PhoneNumberDTO phoneNumberDto = new PhoneNumberDTO();
+    phoneNumberDto.setPhoneNumber("01011112226");
 
     // when
-    Optional<User> findUser = userRepository.findByPhoneNumber(phoneNumberRequestDto.getPhoneNumber());
+    Optional<User> findUser = userRepository.findByPhoneNumber(phoneNumberDto.getPhoneNumber());
     System.out.println("findUser = " + findUser);
 
     // then

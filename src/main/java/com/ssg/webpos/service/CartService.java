@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -42,15 +41,15 @@ public class CartService {
       orderRepository.save(order);
     }
     Product product = productRepository.findById(cartAddDTO.getProductId()).get();
-    order.changeTotalPrice(product.getSalePrice() * cartAddDTO.getQty());
+    order.changeTotalPrice(product.getSalePrice() * cartAddDTO.getCartQty());
     Cart cart = cartRepository.findByOrderIdAndProductId(order.getId(), product.getId());
 
     // order에 상품이 존재하지 않는다면 orderProduct 생성 후 추가
     if (cart == null) {
-      cart = Cart.createOrderProduct(order, product, cartAddDTO.getQty());
+      cart = Cart.createOrderProduct(order, product, cartAddDTO.getCartQty());
     } else {
       // 상품이 order에 이미 존재한다면 수량만 증가
-      cart.addQty(cartAddDTO.getQty());
+      cart.addQty(cartAddDTO.getCartQty());
     }
     cartRepository.save(cart);
   }
@@ -81,7 +80,7 @@ public class CartService {
     for(CartAddDTO cDTO : cartAddDTOList) {
       Product product = productRepository.findById(cDTO.getProductId()).get();
       Cart cart = new Cart(product, order);
-      cart.setQty(cDTO.getQty());
+      cart.setQty(cDTO.getCartQty());
       cartList.add(cart);
       cartRepository.save(cart);
     }
