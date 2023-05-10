@@ -24,6 +24,7 @@ public class Order extends BaseTime {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_id")
     private Long id;
+    private String serialNumber;
 
     // pos
     @ManyToOne
