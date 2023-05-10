@@ -84,6 +84,7 @@ public class CartServiceTest {
     cartAddDTOList.add(cartAddDTO3);
     System.out.println("cartAddDTOList = " + cartAddDTOList);
     OrderDTO orderDTO = new OrderDTO();
+    orderDTO.setOrderDate(LocalDateTime.now());
 
     int price = 0, qty = 0;
     for (CartAddDTO cartAddDTO : cartAddDTOList) {
@@ -207,6 +208,7 @@ public class CartServiceTest {
     cartAddDTOList.add(cartAddDTO3);
     System.out.println("cartAddDTOList = " + cartAddDTOList);
     OrderDTO orderDTO = new OrderDTO();
+    orderDTO.setOrderDate(LocalDateTime.now());
 
     int price = 0, qty = 0;
     for (CartAddDTO cartAddDTO : cartAddDTOList) {
