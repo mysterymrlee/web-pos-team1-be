@@ -1,5 +1,6 @@
 package com.ssg.webpos.repository;
 
+import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.dto.CartAddDTO;
 import com.ssg.webpos.dto.PhoneNumberRequestDTO;
 import org.springframework.data.redis.core.HashOperations;
@@ -25,7 +26,11 @@ public class CartRedisImplRepository implements CartRedisRepository{
   }
 
   public void save(CartAddDTO cartAddDTO, PhoneNumberRequestDTO phoneNumberRequestDTO) {
-    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", String.valueOf(cartAddDTO.getPosId()));
+    PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
+    posStoreCompositeId.setPos_id(cartAddDTO.getPosStoreCompositeId().getPos_id());
+    posStoreCompositeId.setStore_id(cartAddDTO.getPosStoreCompositeId().getStore_id());
+
+    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", String.valueOf(cartAddDTO.getPosStoreCompositeId()));
     if (posData == null) {
       posData = new HashMap<>();
     }
@@ -43,7 +48,7 @@ public class CartRedisImplRepository implements CartRedisRepository{
     posData.put("cart", cartList);
     posData.put("point",point);
     System.out.println("posData = " + posData);
-    hashOperations.put("CART", String.valueOf(cartAddDTO.getPosId()), posData);
+    hashOperations.put("CART", String.valueOf(cartAddDTO.getPosStoreCompositeId()), posData);
   }
 
   @Override
@@ -82,7 +87,7 @@ public class CartRedisImplRepository implements CartRedisRepository{
 
   @Override
   public void update(CartAddDTO cartAddDTO, PhoneNumberRequestDTO phoneNumberRequestDTO) {
-    hashOperations.put("CART", String.valueOf(cartAddDTO.getPosId()), null);
+    hashOperations.put("CART", String.valueOf(cartAddDTO.getPosStoreCompositeId()), null);
     save(cartAddDTO, phoneNumberRequestDTO);
   }
 
