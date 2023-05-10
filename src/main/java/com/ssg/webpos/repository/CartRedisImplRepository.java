@@ -2,7 +2,7 @@ package com.ssg.webpos.repository;
 
 import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.dto.CartAddDTO;
-import com.ssg.webpos.dto.PhoneNumberRequestDTO;
+import com.ssg.webpos.dto.PhoneNumberDTO;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -25,10 +25,12 @@ public class CartRedisImplRepository implements CartRedisRepository{
     this.hashOperations = redisTemplate.opsForHash();
   }
 
-  public void save(CartAddDTO cartAddDTO, PhoneNumberRequestDTO phoneNumberRequestDTO) {
+
+  public void saveCart (CartAddDTO cartAddDTO) {
     PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
     posStoreCompositeId.setPos_id(cartAddDTO.getPosStoreCompositeId().getPos_id());
     posStoreCompositeId.setStore_id(cartAddDTO.getPosStoreCompositeId().getStore_id());
+
 
     Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", String.valueOf(cartAddDTO.getPosStoreCompositeId()));
     if (posData == null) {
@@ -36,19 +38,34 @@ public class CartRedisImplRepository implements CartRedisRepository{
     }
 
     List<Object> cartList = posData.get("cart");
-    List<Object> point = posData.get("point");
+
     if (cartList == null) {
       cartList = new ArrayList<>();
     }
-    if(point == null){
-      point = new ArrayList<>();
-    }
+
     cartList.add(cartAddDTO);
-    point.add(phoneNumberRequestDTO);
     posData.put("cart", cartList);
-    posData.put("point",point);
     System.out.println("posData = " + posData);
     hashOperations.put("CART", String.valueOf(cartAddDTO.getPosStoreCompositeId()), posData);
+  }
+
+  @Override
+  public void savePoint(PhoneNumberDTO phoneNumberDTO) {
+    String posId = String.valueOf(phoneNumberDTO.getPosStoreCompositeId().getPos_id());
+    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", posId);
+    if (posData == null) {
+      posData = new HashMap<>();
+      hashOperations.put("CART", posId, posData);
+    }
+
+    List<Object> point = posData.get("point");
+    if (point == null) {
+      point = new ArrayList<>();
+      posData.put("point", point);
+    }
+
+    point.add(phoneNumberDTO);
+    hashOperations.put("CART", posId, posData);
   }
 
   @Override
@@ -76,8 +93,8 @@ public class CartRedisImplRepository implements CartRedisRepository{
       if (posData != null) {
         List<Object> pointList = posData.get("point");
         if (pointList != null && !pointList.isEmpty()) {
-          PhoneNumberRequestDTO phoneNumberRequestDTO = (PhoneNumberRequestDTO) pointList.get(0);
-          phoneNumbers.add(phoneNumberRequestDTO.getPhoneNumber());
+          PhoneNumberDTO phoneNumberDTO = (PhoneNumberDTO) pointList.get(0);
+          phoneNumbers.add(phoneNumberDTO.getPhoneNumber());
         }
       }
     }
@@ -86,9 +103,9 @@ public class CartRedisImplRepository implements CartRedisRepository{
   }
 
   @Override
-  public void update(CartAddDTO cartAddDTO, PhoneNumberRequestDTO phoneNumberRequestDTO) {
-    hashOperations.put("CART", String.valueOf(cartAddDTO.getPosStoreCompositeId()), null);
-    save(cartAddDTO, phoneNumberRequestDTO);
+  public void updatePoint(PhoneNumberDTO phoneNumberDTO) {
+    hashOperations.put("CART", String.valueOf(phoneNumberDTO.getPosStoreCompositeId()), null);
+    savePoint(phoneNumberDTO);
   }
 
   @Override

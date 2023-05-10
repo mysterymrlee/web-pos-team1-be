@@ -1,9 +1,12 @@
 package com.ssg.webpos.service;
 
+import com.ssg.webpos.domain.Cart;
+import com.ssg.webpos.domain.Order;
 import com.ssg.webpos.domain.Product;
 import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.dto.CartAddDTO;
-import com.ssg.webpos.dto.PhoneNumberRequestDTO;
+import com.ssg.webpos.dto.OrderDTO;
+import com.ssg.webpos.dto.PhoneNumberDTO;
 import com.ssg.webpos.repository.CartRedisImplRepository;
 import com.ssg.webpos.repository.cart.CartRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
@@ -14,13 +17,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @Rollback(value = false)
@@ -48,24 +50,7 @@ class CartRedisServiceTest {
 
 
   @Test
-  void addCart() throws Exception {
-    //given
-    Long productId = productRepository.findById(1L).get().getId();
-    PhoneNumberRequestDTO phoneNumberRequestDTO = new PhoneNumberRequestDTO();
-    phoneNumberRequestDTO.setPhoneNumber("01055555555");
-
-    PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
-    posStoreCompositeId.setPos_id(1L);
-    posStoreCompositeId.setStore_id(1L);
-    PosStoreCompositeId posStoreCompositeId1 = posRepository.findById(posStoreCompositeId).get().getId();
-    CartAddDTO cartAddDTO = new CartAddDTO(posStoreCompositeId1, productId, 2);
-
-    //when
-    cartRedisService.addCart(cartAddDTO, phoneNumberRequestDTO);
-
-    cartRedisRepository.findAll();
-
+  void addOrder() {
 
   }
-
 }

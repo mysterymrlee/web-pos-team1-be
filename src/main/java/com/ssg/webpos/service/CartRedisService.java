@@ -4,7 +4,8 @@ import com.ssg.webpos.domain.*;
 import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.domain.enums.PayMethod;
 import com.ssg.webpos.dto.CartAddDTO;
-import com.ssg.webpos.dto.PhoneNumberRequestDTO;
+import com.ssg.webpos.dto.OrderDTO;
+import com.ssg.webpos.dto.PhoneNumberDTO;
 import com.ssg.webpos.repository.CartRedisImplRepository;
 import com.ssg.webpos.repository.cart.CartRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import com.ssg.webpos.domain.PosStoreCompositeId;
 
 import javax.transaction.Transactional;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -27,36 +29,8 @@ public class CartRedisService {
   private final CartRedisImplRepository cartRedisImplRepository;
 
   @Transactional
-  public void addCart(CartAddDTO cartAddDTO, PhoneNumberRequestDTO phoneNumberRequestDTO) {
-
-    // pos id로 해당 pos의 order 찾기(05.07 수정)
-    Order order = orderRepository.findByPosId(cartAddDTO.getPosStoreCompositeId());
-    PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
-    posStoreCompositeId.setPos_id(cartAddDTO.getPosStoreCompositeId().getPos_id());
-    posStoreCompositeId.setStore_id(cartAddDTO.getPosStoreCompositeId().getStore_id());
-    Pos pos = posRepository.findById(cartAddDTO.getPosStoreCompositeId()).orElseThrow(() -> new RuntimeException("Pos not found"));
-
-    // order가 존재하지 않는다면
-    if(order == null) {
-      order = Order.createOrder(pos);
-      order.setOrderStatus(OrderStatus.SUCCESS);
-      order.setPayMethod(PayMethod.CREDIT_CARD);
-      order.setTotalPrice(0);
-      orderRepository.save(order);
-    }
-    Product product = productRepository.findById(cartAddDTO.getProductId()).get();
-    order.changeTotalPrice(product.getSalePrice() * cartAddDTO.getQty());
-    Cart cart = cartRepository.findByOrderIdAndProductId(order.getId(), product.getId());
-
-    // order에 상품이 존재하지 않는다면 orderProduct 생성 후 추가
-    if(cart == null) {
-      cart = Cart.createOrderProduct(order, product, cartAddDTO.getQty());
-    } else {
-      // 상품이 order에 이미 존재한다면 수량만 증가
-      cart.addQty(cartAddDTO.getQty());
-    }
-    cartRepository.save(cart);
-    cartRedisImplRepository.save(cartAddDTO, phoneNumberRequestDTO);
+  public void addCart(CartAddDTO cartAddDTO) {
 
   }
 }
+

@@ -43,4 +43,5 @@ public class PosStoreCompositeId implements Serializable {
     public void setStore_id(Long store_id) {
         this.store_id = store_id;
     }
+
 }
