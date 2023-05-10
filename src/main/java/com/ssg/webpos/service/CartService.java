@@ -67,10 +67,10 @@ public class CartService {
 
     for (CartAddDTO cDTO : cartAddDTOList) {
       Product product = productRepository.findById(cDTO.getProductId()).get();
-      if (product.getStock() < cDTO.getQty()) {
+      if (product.getStock() < cDTO.getCartQty()) {
         throw new RuntimeException("재고가 부족합니다. 현재 재고 수 : " + product.getStock() + "개");
       }
-      int orderQty = cDTO.getQty();
+      int orderQty = cDTO.getCartQty();
       // 장바구니에 담겨있는 상품이 있는지
       Cart existingCart = cartList.stream()
           .filter(cart -> cart.getProduct().equals(product))

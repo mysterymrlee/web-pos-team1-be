@@ -2,7 +2,6 @@ package com.ssg.webpos.service;
 
 import com.ssg.webpos.domain.*;
 import com.ssg.webpos.domain.enums.OrderStatus;
-import com.ssg.webpos.domain.enums.PayMethod;
 import com.ssg.webpos.dto.CartAddDTO;
 import com.ssg.webpos.dto.OrderDTO;
 import com.ssg.webpos.repository.cart.CartRepository;
@@ -10,19 +9,15 @@ import com.ssg.webpos.repository.order.OrderRepository;
 import com.ssg.webpos.repository.pos.PosRepository;
 import com.ssg.webpos.repository.product.ProductRepository;
 import com.ssg.webpos.repository.store.StoreRepository;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -88,8 +83,8 @@ public class CartServiceTest {
     int price = 0, qty = 0;
     for (CartAddDTO cartAddDTO : cartAddDTOList) {
       Product product = productRepository.findById(cartAddDTO.getProductId()).get();
-      price += cartAddDTO.getQty() * product.getSalePrice();
-      qty += cartAddDTO.getQty();
+      price += cartAddDTO.getCartQty() * product.getSalePrice();
+      qty += cartAddDTO.getCartQty();
     }
     orderDTO.setTotalQuantity(qty);
     orderDTO.setFinalTotalPrice(price);
@@ -211,8 +206,8 @@ public class CartServiceTest {
     int price = 0, qty = 0;
     for (CartAddDTO cartAddDTO : cartAddDTOList) {
       Product product = productRepository.findById(cartAddDTO.getProductId()).get();
-      price += cartAddDTO.getQty() * product.getSalePrice();
-      qty += cartAddDTO.getQty();
+      price += cartAddDTO.getCartQty() * product.getSalePrice();
+      qty += cartAddDTO.getCartQty();
     }
     orderDTO.setTotalQuantity(qty);
     orderDTO.setFinalTotalPrice(price);

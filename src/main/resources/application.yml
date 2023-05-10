@@ -2,6 +2,7 @@ spring:
   profiles:
     include:
       - db
+      - import
   jpa:
     hibernate:
       ddl-auto: update

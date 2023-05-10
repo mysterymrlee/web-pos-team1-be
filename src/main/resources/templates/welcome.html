@@ -14,10 +14,9 @@
     function payment(pg_mid, payment_method){
     IMP.init('imp65716835');
     var pg_mid;
-    var amount = 500;
-<!--    var amount = parseInt(prompt("결제 금액을 입력하세요:"));-->
+    var amount = 1000;
 
-    alert(pg_mid);
+
 
     const data = {
         pg: pg_mid,
@@ -25,12 +24,7 @@
         merchant_uid: 'cart_' + new Date().getTime(),
         name: "고구마",
         amount: amount,
-        buyer_tel : '010-1234-5678',
-        buyer_addr : '서울특별시 강남구 삼성동',
-        buyer_postcode : '123-456',
-        buyer_email: 'iamport@siot.do',
-        buyer_name: '구매자',
-        m_redirect_url : 'http://naver.com' //알리페이 m_redirect_url 필요
+        m_redirect_url : 'http://naver.com' //알리페이 m_redirect_url 필요. 결제 완료 후 리디렉션 될 URL
     };
 
     IMP.request_pay(data, response => {
@@ -53,8 +47,6 @@
     <button type="button" onClick = "payment('kakaopay', 'card')">카카오페이</button>
     <button type="button" onClick = "payment('smilepay', 'card')">스마일페이</button>
     <button type="button" onClick = "payment('kcp', 'card')">신용카드</button>
-
-<!--    <button type="button" onClick = "payment('INICIS', 'card')">신용카드</button>-->
     <button type="button" onClick = "payment('alipay', 'card')">알리페이</button>
 
 </div>
