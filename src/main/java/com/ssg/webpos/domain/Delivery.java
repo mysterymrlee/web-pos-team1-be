@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @Table(name = "delivery")
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class Delivery extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,5 +47,4 @@ public class Delivery extends BaseTime {
 
     @OneToOne(mappedBy = "delivery")
     private Order order;
-
 }
