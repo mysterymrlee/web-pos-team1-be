@@ -18,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -138,7 +139,7 @@ public class CartServiceTest {
     System.out.println("savedCart2 = " + savedCart2);
     assertEquals(productId3, savedCart2.getProduct().getId());
     assertEquals(10, savedCart2.getQty());
-    int expectedStock2 = beforeStock2 - savedCart2.getQty();
+    int expectedStock2 = beforeStock3 - savedCart2.getQty();
     System.out.println("expectedStock2 = " + expectedStock2);
     int actualStock2 = productRepository.findById(productId3).get().getStock();
     assertEquals(expectedStock2, actualStock2);

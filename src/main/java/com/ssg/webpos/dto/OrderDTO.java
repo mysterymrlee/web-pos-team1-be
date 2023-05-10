@@ -15,6 +15,7 @@ public class OrderDTO {
   private LocalDateTime orderDate;
   private OrderStatus orderStatus;
   private PayMethod payMethod;
+  private String serialNumber;
   private int totalPrice;
   private int totalQuantity;
   private int finalTotalPrice;
