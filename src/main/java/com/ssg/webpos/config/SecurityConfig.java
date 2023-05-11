@@ -18,7 +18,8 @@ public class SecurityConfig {
     private static final String[] PERMIT_URL = {
             "/api/v1/branchadmin-staff/join", "/api/v1/branchadmin-staff/login",
             "/api/v1/branchadmin-manager/join", "/api/v1/branchadmin-manage/login",
-            "/api/v1/hqadmin/join", "/api/v1/hqadmin/login"
+            "/api/v1/hqadmin/join", "/api/v1/hqadmin/login",
+            "/api/v1/manager/settlement-day/**"
     };
 
     @Bean
