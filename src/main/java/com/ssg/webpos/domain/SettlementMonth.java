@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @Table(name = "settlement_month")
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString(of = {"id", "settlementPrice", "settlementDate"})
 @EntityListeners(AuditingEntityListener.class)
 public class SettlementMonth {
     @Id

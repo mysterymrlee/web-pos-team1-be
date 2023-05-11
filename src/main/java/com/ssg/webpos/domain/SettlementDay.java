@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "settlement_day")
+@ToString(of = {"id", "settlementPrice", "settlementDate", "createdDate"}) //출력할 필드 지정. store는 출렭되지 않음
 @EntityListeners(AuditingEntityListener.class)
 public class SettlementDay extends BaseTime {
     @Id
