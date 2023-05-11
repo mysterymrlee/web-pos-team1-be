@@ -1,10 +1,8 @@
 package com.ssg.webpos.service;
 
 import com.ssg.webpos.domain.Delivery;
-import com.ssg.webpos.domain.enums.DeliveryStatus;
-import com.ssg.webpos.domain.enums.DeliveryType;
 import com.ssg.webpos.dto.DeliveryDTO;
-import com.ssg.webpos.repository.DeliveryRepository;
+import com.ssg.webpos.repository.delivery.DeliveryRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

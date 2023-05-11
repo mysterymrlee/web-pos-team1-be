@@ -1,4 +1,4 @@
-package com.ssg.webpos.repository;
+package com.ssg.webpos.repository.delivery;
 
 import com.ssg.webpos.domain.Delivery;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -2,7 +2,7 @@ package com.ssg.webpos.controller;
 
 import com.ssg.webpos.domain.Delivery;
 import com.ssg.webpos.dto.DeliveryDTO;
-import com.ssg.webpos.repository.DeliveryRepository;
+import com.ssg.webpos.repository.delivery.DeliveryRepository;
 import com.ssg.webpos.service.DeliveryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,13 +20,13 @@ public class DeliveryController {
   DeliveryRepository deliveryRepository;
 
   @GetMapping("")
-  public ResponseEntity checkDelivery() {
+  public ResponseEntity getDeliveryInfo() {
     List<Delivery> all = deliveryRepository.findAll();
     return new ResponseEntity(all, HttpStatus.OK);
   }
 
   @PostMapping
-  public ResponseEntity add(@RequestBody DeliveryDTO deliveryDTO) {
+  public ResponseEntity addDeliveryInfo(@RequestBody DeliveryDTO deliveryDTO) {
     deliveryService.addDeliveryAddress(deliveryDTO);
     return new ResponseEntity(HttpStatus.OK);
   }

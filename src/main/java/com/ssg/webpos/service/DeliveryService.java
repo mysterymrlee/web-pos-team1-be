@@ -4,7 +4,7 @@ import com.ssg.webpos.domain.Delivery;
 import com.ssg.webpos.domain.enums.DeliveryStatus;
 import com.ssg.webpos.domain.enums.DeliveryType;
 import com.ssg.webpos.dto.DeliveryDTO;
-import com.ssg.webpos.repository.DeliveryRepository;
+import com.ssg.webpos.repository.delivery.DeliveryRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
