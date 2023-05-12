@@ -27,6 +27,7 @@ public class Product extends BaseTime {
   private int salePrice; // 판매가
   private String imageUrl;
   private String description;
+  private String category;
   @NotNull
   @Column(columnDefinition = "integer default 0")
   private int stock;
