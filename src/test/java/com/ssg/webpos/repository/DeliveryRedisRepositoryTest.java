@@ -1,6 +1,5 @@
 package com.ssg.webpos.repository;
 
-import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.domain.enums.DeliveryType;
 import com.ssg.webpos.dto.DeliveryAddDTO;
 import com.ssg.webpos.repository.delivery.DeliveryRedisImplRepository;
@@ -17,20 +16,26 @@ import java.util.Map;
 public class DeliveryRedisRepositoryTest {
   @Autowired
   DeliveryRedisImplRepository deliveryRedisImplRepository;
+  @Test
+  @DisplayName("redis에 저장된 배송지 목록 전체 조회")
+  public void read() throws Exception {
+    Map<String, Map<String, List<Object>>> redis = deliveryRedisImplRepository.findAll();
+    System.out.println("redis = " + redis);
+  }
 
   @Test
   @DisplayName("posId로 해당 배송 정보 redis 정보 가져오기")
   public void readDeliveryInfoFromRedisWithPosId() throws Exception {
-    PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
-    posStoreCompositeId.setPos_id(1L);
-    posStoreCompositeId.setStore_id(1L);
-    System.out.println("posStoreCompositeId = " + posStoreCompositeId);
+    DeliveryAddDTO deliveryAddDTO = new DeliveryAddDTO();
+    deliveryAddDTO.setStoreId(1L);
+    deliveryAddDTO.setPosId(1L);
     //given
     DeliveryAddDTO deliveryDTO1 = DeliveryAddDTO.builder()
-        .posStoreCompositeId(posStoreCompositeId)
+        .posId(deliveryAddDTO.getPosId())
+        .storeId(deliveryAddDTO.getStoreId())
         .deliveryName("home")
-        .userName("김진아")
-        .address("부산광역시 부산진구")
+        .userName("김진아4")
+        .address("부산광역시 부산진구4")
         .phoneNumber("01011113333")
         .requestFinishedAt("2023-05-12T12:34:56")
         .requestInfo("문 앞에 두고 가세요.")
@@ -39,7 +44,7 @@ public class DeliveryRedisRepositoryTest {
 
     System.out.println("deliveryDTO1 = " + deliveryDTO1);
     // when
-    deliveryRedisImplRepository.save(deliveryDTO1);
+    deliveryRedisImplRepository.saveDelivery(deliveryDTO1);
 
     Map<String, Map<String, List<Object>>> findDeliveryRedisImpl = deliveryRedisImplRepository.findAll();
     System.out.println("deliveryDTOList = " + findDeliveryRedisImpl);
