@@ -10,12 +10,12 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Getter
 @Setter
-public class SettlementDayReportDTO {
-    private Long settlementDayId;
+public class SettlementMonthReportDTO {
+    private Long settlementMontnId;
     private int settlementPrice;
-    private LocalDate settlementDate;
-
+    private String settlementDate; //yyyy-mm 형식으로 변환하기 위해 LocalDate에서 String으로 변환
     private Long storeId;
+
     private String storeName;
     private LocalDateTime createdDate;
 }

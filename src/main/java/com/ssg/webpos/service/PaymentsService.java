@@ -45,6 +45,7 @@ public class PaymentsService {
         System.out.println("--------------");
         System.out.println("success = " + success);
 
+
         if (success) { // 결제 성공
           IamportClient ic = new IamportClient(api_key, api_secret);
           IamportResponse<Payment> response = ic.paymentByImpUid(impUid);
@@ -56,6 +57,7 @@ public class PaymentsService {
           System.out.println("name = " + name);
           System.out.println("merchantUid = " + merchantUid);
           System.out.println("impUid1 = " + impUid1);
+
 
           Order order = new Order();
           order.setFinalTotalPrice(final_price);
