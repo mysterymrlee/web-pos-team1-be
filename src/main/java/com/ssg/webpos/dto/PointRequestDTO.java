@@ -1,18 +1,18 @@
 package com.ssg.webpos.dto;
 
+import com.ssg.webpos.domain.PosStoreCompositeId;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import javax.validation.constraints.NotEmpty;
-import java.util.List;
 @Data
 @NoArgsConstructor
 @ToString
-public class CartAddRequestDTO {
+public class PointRequestDTO {
   private Long posId;
   private Long storeId;
-  private int totalPrice;
-  @NotEmpty
-  private List<CartAddDTO> cartItemList;
+
+  private String pointMethod;
+  private String phoneNumber;
+
 }

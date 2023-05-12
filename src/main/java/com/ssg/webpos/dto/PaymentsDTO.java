@@ -17,5 +17,6 @@ public class PaymentsDTO {
   private boolean success; // 결제 성공 여부
   private String error_msg; // 실패 시 에러 메시지
   private String imp_uid;
+  private String merchant_uid;
 
 }
