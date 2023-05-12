@@ -1,7 +1,8 @@
 package com.ssg.webpos.controller;
 
 import com.ssg.webpos.domain.Delivery;
-import com.ssg.webpos.dto.DeliveryDTO;
+import com.ssg.webpos.dto.DeliveryAddDTO;
+import com.ssg.webpos.repository.delivery.DeliveryRedisRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRepository;
 import com.ssg.webpos.service.DeliveryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,8 @@ public class DeliveryController {
   DeliveryService deliveryService;
   @Autowired
   DeliveryRepository deliveryRepository;
+  @Autowired
+  DeliveryRedisRepository deliveryRedisRepository;
 
   @GetMapping("")
   public ResponseEntity getDeliveryInfo() {
@@ -25,9 +28,10 @@ public class DeliveryController {
     return new ResponseEntity(all, HttpStatus.OK);
   }
 
-  @PostMapping
-  public ResponseEntity addDeliveryInfo(@RequestBody DeliveryDTO deliveryDTO) {
-    deliveryService.addDeliveryAddress(deliveryDTO);
-    return new ResponseEntity(HttpStatus.OK);
+  @PostMapping("/add")
+  public ResponseEntity addDeliveryInfo(@RequestBody DeliveryAddDTO deliveryDTO) {
+    //deliveryService.addDeliveryAddress(deliveryDTO);
+    deliveryRedisRepository.save(deliveryDTO);
+    return new ResponseEntity(HttpStatus.CREATED);
   }
 }

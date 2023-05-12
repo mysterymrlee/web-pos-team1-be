@@ -1,7 +1,8 @@
 package com.ssg.webpos.repository;
 
 import com.ssg.webpos.domain.PosStoreCompositeId;
-import com.ssg.webpos.dto.DeliveryDTO;
+import com.ssg.webpos.domain.enums.DeliveryType;
+import com.ssg.webpos.dto.DeliveryAddDTO;
 import com.ssg.webpos.repository.delivery.DeliveryRedisImplRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -25,34 +26,20 @@ public class DeliveryRedisRepositoryTest {
     posStoreCompositeId.setStore_id(1L);
     System.out.println("posStoreCompositeId = " + posStoreCompositeId);
     //given
-    DeliveryDTO deliveryDTO1 = new DeliveryDTO();
-    deliveryDTO1.setPosStoreCompositeId(posStoreCompositeId);
-    deliveryDTO1.setDeliveryName("회사");
-    deliveryDTO1.setUserName("김진아");
-    deliveryDTO1.setPhoneNumber("01011117777");
-    deliveryDTO1.setAddress("부산광역시 부산진구");
-
-    DeliveryDTO deliveryDTO2 = new DeliveryDTO();
-    deliveryDTO2.setPosStoreCompositeId(posStoreCompositeId);
-    deliveryDTO2.setDeliveryName("집");
-    deliveryDTO2.setUserName("김진아");
-    deliveryDTO2.setPhoneNumber("01011117777");
-    deliveryDTO2.setAddress("부산광역시 해운대구");
-
-    DeliveryDTO deliveryDTO3 = new DeliveryDTO();
-    deliveryDTO3.setPosStoreCompositeId(posStoreCompositeId);
-    deliveryDTO3.setDeliveryName("학교");
-    deliveryDTO3.setUserName("김진아");
-    deliveryDTO3.setPhoneNumber("01011117777");
-    deliveryDTO3.setAddress("부산광역시 동래구");
+    DeliveryAddDTO deliveryDTO1 = DeliveryAddDTO.builder()
+        .posStoreCompositeId(posStoreCompositeId)
+        .deliveryName("home")
+        .userName("김진아")
+        .address("부산광역시 부산진구")
+        .phoneNumber("01011113333")
+        .requestFinishedAt("2023-05-12T12:34:56")
+        .requestInfo("문 앞에 두고 가세요.")
+        .deliveryType(DeliveryType.DELIVERY)
+        .build();
 
     System.out.println("deliveryDTO1 = " + deliveryDTO1);
-    System.out.println("deliveryDTO2 = " + deliveryDTO2);
-    System.out.println("deliveryDTO3 = " + deliveryDTO3);
     // when
     deliveryRedisImplRepository.save(deliveryDTO1);
-    deliveryRedisImplRepository.save(deliveryDTO2);
-    deliveryRedisImplRepository.save(deliveryDTO3);
 
     Map<String, Map<String, List<Object>>> findDeliveryRedisImpl = deliveryRedisImplRepository.findAll();
     System.out.println("deliveryDTOList = " + findDeliveryRedisImpl);
@@ -70,4 +57,3 @@ public class DeliveryRedisRepositoryTest {
     Assertions.assertTrue(allAfterDeletion.isEmpty());
   }
 }
-

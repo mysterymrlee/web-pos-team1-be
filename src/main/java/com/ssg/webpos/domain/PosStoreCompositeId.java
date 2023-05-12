@@ -44,4 +44,11 @@ public class PosStoreCompositeId implements Serializable {
         this.store_id = store_id;
     }
 
+    @Override
+    public String toString() {
+        return "PosStoreCompositeId{" +
+            "pos_id=" + pos_id +
+            ", store_id=" + store_id +
+            '}';
+    }
 }
