@@ -41,11 +41,11 @@ public class PaymentsService {
       boolean success = paymentsDTO.isSuccess();
       String error_msg = paymentsDTO.getError_msg();
       String impUid = paymentsDTO.getImp_uid();
-      
+
       System.out.println("-- callback_receive --");
       System.out.println("--------------");
       System.out.println("success = " + success);
-      
+
       if (success) { // 결제 성공
         IamportClient ic = new IamportClient(api_key, api_secret);
         IamportResponse<Payment> response = ic.paymentByImpUid(impUid);

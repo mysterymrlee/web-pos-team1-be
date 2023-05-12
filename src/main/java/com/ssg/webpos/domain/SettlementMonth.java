@@ -35,4 +35,5 @@ public class SettlementMonth {
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdDate;
+    private boolean isSubmited;
 }
