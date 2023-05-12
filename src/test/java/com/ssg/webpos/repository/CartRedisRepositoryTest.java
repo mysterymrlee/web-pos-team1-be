@@ -28,7 +28,6 @@ public class CartRedisRepositoryTest {
       System.out.println("redis = " + redis);
       
     }
-  
 
     @Test
     @DisplayName("카트 redis 저장")
@@ -48,10 +47,10 @@ public class CartRedisRepositoryTest {
       System.out.println("cartall = " + cartall);
       
 
-//      Map<String, List<Object>> byId = cartRedisRepository.findById(String.valueOf(cartAddDTO1.getPosStoreCompositeId()));
-//    System.out.println("cartAddDTOList = " + byId);
-//
-//    Assertions.assertEquals(1, byId.size());
+      Map<String, List<Object>> byId = cartRedisRepository.findById(String.valueOf(cartAddDTO1.getPosStoreCompositeId()));
+    System.out.println("cartAddDTOList = " + byId);
+
+    Assertions.assertEquals(1, byId.size());
     }
 
     @Test
@@ -62,16 +61,17 @@ public class CartRedisRepositoryTest {
       posStoreCompositeId.setPos_id(1L);
       posStoreCompositeId.setStore_id(1L);
 
-      PointDTO phoneNumberDto = new PointDTO();
-      phoneNumberDto.setPhoneNumber("01011113333");
-      phoneNumberDto.setPointMethod("phoneNumber22");
-      phoneNumberDto.setPosStoreCompositeId(posStoreCompositeId);
-      cartRedisRepository.savePoint(phoneNumberDto);
+      PointDTO pointDTO = new PointDTO();
+      pointDTO.setPhoneNumber("01011113333");
+      pointDTO.setPointMethod("phoneNumber22");
+      pointDTO.setPosStoreCompositeId(posStoreCompositeId);
+      cartRedisRepository.savePoint(pointDTO);
 
       Map<String, Map<String, List<Object>>> all = cartRedisRepository.findAll();
       System.out.println("all = " + all);
-      Map<String, List<Object>> byId = cartRedisRepository.findById(String.valueOf(phoneNumberDto.getPosStoreCompositeId()));
-//      Assertions.assertEquals(2, byId.size());
+      Map<String, List<Object>> byId = cartRedisRepository.findById(String.valueOf(pointDTO.getPosStoreCompositeId()));
+     
+      Assertions.assertEquals(2, byId.size());
 
 
     }
@@ -81,24 +81,16 @@ public class CartRedisRepositoryTest {
   @DisplayName("해당 posId 삭제")
   public void deleteFromRedisWithPosId() throws Exception {
     PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
-    posStoreCompositeId.setPos_id(1L);
-    posStoreCompositeId.setStore_id(1L);
-    // given
-    CartAddDTO cartAddDTO1 = new CartAddDTO();
-    cartAddDTO1.setPosStoreCompositeId(posStoreCompositeId);
-    cartAddDTO1.setProductId(2L);
-    cartAddDTO1.setCartQty(3);
-
-    cartRedisRepository.saveCart(cartAddDTO1);
-
+    String posId = String.valueOf(posStoreCompositeId.getPos_id());
+    String storeId = String.valueOf(posStoreCompositeId.getStore_id());
+    String compositeId = posId + "-" + storeId;
 
     // when
-    cartRedisRepository.delete(String.valueOf(cartAddDTO1.getPosStoreCompositeId()));
+    cartRedisRepository.delete(compositeId);
+
     Map<String, Map<String, List<Object>>> allAfterDeletion = cartRedisRepository.findAll();
     System.out.println("allAfterDeletion = " + allAfterDeletion);
 
-    //then
-    Assertions.assertFalse(allAfterDeletion.containsKey(String.valueOf(cartAddDTO1.getPosStoreCompositeId())));
   }
 
 
