@@ -1,9 +1,7 @@
 package com.ssg.webpos.controller;
 
-import com.ssg.webpos.domain.Delivery;
-import com.ssg.webpos.domain.PosStoreCompositeId;
+import com.ssg.webpos.domain.enums.DeliveryType;
 import com.ssg.webpos.dto.DeliveryAddDTO;
-import com.ssg.webpos.repository.delivery.DeliveryRedisImplRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRedisRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRepository;
 import com.ssg.webpos.service.DeliveryService;
@@ -37,12 +35,9 @@ public class DeliveryController {
   }
 
   @PostMapping("/add")
-  public ResponseEntity addDeliveryInfo(@RequestBody DeliveryAddDTO deliveryDTO) {
-    //deliveryService.addDeliveryAddress(deliveryDTO);
-    PosStoreCompositeId posStoreCompositeId = deliveryDTO.getPosStoreCompositeId();
-    DeliveryAddDTO deliveryAddDTO = new DeliveryAddDTO();
-    deliveryAddDTO.setPosStoreCompositeId(posStoreCompositeId);
-    deliveryRedisRepository.save(deliveryAddDTO);
+  public ResponseEntity addDeliveryInfo(@RequestBody DeliveryAddDTO deliveryAddDTO) {
+    System.out.println(deliveryAddDTO);
+    deliveryRedisRepository.saveDelivery(deliveryAddDTO);
     return new ResponseEntity(HttpStatus.CREATED);
   }
 }

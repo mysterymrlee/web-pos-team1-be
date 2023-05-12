@@ -11,22 +11,17 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 @Service
 @RequiredArgsConstructor
 public class DeliveryService {
   private final DeliveryRepository deliveryRepository;
-
   // 문자열을 LocalDateTime으로 파싱
-  public LocalDateTime LocaldateParse(String requestFinishedAt) {
-    try {
-      LocalDateTime dateTime = LocalDateTime.parse(requestFinishedAt, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-      System.out.println("LocalDateTime = " + dateTime);
-      return dateTime;
-    } catch (Exception e) {
-      System.out.println("날짜 파싱 오류: " + e.getMessage());
-      return null;
-    }
+  public LocalDateTime LocaldateParse(String requestFinishedAt) throws DateTimeParseException {
+    LocalDateTime dateTime = LocalDateTime.parse(requestFinishedAt, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+    System.out.println("LocalDateTime = " + dateTime); // 2023-05-12T18:00:00
+    return dateTime;
   }
 
   @Transactional
