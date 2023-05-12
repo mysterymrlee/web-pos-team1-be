@@ -1,7 +1,9 @@
 package com.ssg.webpos.repository.delivery;
 
 import com.ssg.webpos.domain.PosStoreCompositeId;
-import com.ssg.webpos.dto.DeliveryDTO;
+import com.ssg.webpos.domain.enums.DeliveryType;
+import com.ssg.webpos.dto.DeliveryAddDTO;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -21,25 +23,24 @@ public class DeliveryRedisImplRepository implements DeliveryRedisRepository {
     this.hashOperations = redisTemplate.opsForHash();
   }
 
-  public void save(DeliveryDTO deliveryDTO) {
-    PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
-    posStoreCompositeId.setPos_id(deliveryDTO.getPosStoreCompositeId().getPos_id());
-    posStoreCompositeId.setStore_id(deliveryDTO.getPosStoreCompositeId().getStore_id());
+  public void saveDelivery(@NotNull DeliveryAddDTO deliveryDTO) {
+    String storeId = String.valueOf(deliveryDTO.getStoreId());
+    String posId = String.valueOf(deliveryDTO.getPosId());
+    String compositeId = posId + "-" + storeId;
 
-    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("DELIVERY", String.valueOf(deliveryDTO.getPosStoreCompositeId()));
+    System.out.println("compositeId = " + compositeId);
+
+    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("DELIVERY", compositeId );
     if (posData == null) {
       posData = new HashMap<>();
     }
 
-    List<Object> deliveryList = posData.get("delivery");
-    if (deliveryList == null) {
-      deliveryList = new ArrayList<>();
-    }
-
+    List<Object> deliveryList = new ArrayList<>();
+    deliveryDTO.setDeliveryType(DeliveryType.DELIVERY);
     deliveryList.add(deliveryDTO);
     posData.put("delivery", deliveryList);
     System.out.println("posData = " + posData);
-    hashOperations.put("DELIVERY", String.valueOf(deliveryDTO.getPosStoreCompositeId()), posData);
+    hashOperations.put("DELIVERY", compositeId, posData);
   }
 
   @Override
