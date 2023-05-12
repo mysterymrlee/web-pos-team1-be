@@ -1,7 +1,7 @@
 package com.ssg.webpos.repository;
 
 import com.ssg.webpos.domain.User;
-import com.ssg.webpos.dto.PhoneNumberDTO;
+import com.ssg.webpos.dto.PointDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,7 +21,7 @@ class UserRepositoryTest {
   @Transactional
   @Test
   void 전화번호일치() {
-    PhoneNumberDTO phoneNumberDto = new PhoneNumberDTO();
+    PointDTO phoneNumberDto = new PointDTO();
     phoneNumberDto.setPhoneNumber("01022223333");
 
     // when
@@ -36,7 +36,7 @@ class UserRepositoryTest {
   @Test
   void 전화번호불일치() {
     //given
-    PhoneNumberDTO phoneNumberDto = new PhoneNumberDTO();
+    PointDTO phoneNumberDto = new PointDTO();
     phoneNumberDto.setPhoneNumber("01011112226");
 
     // when

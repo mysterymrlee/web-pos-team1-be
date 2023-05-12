@@ -11,6 +11,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
 public class PosStoreCompositeId implements Serializable {
     private Long pos_id; // (Spring) posId -> (DB) pos_id
     private Long store_id;
