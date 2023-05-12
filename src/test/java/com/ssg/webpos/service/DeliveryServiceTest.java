@@ -58,44 +58,6 @@ class DeliveryServiceTest {
   }
 
   @Test
-  @Transactional
-  @DisplayName("User 배송지 목록 조회")
-  void getUserDeliveryListTest() throws Exception {
-
-		// redis로 userId룰 유지해가지고
-    Long userId = 1L; // RedisTemplate에서 .get("userId") 하는 코드로 수정
-
-    // 배송지 추가
-
-    deliveryRepository.save(new DeliveryAddress());
-
-		// 배송지 목록 조회
-    List<DeliveryAddress> deliveryAddressList = deliveryRepository.findByUserId(userId);
-		for (DeliveryAddress deliveryAddress : deliveryAddressList) {
-			deliveryAddress.getAddress();
-		}
-
-		System.out.println("user = " + user);
-
-		List<DeliveryDTO> deliveryDTOList = new ArrayList<>();
-
-		DeliveryDTO deliveryDTO1 = DeliveryDTO.builder()
-				.deliveryName("집")
-				.userName("김진아")
-				.phoneNumber("01011113333")
-				.address("부산광역시 부산진구")
-				.build();
-
-		DeliveryDTO deliveryDTO2 = DeliveryDTO.builder()
-				.deliveryName("스파로스")
-				.userName("김진아")
-				.phoneNumber("01011113333")
-				.address("부산광역시 해운대구")
-				.build();
-
-  }
-
-  @Test
   void getDeliveryListTest() {
     List<Delivery> deliveryList = deliveryRepository.findAll();
     for (Delivery delivery : deliveryList) {
