@@ -25,6 +25,8 @@ public class PointDTO implements Serializable {
   private String phoneNumber;
   private String pointMethod;
 
+  private Long userId;
+
   public PointDTO(PosStoreCompositeId posStoreCompositeId, String phoneNumber) {
     this.posStoreCompositeId = posStoreCompositeId;
     this.phoneNumber = phoneNumber;

@@ -36,6 +36,7 @@ public class CartController {
     int totalPrice = requestDTO.getTotalPrice();
 
     List<CartAddDTO> cartItemList = requestDTO.getCartItemList();
+    System.out.println("cartItemList = " + cartItemList);
 
     for (CartAddDTO cartAddDTO : cartItemList) {
       cartAddDTO.setPosStoreCompositeId(new PosStoreCompositeId(posId, storeId));

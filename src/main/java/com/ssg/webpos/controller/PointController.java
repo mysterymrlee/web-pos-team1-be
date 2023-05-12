@@ -37,9 +37,12 @@ public class PointController {
 
     String phoneNumbers = requestDTO.getPhoneNumber();
     String pointMethod = requestDTO.getPointMethod();
+
+
     PointDTO pointDTO = new PointDTO();
-    pointDTO.setPointMethod(pointMethod); // pointMethod 값을 설정
+    pointDTO.setPointMethod(pointMethod);
     pointDTO.setPhoneNumber(phoneNumbers);
+
     pointDTO.setPosStoreCompositeId(new PosStoreCompositeId(requestDTO.getPosId(), requestDTO.getStoreId()));
     cartRedisRepository.savePoint(pointDTO);
 
