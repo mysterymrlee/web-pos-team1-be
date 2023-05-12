@@ -1,9 +1,11 @@
 package com.ssg.webpos.repository;
 
 import com.ssg.webpos.domain.PosStoreCompositeId;
+import com.ssg.webpos.domain.User;
 import com.ssg.webpos.dto.CartAddDTO;
 import com.ssg.webpos.dto.PointDTO;
 import com.ssg.webpos.dto.PointRedisDTO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -12,6 +14,8 @@ import java.util.*;
 
 @Repository
 public class CartRedisImplRepository implements CartRedisRepository{
+  @Autowired
+  UserRepository userRepository;
   private RedisTemplate<String, Map<String, List<Object>>> redisTemplate;
 //  private RedisTemplate<String, CartDto> redisTemplate;
 
@@ -69,16 +73,24 @@ public class CartRedisImplRepository implements CartRedisRepository{
     }
 
     List<Object> point = posData.get(pointMethod);
-    if (point == null) {
+
       point = new ArrayList<>();
       posData.put(pointMethod, point);
-    }
+
 
     PointRedisDTO pointRedisDTO = new PointRedisDTO(pointDTO);
     point.add(pointRedisDTO);
 
+
+    String phoneNumber = pointDTO.getPhoneNumber();
+    Long userId = userRepository.findByPhoneNumber(phoneNumber).get().getId();
+
+    posData.put("userId", Collections.singletonList(userId));
+
     // posData에 pointMethod 추가
     posData.put("pointMethod", Collections.singletonList(pointMethod));// pointMethod 값을 단일 요소를 가진 리스트
+
+
 
     hashOperations.put("CART", compositeId, posData);
   }
@@ -126,6 +138,7 @@ public class CartRedisImplRepository implements CartRedisRepository{
 
   @Override
   public void delete(String id) {
+
     hashOperations.delete("CART", id);
   }
   @Override
