@@ -13,8 +13,12 @@
 <script>
     function payment(pg_mid, payment_method){
     IMP.init('imp65716835');
-    var pg_mid;
-    var amount = 1000;
+     var amount = document.getElementById("amountInput").value;
+        console.log(amount);
+        if (!amount || amount.trim() === "") {
+            alert("결제 금액을 입력하세요.");
+            return;
+        }
 
 
 
@@ -44,6 +48,7 @@
 </script>
 <body>
 <div>
+    <input type="text" id="amountInput" placeholder="결제 금액을 입력하세요">
     <button type="button" onClick = "payment('kakaopay', 'card')">카카오페이</button>
     <button type="button" onClick = "payment('smilepay', 'card')">스마일페이</button>
     <button type="button" onClick = "payment('kcp', 'card')">신용카드</button>

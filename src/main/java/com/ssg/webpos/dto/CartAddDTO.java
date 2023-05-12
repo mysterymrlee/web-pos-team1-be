@@ -15,11 +15,11 @@ public class CartAddDTO implements Serializable {
   private PosStoreCompositeId posStoreCompositeId;
   private Long productId;
   private int cartQty;
+  private int totalPrice;
 
-  public CartAddDTO(PosStoreCompositeId posStoreCompositeId, Long productId, int cartQty) {
-    this.posStoreCompositeId = posStoreCompositeId;
+  public CartAddDTO(Long posId, Long storeId, Long productId, int cartQty) {
+    this.posStoreCompositeId = new PosStoreCompositeId(posId, storeId);
     this.productId = productId;
     this.cartQty = cartQty;
   }
-
-}
+  }

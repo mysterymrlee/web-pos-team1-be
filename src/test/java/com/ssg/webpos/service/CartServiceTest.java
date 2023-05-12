@@ -1,4 +1,3 @@
-package com.ssg.webpos.service;
 
 import com.ssg.webpos.domain.*;
 import com.ssg.webpos.domain.enums.OrderStatus;
@@ -9,6 +8,7 @@ import com.ssg.webpos.repository.order.OrderRepository;
 import com.ssg.webpos.repository.pos.PosRepository;
 import com.ssg.webpos.repository.product.ProductRepository;
 import com.ssg.webpos.repository.store.StoreRepository;
+import com.ssg.webpos.service.CartService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +30,7 @@ public class CartServiceTest {
   ProductRepository productRepository;
   @Autowired
   CartRepository cartRepository;
+
   @Autowired
   CartService cartService;
   @Autowired
@@ -70,9 +71,19 @@ public class CartServiceTest {
     Long productId3 = 9L;
     List<CartAddDTO> cartAddDTOList = new ArrayList<>();
     // given
-    CartAddDTO cartAddDTO1 = new CartAddDTO(posStoreCompositeId, productId1, 5);
-    CartAddDTO cartAddDTO2 = new CartAddDTO(posStoreCompositeId, productId2, 1);
-    CartAddDTO cartAddDTO3 = new CartAddDTO(posStoreCompositeId, productId3, 10);
+    CartAddDTO cartAddDTO1 = new CartAddDTO();
+    cartAddDTO1.setPosStoreCompositeId(posStoreCompositeId);
+    cartAddDTO1.setProductId(productId1);
+    cartAddDTO1.setCartQty(7);
+    CartAddDTO cartAddDTO2 = new CartAddDTO();
+    cartAddDTO1.setPosStoreCompositeId(posStoreCompositeId);
+    cartAddDTO1.setProductId(productId2);
+    cartAddDTO1.setCartQty(3);
+    CartAddDTO cartAddDTO3 = new CartAddDTO();
+    cartAddDTO1.setPosStoreCompositeId(posStoreCompositeId);
+    cartAddDTO1.setProductId(productId3);
+    cartAddDTO1.setCartQty(4);
+
 
     cartAddDTOList.add(cartAddDTO1);
     cartAddDTOList.add(cartAddDTO2);
@@ -194,9 +205,18 @@ public class CartServiceTest {
     Long productId3 = 9L;
     List<CartAddDTO> cartAddDTOList = new ArrayList<>();
     // given
-    CartAddDTO cartAddDTO1 = new CartAddDTO(posStoreCompositeId, productId1, 5);
-    CartAddDTO cartAddDTO2 = new CartAddDTO(posStoreCompositeId, productId2, 1);
-    CartAddDTO cartAddDTO3 = new CartAddDTO(posStoreCompositeId, productId3, 10);
+    CartAddDTO cartAddDTO1 = new CartAddDTO();
+    cartAddDTO1.setPosStoreCompositeId(posStoreCompositeId);
+    cartAddDTO1.setProductId(productId1);
+    cartAddDTO1.setCartQty(7);
+    CartAddDTO cartAddDTO2 = new CartAddDTO();
+    cartAddDTO1.setPosStoreCompositeId(posStoreCompositeId);
+    cartAddDTO1.setProductId(productId2);
+    cartAddDTO1.setCartQty(3);
+    CartAddDTO cartAddDTO3 = new CartAddDTO();
+    cartAddDTO1.setPosStoreCompositeId(posStoreCompositeId);
+    cartAddDTO1.setProductId(productId3);
+    cartAddDTO1.setCartQty(4);
 
     cartAddDTOList.add(cartAddDTO1);
     cartAddDTOList.add(cartAddDTO2);
@@ -264,5 +284,5 @@ public class CartServiceTest {
     int actualStock2 = productRepository.findById(productId3).get().getStock();
     assertEquals(expectedStock2, actualStock2);
     return savedOrder.getId();
-  }
+ }
 }
