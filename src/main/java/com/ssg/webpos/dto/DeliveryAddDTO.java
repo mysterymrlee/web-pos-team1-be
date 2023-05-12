@@ -14,7 +14,8 @@ import java.time.LocalDateTime;
 @ToString
 @Builder
 public class DeliveryAddDTO implements Serializable {
-  private PosStoreCompositeId posStoreCompositeId;
+  private Long posId;
+  private Long storeId;
   private String deliveryName;
   private String userName;
   private String address;

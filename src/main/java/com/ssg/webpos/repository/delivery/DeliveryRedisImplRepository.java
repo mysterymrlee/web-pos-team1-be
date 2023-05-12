@@ -2,6 +2,7 @@ package com.ssg.webpos.repository.delivery;
 
 import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.dto.DeliveryAddDTO;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -21,10 +22,12 @@ public class DeliveryRedisImplRepository implements DeliveryRedisRepository {
     this.hashOperations = redisTemplate.opsForHash();
   }
 
-  public void save(DeliveryAddDTO deliveryDTO) {
+  public void save(@NotNull DeliveryAddDTO deliveryDTO) {
     PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
-    posStoreCompositeId.setPos_id(deliveryDTO.getPosStoreCompositeId().getPos_id());
-    posStoreCompositeId.setStore_id(deliveryDTO.getPosStoreCompositeId().getStore_id());
+    posStoreCompositeId.setPos_id(deliveryDTO.getPosId());
+    posStoreCompositeId.setStore_id(deliveryDTO.getStoreId());
+
+    System.out.println("posStoreCompositeId = " + posStoreCompositeId);
 
     Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("DELIVERY", String.valueOf(deliveryDTO.getPosStoreCompositeId()));
     if (posData == null) {
