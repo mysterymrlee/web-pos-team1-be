@@ -11,4 +11,6 @@ public interface DeliveryRedisRepository {
   Map<String, List<Object>> findById(String id);
   void delete(String id);
   void deleteAll();
+
+  List<String> findByUserId();
 }

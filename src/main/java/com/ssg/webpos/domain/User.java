@@ -1,5 +1,6 @@
 package com.ssg.webpos.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.ssg.webpos.domain.enums.RoleUser;
 import lombok.*;
 
