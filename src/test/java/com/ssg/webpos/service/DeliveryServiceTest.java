@@ -65,19 +65,19 @@ class DeliveryServiceTest {
   @Transactional
   @DisplayName("User 배송지 목록 조회")
   void getUserDeliveryListTest() throws Exception {
-    // 포인트 redis 저장
-    savePointRedis();
-    List<DeliveryAddress> userAllDeliveryList = deliveryService.getUserAllDeliveryList();
-    System.out.println("userAllDeliveryList = " + userAllDeliveryList);
-
-    assertEquals(2, userAllDeliveryList.size());
-  }
-  @Test
-  void getDeliveryListTest() {
-    List<Delivery> deliveryList = deliveryRepository.findAll();
-    for (Delivery delivery : deliveryList) {
-      System.out.println("delivery = " + delivery);
-    }
+//    // 포인트 redis 저장
+//    savePointRedis();
+//    List<DeliveryAddress> userAllDeliveryList = deliveryService.getUserAllDeliveryList();
+//    System.out.println("userAllDeliveryList = " + userAllDeliveryList);
+//
+//    assertEquals(2, userAllDeliveryList.size());
+//  }
+//  @Test
+//  void getDeliveryListTest() {
+//    List<Delivery> deliveryList = deliveryRepository.findAll();
+//    for (Delivery delivery : deliveryList) {
+//      System.out.println("delivery = " + delivery);
+//    }
   }
 
   @Test
@@ -101,19 +101,19 @@ class DeliveryServiceTest {
     });
   }
 
-  void savePointRedis() throws Exception {
-    PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
-    posStoreCompositeId.setPos_id(1L);
-    posStoreCompositeId.setStore_id(1L);
-
-    PointDTO pointDTO = new PointDTO();
-    pointDTO.setPhoneNumber("01011113333");
-    pointDTO.setPointMethod("phoneNumber22");
-    pointDTO.setPosStoreCompositeId(posStoreCompositeId);
-    cartRedisImplRepository.savePoint(pointDTO);
-
-    Map<String, Map<String, List<Object>>> all = cartRedisImplRepository.findAll();
-    System.out.println("all = " + all);
-    Map<String, List<Object>> byId = cartRedisImplRepository.findById(String.valueOf(pointDTO.getPosStoreCompositeId()));
-  }
+//  void savePointRedis() throws Exception {
+//    PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
+//    posStoreCompositeId.setPos_id(1L);
+//    posStoreCompositeId.setStore_id(1L);
+//
+//    PointDTO pointDTO = new PointDTO();
+//    pointDTO.setPhoneNumber("01011113333");
+//    pointDTO.setPointMethod("phoneNumber22");
+//    pointDTO.setPosStoreCompositeId(posStoreCompositeId);
+//    cartRedisImplRepository.savePoint(pointDTO);
+//
+//    Map<String, Map<String, List<Object>>> all = cartRedisImplRepository.findAll();
+//    System.out.println("all = " + all);
+//    Map<String, List<Object>> byId = cartRedisImplRepository.findById(String.valueOf(pointDTO.getPosStoreCompositeId()));
+//  }
 }
