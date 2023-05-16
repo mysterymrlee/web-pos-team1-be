@@ -75,33 +75,6 @@ public class PaymentsApiController {
       return new ResponseEntity<>("주문을 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
     }
   }
-  @GetMapping(value = "/payment/{orderId}/user/point")
-  public ResponseEntity<?> getUserPointByOrderId(@PathVariable("orderId") Long orderId) {
-    Optional<Order> optionalOrder = orderRepository.findById(orderId);
-
-    if (optionalOrder.isPresent()) {
-      Order order = optionalOrder.get();
-
-      // redis phoneNumber
-      List<String> phoneNumbers = cartRedisRepository.findAllPhoneNumbers();
-      String phoneNumber = phoneNumbers.get(0);
-
-      User user = userRepository.findByPhoneNumber(phoneNumber).get();
-
-      if (user != null) {
-        JSONObject responseObj = new JSONObject();
-        responseObj.put("user_id", user.getId());
-        responseObj.put("user_name", user.getName());
-        responseObj.put("user_point", user.getPoint());
-
-        return new ResponseEntity<>(responseObj.toJSONString(), HttpStatus.OK);
-      } else {
-        return new ResponseEntity<>("사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
-      }
-    } else {
-      return new ResponseEntity<>("주문을 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
-    }
-  }
   
   @RequestMapping("/")
   public String welcome(Map<String, Object> model) {
@@ -112,9 +85,11 @@ public class PaymentsApiController {
 
   @RequestMapping(value = "/payment/callback_receive", method = RequestMethod.POST)
   public ResponseEntity<?> callback_receive(@RequestBody PaymentsDTO paymentsDTO) {
+    paymentsDTO.setPosId(1L);
+    paymentsDTO.setStoreId(3L);
     paymentsService.processPaymentCallback(paymentsDTO);
 
-    // 응답 처리 및 반환
+    // 응답 처리
     HttpHeaders responseHeaders = new HttpHeaders();
     responseHeaders.add("Content-Type", "application/json; charset=UTF-8");
     JSONObject responseObj = new JSONObject();

@@ -13,20 +13,18 @@
 <script>
     function payment(pg_mid, payment_method){
     IMP.init('imp65716835');
-     var amount = document.getElementById("amountInput").value;
-        console.log(amount);
-        if (!amount || amount.trim() === "") {
-            alert("결제 금액을 입력하세요.");
-            return;
-        }
 
+<!--     const amountInput = document.getElementsByName('amount')[0]; // 입력 필드 선택-->
+<!--     const amount = amountInput.value; // 입력 필드에서 금액 가져오기-->
+    var amount = 10000;
+    var name = "감자";
 
 
     const data = {
         pg: pg_mid,
         pay_method: payment_method,
         merchant_uid: 'cart_' + new Date().getTime(),
-        name: "고구마",
+        name: name,
         amount: amount,
         m_redirect_url : 'http://naver.com' //알리페이 m_redirect_url 필요. 결제 완료 후 리디렉션 될 URL
     };
@@ -48,12 +46,13 @@
 </script>
 <body>
 <div>
-    <input type="text" id="amountInput" placeholder="결제 금액을 입력하세요">
+    <form>
+<!--    <input type="text" name="amount" placeholder="결제 금액을 입력하세요">-->
     <button type="button" onClick = "payment('kakaopay', 'card')">카카오페이</button>
     <button type="button" onClick = "payment('smilepay', 'card')">스마일페이</button>
     <button type="button" onClick = "payment('kcp', 'card')">신용카드</button>
     <button type="button" onClick = "payment('alipay', 'card')">알리페이</button>
-
+    </form>
 </div>
 
 </body>

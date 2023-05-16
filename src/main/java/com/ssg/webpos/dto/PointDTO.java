@@ -19,24 +19,13 @@ import java.io.Serializable;
 @Validated
 public class PointDTO implements Serializable {
   // 전화번호
-  private PosStoreCompositeId posStoreCompositeId;
+  private Long posId;
+  private Long storeId;
   @NotNull
   @Pattern(regexp = "^01(?:0|1|[6-9])?(\\d{3}|\\d{4})?(\\d{4})$", message = "10 ~ 11 자리의 숫자만 입력 가능합니다.")
   private String phoneNumber;
   private String pointMethod;
 
   private Long userId;
-
-  public PointDTO(PosStoreCompositeId posStoreCompositeId, String phoneNumber) {
-    this.posStoreCompositeId = posStoreCompositeId;
-    this.phoneNumber = phoneNumber;
-  }
-
-
-  public static User createPoint(PointDTO pointDTO) {
-    User user = new User();
-    user.setPhoneNumber(pointDTO.getPhoneNumber());
-    return user;
-  }
 }
 
