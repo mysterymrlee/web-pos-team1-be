@@ -1,6 +1,7 @@
 package com.ssg.webpos.repository;
 
 import com.ssg.webpos.dto.CartAddDTO;
+import com.ssg.webpos.dto.CartAddRequestDTO;
 import com.ssg.webpos.dto.PointDTO;
 
 import java.util.List;
@@ -8,7 +9,7 @@ import java.util.Map;
 
 public interface CartRedisRepository {
 
-  void saveCart(CartAddDTO cartAddDTO);
+  void saveCart(CartAddRequestDTO cartAddRequestDTO);
 
   void savePoint(PointDTO phoneNumberDTO);
 
