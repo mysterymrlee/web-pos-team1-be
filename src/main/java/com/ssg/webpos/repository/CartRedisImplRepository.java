@@ -2,6 +2,7 @@ package com.ssg.webpos.repository;
 
 import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.dto.CartAddDTO;
+import com.ssg.webpos.dto.CartAddRequestDTO;
 import com.ssg.webpos.dto.PointDTO;
 import com.ssg.webpos.repository.cart.CartRepository;
 import com.ssg.webpos.repository.product.ProductRepository;
@@ -32,9 +33,11 @@ public class CartRedisImplRepository implements CartRedisRepository{
     this.hashOperations = redisTemplate.opsForHash();
   }
 
-
-  public void saveCart (CartAddDTO cartAddDTO) {
-    PosStoreCompositeId posStoreCompositeId = cartAddDTO.getPosStoreCompositeId();
+  @Override
+  public void saveCart(CartAddRequestDTO cartAddRequestDTO) {
+    PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
+    posStoreCompositeId.setPos_id(cartAddRequestDTO.getPosId());
+    posStoreCompositeId.setStore_id(cartAddRequestDTO.getStoreId());
 
     String posId = String.valueOf(posStoreCompositeId.getPos_id());
     String storeId = String.valueOf(posStoreCompositeId.getStore_id());
@@ -50,13 +53,15 @@ public class CartRedisImplRepository implements CartRedisRepository{
       cartList = new ArrayList<>();
     }
 
-    Map<String, Object> cartItem = new HashMap<>();
-    cartItem.put("productId", cartAddDTO.getProductId());
-    cartItem.put("cartQty", cartAddDTO.getCartQty());
+    List<CartAddDTO> cartItemList = cartAddRequestDTO.getCartItemList();
+    for (CartAddDTO cartAddDTO : cartItemList) {
+      Map<String, Object> cartItem = new HashMap<>();
+      cartItem.put("productId", cartAddDTO.getProductId());
+      cartItem.put("cartQty", cartAddDTO.getCartQty());
+      cartList.add(cartItem);
+    }
 
-    cartList.add(cartItem);
-
-    int totalPrice = cartAddDTO.getTotalPrice();
+    int totalPrice = cartAddRequestDTO.getTotalPrice();
     posData.put("totalPrice", Collections.singletonList(totalPrice));
 
     posData.put("cartList", cartList);

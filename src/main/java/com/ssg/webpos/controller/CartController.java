@@ -29,6 +29,7 @@ public class CartController {
     Map<String, Map<String, List<Object>>> all = cartRedisRepository.findAll();
     return new ResponseEntity(all, HttpStatus.OK);
   }
+
   @PostMapping("/add")
   public ResponseEntity addCart(@RequestBody @Valid CartAddRequestDTO requestDTO, BindingResult bindingResult) {
     Long posId = requestDTO.getPosId();
@@ -40,15 +41,12 @@ public class CartController {
 
     for (CartAddDTO cartAddDTO : cartItemList) {
       cartAddDTO.setPosStoreCompositeId(new PosStoreCompositeId(posId, storeId));
-      cartAddDTO.setTotalPrice(totalPrice);
-      cartRedisRepository.saveCart(cartAddDTO);
+      cartRedisRepository.saveCart(requestDTO);
       System.out.println("cartAddDTO = " + cartAddDTO);
     }
-
 
     System.out.println("bindingResult = " + bindingResult);
     System.out.println("bindingResult.hasErrors() = " + bindingResult.hasErrors());
     return new ResponseEntity(HttpStatus.NO_CONTENT); // 204
   }
-
 }
