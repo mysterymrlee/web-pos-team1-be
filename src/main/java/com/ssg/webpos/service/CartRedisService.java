@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -28,64 +29,31 @@ public class CartRedisService {
   private final CartRedisRepository cartRedisRepository;
 
   @Transactional
-  public Order addOrder(List<CartAddDTO> cartAddDTOList, CartAddDTO cartAddDTO, OrderDTO orderDTO) {
-    Pos pos = posRepository.findById(cartAddDTO.getPosStoreCompositeId()).get();
-    /* cartAddDTOList.get(0).getPosId(); */
+  public void saveCartToDB(String compositeId) {
+    Map<String, List<Object>> posData = cartRedisRepository.findById(compositeId);
+    System.out.println("posData = " + posData);
+    if (posData != null) {
+      List<Object> cartList = posData.get("cartList");
+      if (cartList != null && !cartList.isEmpty()) {
+        for (Object obj : cartList) {
+          Map<String, Object> cartItem = (Map<String, Object>) obj;
+          Long productId = (Long) cartItem.get("productId");
+          int cartQty = (int) cartItem.get("cartQty");
 
-    // 주문 생성
-    Order order = new Order();
-    // serialNumber 생성
-    List<Order> orderList = orderRepository.findAll();
-    Long newOrderId = orderList.size()+1L;
+          Cart cart = new Cart();
 
-    order.setOrderDate(orderDTO.getOrderDate());
-    String serialNumber = String.format("%03d", newOrderId);
-    System.out.println("serialNumber = " + serialNumber); // 세 자릿수로 만들기
-    String orderDateStr = orderDTO.getOrderDate().format(DateTimeFormatter.BASIC_ISO_DATE); // 날짜 형식 맞추기 ex) 20230509
-    String combinedStr = orderDateStr + serialNumber;
-    System.out.println("combinedStr = " + combinedStr);
-    order.setSerialNumber(combinedStr);
+          Product product = productRepository.findById(productId)
+              .orElseThrow(() -> new RuntimeException("product 찾을 수 없습니다."));
+          System.out.println("product = " + product);
 
-    System.out.println("order = " + order);
-    order.setOrderStatus(OrderStatus.SUCCESS);
-    order.setPayMethod(PayMethod.CREDIT_CARD);
-    order.setTotalQuantity(orderDTO.getTotalQuantity());
-    order.setPos(pos);
-    List<Cart> cartList = order.getCartList();
 
-    for (CartAddDTO cDTO : cartAddDTOList) {
-      Product product = productRepository.findById(cDTO.getProductId()).get();
-      if (product.getStock() < cDTO.getCartQty()) {
-        throw new RuntimeException("재고가 부족합니다. 현재 재고 수 : " + product.getStock() + "개");
-      }
-      int orderQty = cDTO.getCartQty();
-      // 장바구니에 담겨있는 상품이 있는지
-      Cart existingCart = cartList.stream()
-          .filter(cart -> cart.getProduct().equals(product))
-          .findFirst()
-          .orElse(null);
-      // 장바구니에 담겨있는 상품이 있으면 수량만 증가
-      if (existingCart != null) {
-        int currentQty = existingCart.getQty();
-        int newQty = currentQty + orderQty;
-        if (newQty > product.getStock()) {
-          throw new RuntimeException("재고가 부족합니다. 현재 재고 수 : " + product.getStock() + "개");
+          cart.setProduct(product);
+          cart.setQty(cartQty);
+          cartRepository.save(cart);
         }
-        existingCart.setQty(newQty);
-      } else {
-        if (orderQty > product.getStock()) {
-          throw new RuntimeException("재고가 부족합니다. 현재 재고 수 : " + product.getStock() + "개");
-        }
-        Cart cart = new Cart(product, order);
-        cart.setQty(orderQty);
-        cartList.add(cart);
       }
-      product.minusStockQuantity(orderQty);
-      cartRepository.saveAll(cartList);
     }
-    orderRepository.save(order);
-    return order;
   }
-
 }
+
 

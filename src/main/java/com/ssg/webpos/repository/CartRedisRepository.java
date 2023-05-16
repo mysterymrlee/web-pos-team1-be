@@ -15,7 +15,10 @@ public interface CartRedisRepository {
   Map<String, Map<String, List<Object>>>  findAll() throws Exception;
   Map<String, List<Object>> findById(String id);
 
-  List<String> findAllPhoneNumbers();
+  List<String> findPhoneNumbersByCompositeId(String compositeId);
+
+  Long findUserId(String compositeId);
+
   void updatePoint(PointDTO phoneNumberDTO);
   void delete(String id);
 
