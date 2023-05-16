@@ -3,6 +3,7 @@ package com.ssg.webpos.repository.delivery;
 import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.domain.enums.DeliveryType;
 import com.ssg.webpos.dto.DeliveryAddDTO;
+import com.ssg.webpos.dto.PointDTO;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -30,7 +31,7 @@ public class DeliveryRedisImplRepository implements DeliveryRedisRepository {
 
     System.out.println("compositeId = " + compositeId);
 
-    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("DELIVERY", compositeId );
+    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
     if (posData == null) {
       posData = new HashMap<>();
     }
@@ -40,13 +41,13 @@ public class DeliveryRedisImplRepository implements DeliveryRedisRepository {
     deliveryList.add(deliveryDTO);
     posData.put("delivery", deliveryList);
     System.out.println("posData = " + posData);
-    hashOperations.put("DELIVERY", compositeId, posData);
+    hashOperations.put("CART", compositeId, posData);
   }
 
   @Override
   public Map<String, Map<String, List<Object>>> findAll() throws Exception {
     Map<String, Map<String, List<Object>>> result = new HashMap<>();
-    Map<String, Map<String, List<Object>>> posData = hashOperations.entries("DELIVERY");
+    Map<String, Map<String, List<Object>>> posData = hashOperations.entries("CART");
     for (Map.Entry<String, Map<String, List<Object>>> entry : posData.entrySet()) {
       result.put(entry.getKey(), entry.getValue());
     }
@@ -55,16 +56,34 @@ public class DeliveryRedisImplRepository implements DeliveryRedisRepository {
 
   @Override
   public Map<String, List<Object>> findById(String id) {
-    return (Map<String, List<Object>>) hashOperations.get("DELIVERY", id);
+    return (Map<String, List<Object>>) hashOperations.get("CART", id);
   }
 
   @Override
   public void delete(String id) {
-    hashOperations.delete("DELIVERY", id);
+    hashOperations.delete("CART", id);
   }
 
   @Override
   public void deleteAll() {
-    redisTemplate.delete("DELIVERY");
+    redisTemplate.delete("CART");
+  }
+
+  @Override
+  public List<String> findByUserId() {
+    List<String> user = new ArrayList<>();
+    Map<String, Map<String, List<Object>>> posDataMap = hashOperations.entries("CART");
+    System.out.println("posDataMap = " + posDataMap);
+    for (Map.Entry<String, Map<String, List<Object>>> entry : posDataMap.entrySet()) {
+      Map<String, List<Object>> posData = entry.getValue();
+      if (posData != null) {
+        List<Object> userIdList = posData.get("userId");
+        if (userIdList != null && !userIdList.isEmpty()) {
+          Long userId = (Long) userIdList.get(0); // userId 값을 Long으로 가져옴
+          user.add(String.valueOf(userId));
+        }
+      }
+    }
+    return user;
   }
 }

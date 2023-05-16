@@ -1,7 +1,9 @@
 package com.ssg.webpos.controller;
 
+import com.ssg.webpos.domain.DeliveryAddress;
 import com.ssg.webpos.domain.enums.DeliveryType;
 import com.ssg.webpos.dto.DeliveryAddDTO;
+import com.ssg.webpos.dto.DeliveryAddressListDTO;
 import com.ssg.webpos.repository.delivery.DeliveryRedisRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRepository;
 import com.ssg.webpos.service.DeliveryService;
@@ -37,7 +39,22 @@ public class DeliveryController {
   @PostMapping("/add")
   public ResponseEntity addDeliveryInfo(@RequestBody DeliveryAddDTO deliveryAddDTO) {
     System.out.println(deliveryAddDTO);
-    deliveryRedisRepository.saveDelivery(deliveryAddDTO);
-    return new ResponseEntity(HttpStatus.CREATED);
+    try {
+      deliveryRedisRepository.saveDelivery(deliveryAddDTO);
+      return new ResponseEntity(HttpStatus.CREATED);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return new ResponseEntity(HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @GetMapping("/list")
+  public ResponseEntity getUserAllDeliveryList() {
+    try {
+      List<DeliveryAddress> userAllDeliveryList = deliveryService.getUserAllDeliveryList();
+      return new ResponseEntity(userAllDeliveryList, HttpStatus.OK);
+    } catch (Exception e) {
+      return new ResponseEntity(HttpStatus.UNAUTHORIZED);
+    }
   }
 }

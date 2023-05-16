@@ -1,5 +1,7 @@
 package com.ssg.webpos.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
 
 import javax.persistence.*;
@@ -26,5 +28,17 @@ public class DeliveryAddress extends BaseTime {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @JsonIgnore
     private User user;
+
+    @Override
+    public String toString() {
+        return "DeliveryAddress{" +
+            "id=" + id +
+            ", address='" + address + '\'' +
+            ", phoneNumber='" + phoneNumber + '\'' +
+            ", name='" + name + '\'' +
+            ", requestInfo='" + requestInfo + '\'' +
+            '}';
+    }
 }
