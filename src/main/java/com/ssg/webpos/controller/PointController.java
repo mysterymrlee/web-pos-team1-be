@@ -5,6 +5,8 @@ import com.ssg.webpos.domain.User;
 import com.ssg.webpos.dto.PointDTO;
 import com.ssg.webpos.dto.PointRequestDTO;
 import com.ssg.webpos.repository.CartRedisRepository;
+import com.ssg.webpos.repository.UserRepository;
+import com.ssg.webpos.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +24,11 @@ public class PointController {
   @Autowired
   CartRedisRepository cartRedisRepository;
 
+  @Autowired
+  UserService userService;
+
   @GetMapping("")
-  public ResponseEntity<List<User>> getCartList() throws Exception {
+  public ResponseEntity<List<User>> getPointList() throws Exception {
     Map<String, Map<String, List<Object>>> all = cartRedisRepository.findAll();
     System.out.println("all = " + all);
     return new ResponseEntity(all, HttpStatus.OK);
@@ -32,20 +37,26 @@ public class PointController {
   @PostMapping("/add")
   public ResponseEntity addPoint(@RequestBody @Valid PointRequestDTO requestDTO, BindingResult bindingResult) throws Exception {
     if (bindingResult.hasErrors()) {
-      return new ResponseEntity<>("Invalid request", HttpStatus.BAD_REQUEST);
+      return new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
 
     String phoneNumbers = requestDTO.getPhoneNumber();
     String pointMethod = requestDTO.getPointMethod();
 
+    // 요청한 회원이 존재하는지 여부
+    boolean isMemberExist = userService.checkMemberExist(phoneNumbers);
 
-    PointDTO pointDTO = new PointDTO();
-    pointDTO.setPointMethod(pointMethod);
-    pointDTO.setPhoneNumber(phoneNumbers);
+    if (isMemberExist) {
+      PointDTO pointDTO = new PointDTO();
+      pointDTO.setPointMethod(pointMethod);
+      pointDTO.setPhoneNumber(phoneNumbers);
+      pointDTO.setPosId(requestDTO.getPosId());
+      pointDTO.setStoreId(requestDTO.getStoreId());
+      cartRedisRepository.savePoint(pointDTO);
 
-    pointDTO.setPosStoreCompositeId(new PosStoreCompositeId(requestDTO.getPosId(), requestDTO.getStoreId()));
-    cartRedisRepository.savePoint(pointDTO);
-
-    return new ResponseEntity<>("포인트 적립이 완료되었습니다.", HttpStatus.OK);
+      return new ResponseEntity(HttpStatus.OK);
+    } else {
+      return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
   }
 }
