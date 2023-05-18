@@ -43,7 +43,7 @@ public class PaymentsApiController {
 
   @Autowired
   private PaymentsService paymentsService;
-  
+
   @Autowired
   private UserRepository userRepository;
   @Value("${application.message:Hello World}")
@@ -75,7 +75,7 @@ public class PaymentsApiController {
       return new ResponseEntity<>("주문을 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
     }
   }
-  
+
   @RequestMapping("/")
   public String welcome(Map<String, Object> model) {
     model.put("time", new Date());

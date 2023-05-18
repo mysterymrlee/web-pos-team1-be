@@ -1,4 +1,4 @@
-package com.ssg.webpos.dto;
+package com.ssg.webpos.dto.settlement;
 
 import lombok.*;
 
