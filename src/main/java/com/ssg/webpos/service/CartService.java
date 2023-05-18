@@ -40,7 +40,7 @@ public class CartService {
 
   // 주문 생성 후 장바구니 상품들 주문에 추가 - DB에 저장
   @Transactional
-public Order addOrder(List<CartAddDTO> cartAddDTOList, CartAddDTO cartAddDTO, OrderDTO orderDTO) {
+  public Order addOrder(List<CartAddDTO> cartAddDTOList, CartAddDTO cartAddDTO, OrderDTO orderDTO) {
     Pos pos = posRepository.findById(cartAddDTO.getPosStoreCompositeId()).get();
     /* cartAddDTOList.get(0).getPosId(); */
 
@@ -48,7 +48,7 @@ public Order addOrder(List<CartAddDTO> cartAddDTOList, CartAddDTO cartAddDTO, Or
     Order order = new Order();
     // serialNumber 생성
     List<Order> orderList = orderRepository.findAll();
-    Long newOrderId = orderList.size()+1L;
+    Long newOrderId = orderList.size() + 1L;
 
     order.setOrderDate(orderDTO.getOrderDate());
     String serialNumber = String.format("%03d", newOrderId);
@@ -64,6 +64,7 @@ public Order addOrder(List<CartAddDTO> cartAddDTOList, CartAddDTO cartAddDTO, Or
     order.setTotalQuantity(orderDTO.getTotalQuantity());
     order.setPos(pos);
     List<Cart> cartList = order.getCartList();
+    System.out.println("cartList = " + cartList);
 
     for (CartAddDTO cDTO : cartAddDTOList) {
       Product product = productRepository.findById(cDTO.getProductId()).get();
