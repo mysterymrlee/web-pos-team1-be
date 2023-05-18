@@ -14,22 +14,21 @@ public class PointService {
     this.userRepository = userRepository;
   }
 
-  public void updatePoint(String phoneNumber, int finalPrice) {
+  public void updatePoint(String phoneNumber, int totalPrice) {
     try {
       Optional<User> findUser = userRepository.findByPhoneNumber(phoneNumber);
       if (findUser.isPresent()) {
         User user = findUser.get();
         int currentPoint = user.getPoint();
-        int point = (int) (finalPrice * 0.001);
+        int point = (int) (totalPrice * 0.001);
         int updatedPoint = currentPoint + point;
 
         // point 값을 업데이트
         user.setPoint(updatedPoint);
         userRepository.save(user);
-        System.out.println("Point updated for user: " + user.getId());
+        System.out.println(user.getId());
       } else {
-        // 사용자를 찾을 수 없을 때 처리
-        System.out.println("User not found for phoneNumber: " + phoneNumber);
+        System.out.println("찾을 수 없습니다.");
       }
     } catch (Exception e) {
       e.printStackTrace();
