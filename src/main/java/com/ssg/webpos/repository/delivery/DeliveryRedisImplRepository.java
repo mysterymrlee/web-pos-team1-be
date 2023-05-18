@@ -1,9 +1,8 @@
 package com.ssg.webpos.repository.delivery;
 
-import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.domain.enums.DeliveryType;
-import com.ssg.webpos.dto.DeliveryAddDTO;
-import com.ssg.webpos.dto.PointDTO;
+import com.ssg.webpos.dto.delivery.DeliveryAddDTO;
+import com.ssg.webpos.dto.delivery.DeliveryAddressDTO;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -42,6 +41,37 @@ public class DeliveryRedisImplRepository implements DeliveryRedisRepository {
     posData.put("delivery", deliveryList);
     System.out.println("posData = " + posData);
     hashOperations.put("CART", compositeId, posData);
+  }
+
+  @Override
+  public void saveSelectedDelivery(DeliveryAddressDTO deliveryAddressDTO) {
+    String storeId = String.valueOf(deliveryAddressDTO.getStoreId());
+    String posId = String.valueOf(deliveryAddressDTO.getPosId());
+    String compositeId = posId + "-" + storeId;
+
+    System.out.println("compositeId = " + compositeId);
+
+    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
+    if (posData == null) {
+      posData = new HashMap<>();
+    }
+
+//    List<Object> selectedDeliveryAddress = posData.get("selectedDeliveryAddress");
+//    if(selectedDeliveryAddress == null) {
+//      selectedDeliveryAddress = new ArrayList<>();
+//    }
+
+    List<Object> selectedDeliveryAddress = new ArrayList<>();
+    selectedDeliveryAddress.add(deliveryAddressDTO);
+    posData.put("selectedDeliveryAddress", selectedDeliveryAddress);
+    System.out.println("posData = " + posData);
+    hashOperations.put("CART", compositeId, posData);
+
+//    Map<String, List<DeliveryAddressDTO>> deliveryDTO= new HashMap<>();
+//    selectedDeliveryAddress.add(deliveryDTO);
+//    posData.put("selectedDeliveryAddress", selectedDeliveryAddress);
+//    System.out.println("posData = " + posData);
+//    hashOperations.put("CART", compositeId, posData);
   }
 
   @Override

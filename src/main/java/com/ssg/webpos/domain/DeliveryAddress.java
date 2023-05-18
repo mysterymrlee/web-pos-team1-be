@@ -13,6 +13,7 @@ import javax.validation.constraints.NotNull;
 @Table(name = "delivery_list")
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class DeliveryAddress extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,6 +26,9 @@ public class DeliveryAddress extends BaseTime {
     @NotNull
     private String name;
     private String requestInfo;
+    private String postCode;
+    private boolean isDefault;
+    private String deliveryName;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -39,6 +43,10 @@ public class DeliveryAddress extends BaseTime {
             ", phoneNumber='" + phoneNumber + '\'' +
             ", name='" + name + '\'' +
             ", requestInfo='" + requestInfo + '\'' +
+            ", postCode='" + postCode + '\'' +
+            ", isDefault=" + isDefault +
+            ", deliveryName='" + deliveryName + '\'' +
+            ", user=" + user +
             '}';
     }
 }

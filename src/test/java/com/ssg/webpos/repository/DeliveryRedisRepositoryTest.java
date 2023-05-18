@@ -1,7 +1,8 @@
 package com.ssg.webpos.repository;
 
 import com.ssg.webpos.domain.enums.DeliveryType;
-import com.ssg.webpos.dto.DeliveryAddDTO;
+import com.ssg.webpos.dto.delivery.DeliveryAddDTO;
+import com.ssg.webpos.dto.delivery.DeliveryAddressDTO;
 import com.ssg.webpos.repository.delivery.DeliveryRedisImplRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -48,6 +49,34 @@ public class DeliveryRedisRepositoryTest {
 
     Map<String, Map<String, List<Object>>> findDeliveryRedisImpl = deliveryRedisImplRepository.findAll();
     System.out.println("deliveryDTOList = " + findDeliveryRedisImpl);
+
+    Assertions.assertEquals(1, findDeliveryRedisImpl.size());
+  }
+
+  @Test
+  @DisplayName("선택된 배송 정보 redis에 저장")
+  public void readSelectedDeliveryInfoFromRedis() throws Exception {
+    DeliveryAddressDTO deliveryAddressDTO = new DeliveryAddressDTO();
+    deliveryAddressDTO.setStoreId(1L);
+    deliveryAddressDTO.setPosId(1L);
+    //given
+    DeliveryAddressDTO deliveryAddressDTO1 = DeliveryAddressDTO.builder()
+        .posId(deliveryAddressDTO.getPosId())
+        .storeId(deliveryAddressDTO.getStoreId())
+        .address("부산광역시 해운대구")
+        .phoneNumber("01011113333")
+        .name("김진아")
+        .postCode("123456")
+        .isDefault(false)
+        .deliveryName("스파로스")
+        .build();
+
+    System.out.println("deliveryAddressDTO1 = " + deliveryAddressDTO1);
+    // when
+    deliveryRedisImplRepository.saveSelectedDelivery(deliveryAddressDTO1);
+
+    Map<String, Map<String, List<Object>>> findDeliveryRedisImpl = deliveryRedisImplRepository.findAll();
+    System.out.println("deliveryAddressDTO = " + findDeliveryRedisImpl);
 
     Assertions.assertEquals(1, findDeliveryRedisImpl.size());
   }

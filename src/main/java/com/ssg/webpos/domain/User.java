@@ -16,7 +16,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "user")
-@ToString
 public class User extends BaseTime {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
@@ -47,5 +46,4 @@ public class User extends BaseTime {
 
     @OneToMany(mappedBy = "user")
     private List<Coupon> couponList = new ArrayList<>();
-
 }
