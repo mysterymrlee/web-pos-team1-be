@@ -27,4 +27,5 @@ public class StockReport extends BaseTime {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id")
     private Store store;
+    private boolean isSubmit;
 }

@@ -42,6 +42,5 @@ public class SettlementRangeSelectServiceTest {
         for(SettlementMonth list:lists) {
             System.out.println(list);
         }
-        A
     }
 }

@@ -3,23 +3,30 @@ package com.ssg.webpos.controller.admin;
 import com.ssg.webpos.domain.Order;
 import com.ssg.webpos.domain.SettlementDay;
 import com.ssg.webpos.domain.SettlementMonth;
-import com.ssg.webpos.dto.SettlementDayReportDTO;
-import com.ssg.webpos.dto.SettlementMonthDetailRequestDTO;
-import com.ssg.webpos.dto.SettlementMonthReportDTO;
+import com.ssg.webpos.dto.settlement.SettlementDayReportDTO;
+import com.ssg.webpos.dto.settlement.SettlementMonthDetailRequestDTO;
+import com.ssg.webpos.dto.settlement.SettlementMonthDetailResponseDTO;
+import com.ssg.webpos.dto.settlement.SettlementMonthReportDTO;
+import com.ssg.webpos.service.OrderService;
 import com.ssg.webpos.service.SettlementDayService;
 import com.ssg.webpos.service.SettlementMonthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.swing.text.DateFormatter;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
+
+
 
 @RestController
 @RequestMapping("/api/v1/manager") // 팀장님한테 점장 로그인 구현 기능 받으면 manager에서 branchadmin-manager로 변경
@@ -31,6 +38,7 @@ public class BranchAdminManagerController {
     // 리포트가 이미 제출된 경우 버튼을 비활성화
     private final SettlementDayService settlementDayService;
     private final SettlementMonthService settlementMonthService;
+    private final OrderService orderService;
 
 
 
@@ -147,9 +155,9 @@ public class BranchAdminManagerController {
     }
     // 특정 기간 월별 내역 조회
     @GetMapping("/settlementMonth-variable-range-yyyy-MM")
-    public List<SettlementMonthReportDTO> settlementMonthByVariableRangeyyyyMM(@RequestParam("StartDate")String StartDate, @RequestParam("EndDate")String EndDate) throws DateTimeParseException {
+    public List<SettlementMonthReportDTO> settlementMonthByVariableRangeyyyyMM(@RequestParam("startDate")String startDate, @RequestParam("endDate")String endDate) throws DateTimeParseException {
         try {
-            List<SettlementMonth> settlementMonths = settlementMonthService.selectByStoreIdAndDayBetween(1L, StartDate,EndDate);
+            List<SettlementMonth> settlementMonths = settlementMonthService.selectByStoreIdAndDayBetween(1L, startDate,endDate);
             List<SettlementMonthReportDTO> reportDTOs = new ArrayList<>();
 
             for(SettlementMonth settlementMonth: settlementMonths) {
@@ -171,15 +179,64 @@ public class BranchAdminManagerController {
         }
     }
 
-    // 정산내역의 일별 정산의 상세 주문내역 조회
-    // 예시 : 2023-01-01의 정산 내역의 상세 주문내역 조회시 2023-01-01T00:00:00 ~ 2023-01-01T23:59:59의 주문내역 조회
+    //조건 조회로 돌려야겠는데 쿼리문 활용해서
+//    @PostMapping("/settlement-month/details")
+//    public ResponseEntity getDetailSettlementMonth(@RequestBody SettlementMonthDetailRequestDTO requestDTO) throws NullPointerException{
+//        Long store_id = requestDTO.getStore_id();
+//        LocalDateTime date = LocalDateTime.parse(requestDTO.getDate());
+//
+//        List<Order> orderList = orderService.selectByPos_StoreIdAndOrderDate(store_id,date);
+//        Iterator<Order> iterator = orderList.iterator();
+//        while (iterator.hasNext()) {
+//            Order order = iterator.next();
+//            System.out.println("order = " + order);
+//        }
+//
+//        List<SettlementMonthDetailResponseDTO> responseDTOList = orderList.stream()
+//                .map(order -> new SettlementMonthDetailResponseDTO(order))
+//                .collect(Collectors.toList());
+//        return new ResponseEntity<>(responseDTOList, HttpStatus.OK);
+//    }
 
-    // 정산내역의 월별 정산의 상세 주문내역 조회
-    @PostMapping("/settlement-month/details")
-    public ResponseEntity getDetailSettlementMonth(@RequestBody SettlementMonthDetailRequestDTO requestDTO){
+    // 월별 기간 상세 조회
+    // store_id, "yyyy-mm"
+    @PostMapping("/settlement-month/detail")
+    public ResponseEntity getDetailMonth(@RequestBody SettlementMonthDetailRequestDTO requestDTO) throws NullPointerException{
         Long store_id = requestDTO.getStore_id();
-        LocalDate date = LocalDate.parse(requestDTO.getDate());
-        List<Order> orderList =
+        String date = requestDTO.getDate();
+
+        List<Order> orderList = orderService.selectByOrdersMonth(store_id,date);
+        Iterator<Order> iterator = orderList.iterator();
+        while (iterator.hasNext()) {
+            Order order = iterator.next();
+            System.out.println("order = " + order);
+        }
+
+        List<SettlementMonthDetailResponseDTO> responseDTOList = orderList.stream()
+                .map(order -> new SettlementMonthDetailResponseDTO(order))
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(responseDTOList, HttpStatus.OK);
     }
+
+    // 일별 기간 상세 조회
+    // store_id, "yyyy-mm-dd"
+    @PostMapping("/settlement-day/detail")
+    public ResponseEntity getDetailDay(@RequestBody SettlementMonthDetailRequestDTO requestDTO) throws NullPointerException{
+        Long store_id = requestDTO.getStore_id();
+        String date = requestDTO.getDate();
+
+        List<Order> orderList = orderService.selectByOrdersDay(store_id,date);
+        Iterator<Order> iterator = orderList.iterator();
+        while (iterator.hasNext()) {
+            Order order = iterator.next();
+            System.out.println("order = " + order);
+        }
+
+        List<SettlementMonthDetailResponseDTO> responseDTOList = orderList.stream()
+                .map(order -> new SettlementMonthDetailResponseDTO(order))
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(responseDTOList, HttpStatus.OK);
+    }
+
 
 }

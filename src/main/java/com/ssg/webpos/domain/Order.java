@@ -87,7 +87,8 @@ public Order(OrderStatus orderStatus, PayMethod payMethod, int totalPrice) {
                 "id=" + id +
                 ", orderStatus=" + orderStatus +
                 ", payMethod=" + payMethod +
-                ", totalQuantity=" + totalQuantity +
+                ", totalPrice=" + totalPrice +
+                ", finalTotalPrice=" + finalTotalPrice +
                 '}';
     }
     public boolean equals(Object o) {
