@@ -1,9 +1,11 @@
-package com.ssg.webpos.service;
+package com.ssg.webpos.service.settlement;
 
 import com.ssg.webpos.domain.SettlementDay;
 import com.ssg.webpos.domain.SettlementMonth;
 import com.ssg.webpos.repository.settlement.SettlementDayRepository;
 import com.ssg.webpos.repository.settlement.SettlementMonthRepository;
+import com.ssg.webpos.service.SettlementDayService;
+import com.ssg.webpos.service.SettlementMonthService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
