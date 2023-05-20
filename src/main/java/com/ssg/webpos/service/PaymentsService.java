@@ -6,9 +6,8 @@ import com.siot.IamportRestClient.response.Payment;
 import com.ssg.webpos.domain.*;
 import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.domain.enums.PayMethod;
-import com.ssg.webpos.dto.CartAddDTO;
 import com.ssg.webpos.dto.PaymentsDTO;
-import com.ssg.webpos.repository.CartRedisRepository;
+import com.ssg.webpos.repository.cart.CartRedisRepository;
 import com.ssg.webpos.repository.UserRepository;
 import com.ssg.webpos.repository.cart.CartRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
@@ -23,7 +22,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -156,7 +154,7 @@ public class PaymentsService {
 
         // 포인트 적립
 //        pointService.updatePoint(phoneNumber, totalPrice);
-        cartRedisRepository.delete(compositeId);
+//        cartRedisRepository.delete(compositeId);
 
 
       } else { // 결제 실패

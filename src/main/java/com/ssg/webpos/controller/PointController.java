@@ -1,11 +1,9 @@
 package com.ssg.webpos.controller;
 
-import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.domain.User;
 import com.ssg.webpos.dto.PointDTO;
 import com.ssg.webpos.dto.PointRequestDTO;
-import com.ssg.webpos.repository.CartRedisRepository;
-import com.ssg.webpos.repository.UserRepository;
+import com.ssg.webpos.repository.cart.CartRedisRepository;
 import com.ssg.webpos.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

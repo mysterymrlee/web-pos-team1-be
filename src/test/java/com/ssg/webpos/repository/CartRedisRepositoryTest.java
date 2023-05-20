@@ -1,10 +1,10 @@
 package com.ssg.webpos.repository;
 
-import com.ssg.webpos.domain.Cart;
 import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.dto.CartAddDTO;
 import com.ssg.webpos.dto.CartAddRequestDTO;
 import com.ssg.webpos.dto.PointDTO;
+import com.ssg.webpos.repository.cart.CartRedisImplRepository;
 import com.ssg.webpos.service.CartRedisService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
