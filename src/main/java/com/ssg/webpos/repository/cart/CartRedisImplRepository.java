@@ -1,20 +1,23 @@
-package com.ssg.webpos.repository;
+package com.ssg.webpos.repository.cart;
 
-import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.dto.CartAddDTO;
 import com.ssg.webpos.dto.CartAddRequestDTO;
+import com.ssg.webpos.dto.CouponDTO;
 import com.ssg.webpos.dto.PointDTO;
-import com.ssg.webpos.repository.cart.CartRepository;
+import com.ssg.webpos.repository.CouponRepository;
+import com.ssg.webpos.repository.UserRepository;
 import com.ssg.webpos.repository.product.ProductRepository;
+import com.ssg.webpos.service.CouponService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Repository
-public class CartRedisImplRepository implements CartRedisRepository{
+public class CartRedisImplRepository implements CartRedisRepository {
   @Autowired
   UserRepository userRepository;
 
@@ -23,6 +26,10 @@ public class CartRedisImplRepository implements CartRedisRepository{
 
   @Autowired
   CartRepository cartRepository;
+  @Autowired
+  CouponService couponService;
+  @Autowired
+  CouponRepository couponRepository;
   private RedisTemplate<String, Map<String, List<Object>>> redisTemplate;
 
 
@@ -35,12 +42,8 @@ public class CartRedisImplRepository implements CartRedisRepository{
 
   @Override
   public void saveCart(CartAddRequestDTO cartAddRequestDTO) {
-    PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
-    posStoreCompositeId.setPos_id(cartAddRequestDTO.getPosId());
-    posStoreCompositeId.setStore_id(cartAddRequestDTO.getStoreId());
-
-    String posId = String.valueOf(posStoreCompositeId.getPos_id());
-    String storeId = String.valueOf(posStoreCompositeId.getStore_id());
+    String posId = String.valueOf(cartAddRequestDTO.getPosId());
+    String storeId = String.valueOf(cartAddRequestDTO.getStoreId());
     String compositeId = storeId + "-" + posId;
 
     Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
@@ -48,13 +51,9 @@ public class CartRedisImplRepository implements CartRedisRepository{
       posData = new HashMap<>();
     }
 
-    List<Object> cartList = posData.get("cartList");
-    if (cartList == null) {
-      cartList = new ArrayList<>();
-    }
+    List<Object> cartList = new ArrayList<>();
 
-    List<CartAddDTO> cartItemList = cartAddRequestDTO.getCartItemList();
-    for (CartAddDTO cartAddDTO : cartItemList) {
+    for (CartAddDTO cartAddDTO : cartAddRequestDTO.getCartItemList()) {
       Map<String, Object> cartItem = new HashMap<>();
       cartItem.put("productId", cartAddDTO.getProductId());
       cartItem.put("cartQty", cartAddDTO.getCartQty());
@@ -67,6 +66,8 @@ public class CartRedisImplRepository implements CartRedisRepository{
     posData.put("cartList", cartList);
     hashOperations.put("CART", compositeId, posData);
   }
+
+
 
   @Override
   public void savePoint(PointDTO pointDTO) {
@@ -93,6 +94,36 @@ public class CartRedisImplRepository implements CartRedisRepository{
 
     hashOperations.put("CART", compositeId, posData);
   }
+
+  @Override
+  public void saveCoupon(CouponDTO couponDTO) {
+    String storeId = String.valueOf(couponDTO.getStoreId());
+    String posId = String.valueOf(couponDTO.getPosId());
+    String compositeId = storeId + "-" + posId;
+    String serialNumber = couponDTO.getSerialNumber();
+    String validationMessage = couponService.validateCoupon(serialNumber);
+    boolean couponValid = validationMessage.equals("유효한 쿠폰입니다.");
+
+    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
+    if (posData == null) {
+      posData = new HashMap<>();
+      hashOperations.put("CART", compositeId, posData);
+    }
+    posData.put("useCoupon", Collections.singletonList(couponValid));
+    if (couponValid) {
+      Long couponId = couponRepository.findBySerialNumber(serialNumber).get().getId();
+      LocalDate deductedPrice = couponRepository.findBySerialNumber(serialNumber).get().getExpiredDate();
+      String name = couponRepository.findBySerialNumber(serialNumber).get().getName();
+
+      posData.put("couponId", Collections.singletonList(couponId));
+      posData.put("deducatePrice", Collections.singletonList(deductedPrice));
+      posData.put("couponName", Collections.singletonList(name));
+    }
+
+
+    hashOperations.put("CART", compositeId, posData);
+  }
+
 
   @Override
   public Map<String, Map<String, List<Object>>> findAll() throws Exception {

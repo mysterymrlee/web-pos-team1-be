@@ -1,32 +1,21 @@
 package com.ssg.webpos.service;
-
 import com.ssg.webpos.domain.*;
 import com.ssg.webpos.domain.enums.DeliveryType;
-import com.ssg.webpos.dto.CartAddDTO;
-import com.ssg.webpos.dto.OrderDTO;
 import com.ssg.webpos.dto.delivery.DeliveryAddDTO;
 import com.ssg.webpos.dto.delivery.DeliveryAddressDTO;
-import com.ssg.webpos.dto.PointDTO;
-import com.ssg.webpos.repository.CartRedisImplRepository;
 import com.ssg.webpos.repository.UserRepository;
 import com.ssg.webpos.repository.delivery.DeliveryAddressRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRedisImplRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRepository;
-import com.ssg.webpos.repository.order.OrderRepository;
-import com.ssg.webpos.repository.product.ProductRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
-
 import javax.transaction.Transactional;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -38,8 +27,6 @@ class DeliveryServiceTest {
   UserRepository userRepository;
   @Autowired
   DeliveryRedisImplRepository deliveryRedisImplRepository;
-  @Autowired
-  CartRedisImplRepository cartRedisImplRepository;
   @Autowired
   DeliveryAddressRepository deliveryAddressRepository;
   @Autowired
