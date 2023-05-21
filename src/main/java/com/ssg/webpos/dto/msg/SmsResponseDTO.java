@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 public class SmsResponseDTO {
-  String requestId;
-  LocalDateTime requestTime;
-  String statusCode;
-  String statusName;
+  private String requestId;
+  private LocalDateTime requestTime;
+  private String statusCode;
+  private String statusName;
 }
