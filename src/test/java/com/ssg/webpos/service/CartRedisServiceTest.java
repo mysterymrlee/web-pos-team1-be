@@ -1,12 +1,6 @@
 package com.ssg.webpos.service;
 
-import com.ssg.webpos.domain.Cart;
-import com.ssg.webpos.domain.Order;
-import com.ssg.webpos.domain.Product;
-import com.ssg.webpos.domain.PosStoreCompositeId;
-import com.ssg.webpos.dto.CartAddDTO;
-import com.ssg.webpos.dto.OrderDTO;
-import com.ssg.webpos.repository.CartRedisImplRepository;
+import com.ssg.webpos.repository.cart.CartRedisImplRepository;
 import com.ssg.webpos.repository.cart.CartRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
 import com.ssg.webpos.repository.pos.PosRepository;
@@ -16,11 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;

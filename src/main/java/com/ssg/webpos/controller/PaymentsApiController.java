@@ -1,14 +1,10 @@
 package com.ssg.webpos.controller;
 
-import com.siot.IamportRestClient.IamportClient;
-import com.siot.IamportRestClient.response.IamportResponse;
-import com.siot.IamportRestClient.response.Payment;
 import com.ssg.webpos.domain.Order;
-import com.ssg.webpos.domain.User;
 import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.domain.enums.PayMethod;
 import com.ssg.webpos.dto.PaymentsDTO;
-import com.ssg.webpos.repository.CartRedisRepository;
+import com.ssg.webpos.repository.cart.CartRedisRepository;
 import com.ssg.webpos.repository.UserRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
 import com.ssg.webpos.service.PaymentsService;
@@ -23,13 +19,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import static com.ssg.webpos.domain.enums.OrderStatus.SUCCESS;
 
 
 @Slf4j
@@ -43,7 +35,7 @@ public class PaymentsApiController {
 
   @Autowired
   private PaymentsService paymentsService;
-  
+
   @Autowired
   private UserRepository userRepository;
   @Value("${application.message:Hello World}")
@@ -75,7 +67,7 @@ public class PaymentsApiController {
       return new ResponseEntity<>("주문을 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
     }
   }
-  
+
   @RequestMapping("/")
   public String welcome(Map<String, Object> model) {
     model.put("time", new Date());
@@ -86,7 +78,7 @@ public class PaymentsApiController {
   @RequestMapping(value = "/payment/callback_receive", method = RequestMethod.POST)
   public ResponseEntity<?> callback_receive(@RequestBody PaymentsDTO paymentsDTO) {
     paymentsDTO.setPosId(1L);
-    paymentsDTO.setStoreId(3L);
+    paymentsDTO.setStoreId(1L);
     paymentsService.processPaymentCallback(paymentsDTO);
 
     // 응답 처리

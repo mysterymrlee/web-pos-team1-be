@@ -28,7 +28,7 @@ public class SettlementMonthService {
             return Collections.emptyList();
         }
     }
-    //일별 조회(HQ 활용)
+    //월별 조회(HQ 활용)
     public List<SettlementMonth> selectByDay(String settlementDate) throws DateTimeParseException {
        try{
             LocalDate localDate = LocalDate.parse(settlementDate);
@@ -40,11 +40,11 @@ public class SettlementMonthService {
            return Collections.emptyList();
        }
     }
-    //store_id별,일별 조회(점장 활용)
-    public List<SettlementMonth> selectByStoreIdAndDay(Long storeId, String settlementDate) throws DateTimeParseException {
+    //store_id별,월별 조회(점장 활용)
+    public List<SettlementMonth> selectByStoreIdAndDay(Long storeId, String SettlementDate) throws DateTimeParseException {
         try {
-            LocalDate localDate = LocalDate.parse(settlementDate);
-            List<SettlementMonth> list = settlementMonthRepository.findByStoreIdAndSettlementDate(storeId,localDate);
+            LocalDate settlementDate = LocalDate.parse(SettlementDate);
+            List<SettlementMonth> list = settlementMonthRepository.findByStoreIdAndSettlementDate(1L,settlementDate);
             return list;
         } catch (Exception e) {
             e.printStackTrace();
@@ -52,4 +52,19 @@ public class SettlementMonthService {
             return Collections.emptyList();
         }
     }
+
+    //store_id별, 기간별 월별 조회
+    public List<SettlementMonth> selectByStoreIdAndDayBetween(Long storeId, String StartDate, String EndDate) throws DateTimeParseException {
+        try {
+            LocalDate start = LocalDate.parse(StartDate);
+            LocalDate end = LocalDate.parse(EndDate);
+            List<SettlementMonth> list = settlementMonthRepository.findByStoreIdAndSettlementDateBetween(1L,start,end);
+            return list;
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e);
+            return Collections.emptyList();
+        }
+    }
+
 }

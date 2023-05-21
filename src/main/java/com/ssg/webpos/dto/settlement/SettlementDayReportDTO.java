@@ -1,4 +1,4 @@
-package com.ssg.webpos.dto;
+package com.ssg.webpos.dto.settlement;
 
 import lombok.*;
 
@@ -16,5 +16,6 @@ public class SettlementDayReportDTO {
     private LocalDate settlementDate;
 
     private Long storeId;
+    private String storeName;
     private LocalDateTime createdDate;
 }

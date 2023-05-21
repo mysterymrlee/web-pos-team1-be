@@ -1,5 +1,5 @@
 package com.ssg.webpos.domain.enums;
 
 public enum CouponStatus {
-    USED, NOT_USED, EXPIRED
+    USED, NOT_USED
 }

@@ -4,7 +4,7 @@ import com.ssg.webpos.domain.Cart;
 import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.dto.CartAddDTO;
 import com.ssg.webpos.dto.CartAddRequestDTO;
-import com.ssg.webpos.repository.CartRedisRepository;
+import com.ssg.webpos.repository.cart.CartRedisRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +12,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +33,6 @@ public class CartController {
   public ResponseEntity addCart(@RequestBody @Valid CartAddRequestDTO requestDTO, BindingResult bindingResult) {
     Long posId = requestDTO.getPosId();
     Long storeId = requestDTO.getStoreId();
-    int totalPrice = requestDTO.getTotalPrice();
 
     List<CartAddDTO> cartItemList = requestDTO.getCartItemList();
     System.out.println("cartItemList = " + cartItemList);
