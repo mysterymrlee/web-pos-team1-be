@@ -13,10 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -54,9 +52,18 @@ public class CartService {
     String serialNumber = String.format("%03d", newOrderId);
     System.out.println("serialNumber = " + serialNumber); // 세 자릿수로 만들기
     String orderDateStr = orderDTO.getOrderDate().format(DateTimeFormatter.BASIC_ISO_DATE); // 날짜 형식 맞추기 ex) 20230509
-    String combinedStr = orderDateStr + serialNumber;
-    System.out.println("combinedStr = " + combinedStr);
-    order.setSerialNumber(combinedStr);
+
+    Long storeId = orderDTO.getStoreId();
+    String strStoreId = String.format("%02d", storeId);
+    System.out.println("strStoreId = " + strStoreId);
+
+    Long posId = orderDTO.getPosId();
+    String strPosId = String.format("%02d", posId);
+    System.out.println("strPosId = " + strPosId);
+
+    String orderSerialNumber = orderDateStr + strStoreId + strPosId + serialNumber;
+    System.out.println("combinedStr = " + orderSerialNumber);
+    order.setSerialNumber(orderSerialNumber);
 
     System.out.println("order = " + order);
     order.setOrderStatus(OrderStatus.SUCCESS);

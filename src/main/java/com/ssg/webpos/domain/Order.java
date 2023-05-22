@@ -1,5 +1,6 @@
 package com.ssg.webpos.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.domain.enums.PayMethod;
 import com.ssg.webpos.dto.CartAddDTO;
@@ -17,7 +18,7 @@ import java.util.Objects;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-//@ToString
+@Builder
 @Table(name = "orders")
 public class Order extends BaseTime {
     @Id
@@ -54,6 +55,7 @@ public class Order extends BaseTime {
     private List<PointHistory> pointHistoryList = new ArrayList<>();
     @OneToOne
     @JoinColumn(name = "delivery_id")
+    @JsonBackReference
     private Delivery delivery;
     @OneToMany(mappedBy = "order")
     private List<Coupon> couponList = new ArrayList<>();
