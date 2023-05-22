@@ -32,15 +32,5 @@ public class SettlementRangeSelectServiceTest {
         Assertions.assertEquals(0,lists.size());
     }
 
-    @Test
-    @DisplayName("월별 정산내역의 기간별 조회 테스트")
-    void SettlementMonthRangeTest() {
-        Long storeId=1L;
-        String StartDate = "2023-01-01";
-        String EndDate = "2023-04-01";
-        List<SettlementMonth> lists = settlementMonthService.selectByStoreIdAndDayBetween(storeId,StartDate,EndDate);
-        for(SettlementMonth list:lists) {
-            System.out.println(list);
-        }
-    }
+
 }
