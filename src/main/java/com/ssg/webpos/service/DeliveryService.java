@@ -2,6 +2,7 @@ package com.ssg.webpos.service;
 
 import com.ssg.webpos.domain.Delivery;
 import com.ssg.webpos.domain.DeliveryAddress;
+import com.ssg.webpos.domain.Order;
 import com.ssg.webpos.domain.User;
 import com.ssg.webpos.domain.enums.DeliveryStatus;
 import com.ssg.webpos.dto.delivery.DeliveryAddDTO;
@@ -10,6 +11,7 @@ import com.ssg.webpos.repository.UserRepository;
 import com.ssg.webpos.repository.delivery.DeliveryAddressRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRedisImplRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRepository;
+import com.ssg.webpos.repository.order.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,18 +29,32 @@ public class DeliveryService {
   private final DeliveryRedisImplRepository deliveryRedisImplRepository;
   private final UserRepository userRepository;
   private final DeliveryAddressRepository deliveryAddressRepository;
+  private final OrderRepository orderRepository;
 
   // 문자열을 LocalDateTime으로 파싱
   public LocalDateTime LocalDateParse(String requestFinishedAt) throws DateTimeParseException {
     LocalDateTime dateTime = LocalDateTime.parse(requestFinishedAt, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-    System.out.println("LocalDateTime = " + dateTime); // 2023-05-12T18:00:00
+    System.out.println("LocalDateTime = " + dateTime); // 2023-05-25T17:25:00
     return dateTime;
   }
 
   // 배송지 추가
   @Transactional
-  public void addDeliveryAddress(DeliveryAddDTO deliveryDTO) {
+  public void addDeliveryAddress(DeliveryAddDTO deliveryDTO, Long orderId) {
     LocalDateTime requestFinishedAt = LocalDateParse(deliveryDTO.getRequestFinishedAt());
+    Order order = orderRepository.findById(orderId).get();
+    // delivery 일련번호 생성
+    List<Delivery> deliveryList = deliveryRepository.findAll();
+    Long deliveryId = deliveryList.size() + 1L;
+
+    LocalDateTime orderDate = order.getOrderDate();
+    String orderDateStr = orderDate.format(DateTimeFormatter.BASIC_ISO_DATE);
+    System.out.println("orderDateStr = " + orderDateStr);
+    String strDeliveryId = String.format("%03d", deliveryId);
+    System.out.println("strDeliveryId = " + strDeliveryId);
+    String deliverySerialNumber = orderDateStr + strDeliveryId;
+    System.out.println("deliverySerialNumber = " + deliverySerialNumber);
+
     Delivery delivery = Delivery.builder()
         .deliveryName(deliveryDTO.getDeliveryName())
         .userName(deliveryDTO.getUserName())
@@ -46,11 +62,13 @@ public class DeliveryService {
         .phoneNumber(deliveryDTO.getPhoneNumber())
         .finishedDate(requestFinishedAt)
         .requestInfo(deliveryDTO.getRequestInfo())
-        .deliveryStatus(DeliveryStatus.PROCESS)
+        .deliveryStatus(DeliveryStatus.COMPLETE_PAYMENT)
         .deliveryType(deliveryDTO.getDeliveryType())
         .startedDate(LocalDateTime.now())
+        .serialNumber(deliverySerialNumber)
         .build();
-
+    order.setDelivery(delivery);
+    delivery.setOrder(order);
     deliveryRepository.save(delivery);
   }
 

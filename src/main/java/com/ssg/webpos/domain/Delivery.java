@@ -1,5 +1,6 @@
 package com.ssg.webpos.domain;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.ssg.webpos.domain.enums.DeliveryStatus;
 import com.ssg.webpos.domain.enums.DeliveryType;
 import lombok.*;
@@ -21,11 +22,12 @@ public class Delivery extends BaseTime {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "delivery_id")
     private Long id;
-
+    private String serialNumber;
     @NotNull
     private LocalDateTime startedDate;
 
     private LocalDateTime finishedDate;
+    private LocalDateTime requestDeliveryTime;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -47,5 +49,6 @@ public class Delivery extends BaseTime {
     private String requestInfo;
 
     @OneToOne(mappedBy = "delivery")
+    @JsonManagedReference
     private Order order;
 }
