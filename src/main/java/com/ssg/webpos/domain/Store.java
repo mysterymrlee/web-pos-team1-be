@@ -14,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@ToString(of={"name"})
 public class Store extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

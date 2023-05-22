@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.List;
@@ -61,6 +62,72 @@ public class SettlementDayService {
             LocalDate StartDate = LocalDate.parse(start);
             LocalDate EndDate = LocalDate.parse(end);
             List<SettlementDay> list = settlementDayRepository.findByStoreIdAndSettlementDateBetween(StoreId,StartDate,EndDate);
+            return list;
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e);
+            return Collections.emptyList();
+        }
+    }
+
+    // year, month 받으면 해당 일별정산내역 조회("yyyy-mm")
+    // "2023-02" 받으면 해당 날짜의 일별정산내역 전체 조회
+    public List<SettlementDay> selectByYearMonth(String date) {
+        try {
+            LocalDate startDate = LocalDate.parse(date+"-01");
+            YearMonth yearMonth = YearMonth.parse(date);
+            int lastDayOfMonth = yearMonth.lengthOfMonth();
+            String ParsedDateString = date + "-" + lastDayOfMonth;
+            LocalDate endDate = LocalDate.parse(ParsedDateString);
+            List<SettlementDay> list = settlementDayRepository.findBySettlementDateBetween(startDate,endDate);
+            return list;
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e);
+            return Collections.emptyList();
+        }
+    }
+
+    // "yyyy-mm" 형식 date,storeId 받으면 해당 일별정산내역 조회("yyyy-mm")
+    // "2023-02" 받으면 해당 날짜의 일별정산내역 전체 조회
+    public List<SettlementDay> selectByYearMonthAndStoreId(String date, Long storeId) {
+        try {
+            LocalDate startDate = LocalDate.parse(date+"-01");
+            YearMonth yearMonth = YearMonth.parse(date);
+            int lastDayOfMonth = yearMonth.lengthOfMonth();
+            String ParsedDateString = date + "-" + lastDayOfMonth;
+            LocalDate endDate = LocalDate.parse(ParsedDateString);
+            List<SettlementDay> list = settlementDayRepository.findByStoreIdAndSettlementDateBetween(storeId,startDate,endDate);
+            return list;
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e);
+            return Collections.emptyList();
+        }
+    }
+
+    //"yyyy-mm-dd" 형식 date 기간별 일별정산내역 조회
+    //"2023-05-09","2023-05-11"  받으면 해당 기간별 일별정산내역 조회
+    public List<SettlementDay> selectByDayRange(String startDate, String endDate) {
+        try {
+            LocalDate start = LocalDate.parse(startDate);
+            LocalDate end = LocalDate.parse(endDate);
+            List<SettlementDay> list = settlementDayRepository.findBySettlementDateBetween(start,end);
+            return list;
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e);
+            return Collections.emptyList();
+        }
+    }
+
+    //"yyyy-mm-dd" 형식 date, storeId 기간별 일별정산내역 조회
+    //"2023-05-09","2023-05-11",1L 받으면 해당 기간별 일별정산내역 조회
+    public List<SettlementDay> selectByDayAndStoreIdRange(String startDate, String endDate, Long storeId) {
+        try {
+            LocalDate start = LocalDate.parse(startDate);
+            LocalDate end = LocalDate.parse(endDate);
+            List<SettlementDay> list = settlementDayRepository.findByStoreIdAndSettlementDateBetween(storeId,start,end);
             return list;
         } catch (Exception e) {
             e.printStackTrace();

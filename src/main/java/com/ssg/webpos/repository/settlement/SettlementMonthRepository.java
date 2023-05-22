@@ -17,4 +17,9 @@ public interface SettlementMonthRepository extends JpaRepository<SettlementMonth
     List<SettlementMonth> findByStoreIdAndSettlementDate(Long storeId, LocalDate settlementDate);
     // 기간별 조회(점장 활용)
     List<SettlementMonth> findByStoreIdAndSettlementDateBetween(Long StoreId, LocalDate StartDate, LocalDate EndDate);
+
+    //year로 특정 year의 월별정산내역 조회
+    //날짜는 containing 활용못해서 StartDate, EndDate를 만들어서 기능 구현
+    // Spring에서 특정날짜의 시작일, 종료일 생성해준다.
+    List<SettlementMonth> findBySettlementDateBetween(LocalDate StartDate, LocalDate EndDate);
 }
