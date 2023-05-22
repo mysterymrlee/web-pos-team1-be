@@ -17,9 +17,6 @@ public class SettlementMonthDetailResponseDTO {
     private int totalPrice;
     private int finalTotalPrice;
 
-    //사용자 정보
-    private LocalDate userBirth;
-    private RoleUser roleUser;
 
     //배송 상태
     private DeliveryType deliveryType;
@@ -30,9 +27,6 @@ public class SettlementMonthDetailResponseDTO {
         this.orderState = order.getOrderStatus();
         this.paymentMethod = order.getPayMethod();
         this.totalPrice = order.getTotalPrice();
-        this.finalTotalPrice = order.getFinalTotalPrice();
-        this.userBirth = order.getUser().getBirth();
-        this.roleUser = order.getUser().getRole();
         this.deliveryType = order.getDelivery().getDeliveryType();
         this.deliveryStatus = order.getDelivery().getDeliveryStatus();
     }

@@ -13,7 +13,7 @@ import java.util.List;
 @Table(name = "product")
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
+@ToString(of={"id","productCode","name","salePrice","imageUrl","description","category","stock"})
 public class Product extends BaseTime {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

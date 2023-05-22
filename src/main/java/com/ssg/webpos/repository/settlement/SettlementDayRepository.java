@@ -14,6 +14,8 @@ public interface SettlementDayRepository extends JpaRepository<SettlementDay, Lo
     List<SettlementDay> findBySettlementDate(LocalDate settlementDate);
     // store_id, 일별 조회(점장 활용)
     List<SettlementDay> findByStoreIdAndSettlementDate(Long storeId, LocalDate settlementDate);
-    // 기간별 조회
-    List<SettlementDay> findByStoreIdAndSettlementDateBetween(Long storeId, LocalDate StartDate, LocalDate EndDate);
+    // store_id, 기간별 조회
+    List<SettlementDay> findByStoreIdAndSettlementDateBetween(Long storeId, LocalDate startDate, LocalDate endDate);
+    // 전체 기간별 조회
+    List<SettlementDay> findBySettlementDateBetween(LocalDate startDate, LocalDate endDate);
 }
