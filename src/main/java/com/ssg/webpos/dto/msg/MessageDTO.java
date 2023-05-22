@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 public class MessageDTO {
-  String to;
-  String content;
+  private String to;
+  private String content;
 }
