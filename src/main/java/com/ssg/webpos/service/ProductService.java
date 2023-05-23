@@ -17,4 +17,8 @@ public class ProductService {
     public List<Product> findByCategory(String category) {
         return productRepository.findByCategory(category);
     }
+
+    public List<Product> findByCategoryWithEvent(String category) {
+        return productRepository.findByCategoryWithEvent(category);
+    }
 }
