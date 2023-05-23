@@ -20,7 +20,7 @@ import java.util.Map;
 
 
 @RestController
-@RequestMapping("/api/v1/coupon")
+@RequestMapping("/api/v1/gift-card")
 public class CouponController {
 
   @Autowired
@@ -29,20 +29,9 @@ public class CouponController {
   CartRedisRepository cartRedisRepository;
 
   @PostMapping("/valid")
-  public ResponseEntity addCoupon(@RequestBody @Valid CouponRequestDTO requestDTO, BindingResult bindingResult) throws Exception {
-    if (bindingResult.hasErrors()) {
-      return new ResponseEntity(HttpStatus.BAD_REQUEST);
-    }
-
+  public ResponseEntity addCoupon(@RequestBody @Valid CouponRequestDTO requestDTO) throws Exception {
     String serialNumber = requestDTO.getSerialNumber();
-    Long storeId = requestDTO.getStoreId();
-    Long posId = requestDTO.getPosId();
-
-    CouponDTO couponDTO = new CouponDTO();
-    couponDTO.setPosId(posId);
-    couponDTO.setStoreId(storeId);
-    couponDTO.setSerialNumber(serialNumber);
-    cartRedisRepository.saveCoupon(couponDTO);
+    cartRedisRepository.saveCoupon(requestDTO);
 
     String validationMessage = couponService.validateCoupon(serialNumber);
 
@@ -53,16 +42,16 @@ public class CouponController {
         status = HttpStatus.OK;
         break;
       case "쿠폰이 만료되었습니다.":
-        status = HttpStatus.NOT_FOUND;
+        status = HttpStatus.PAYMENT_REQUIRED;
         break;
       case "이미 사용된 쿠폰입니다.":
-        status = HttpStatus.CONFLICT;
+        status = HttpStatus.BAD_REQUEST;
         break;
       default:
         status = HttpStatus.NOT_FOUND;
         break;
     }
 
-    return new ResponseEntity<>(validationMessage, status);
+    return new ResponseEntity<>(status);
   }
 }

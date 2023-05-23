@@ -1,9 +1,6 @@
 package com.ssg.webpos.repository.cart;
 
-import com.ssg.webpos.dto.CartAddDTO;
-import com.ssg.webpos.dto.CartAddRequestDTO;
-import com.ssg.webpos.dto.CouponDTO;
-import com.ssg.webpos.dto.PointDTO;
+import com.ssg.webpos.dto.*;
 import com.ssg.webpos.repository.CouponRepository;
 import com.ssg.webpos.repository.UserRepository;
 import com.ssg.webpos.repository.product.ProductRepository;
@@ -96,11 +93,27 @@ public class CartRedisImplRepository implements CartRedisRepository {
   }
 
   @Override
-  public void saveCoupon(CouponDTO couponDTO) {
-    String storeId = String.valueOf(couponDTO.getStoreId());
-    String posId = String.valueOf(couponDTO.getPosId());
+  public void savePointAmount(PointUseDTO pointUseDTO) {
+    String posId = String.valueOf(pointUseDTO.getPosId());
+    String storeId = String.valueOf(pointUseDTO.getStoreId());
+    int amount = pointUseDTO.getAmount();
     String compositeId = storeId + "-" + posId;
-    String serialNumber = couponDTO.getSerialNumber();
+
+    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
+    if (posData == null) {
+      posData = new HashMap<>();
+      hashOperations.put("CART", compositeId, posData);
+    }
+    posData.put("amount", Collections.singletonList(amount));
+    hashOperations.put("CART", compositeId, posData);
+  }
+
+  @Override
+  public void saveCoupon(CouponRequestDTO couponRequestDTO) {
+    String storeId = String.valueOf(couponRequestDTO.getStoreId());
+    String posId = String.valueOf(couponRequestDTO.getPosId());
+    String compositeId = storeId + "-" + posId;
+    String serialNumber = couponRequestDTO.getSerialNumber();
     String validationMessage = couponService.validateCoupon(serialNumber);
     boolean couponValid = validationMessage.equals("유효한 쿠폰입니다.");
 
@@ -112,11 +125,11 @@ public class CartRedisImplRepository implements CartRedisRepository {
     posData.put("useCoupon", Collections.singletonList(couponValid));
     if (couponValid) {
       Long couponId = couponRepository.findBySerialNumber(serialNumber).get().getId();
-      LocalDate deductedPrice = couponRepository.findBySerialNumber(serialNumber).get().getExpiredDate();
+      int deductedPrice = couponRepository.findBySerialNumber(serialNumber).get().getDeductedPrice();
       String name = couponRepository.findBySerialNumber(serialNumber).get().getName();
 
       posData.put("couponId", Collections.singletonList(couponId));
-      posData.put("deducatePrice", Collections.singletonList(deductedPrice));
+      posData.put("deducatedPrice", Collections.singletonList(deductedPrice));
       posData.put("couponName", Collections.singletonList(name));
     }
 
@@ -156,7 +169,28 @@ public class CartRedisImplRepository implements CartRedisRepository {
 
     return phoneNumbers;
   }
-  public Long findUserId(String compositeId) {
+  @Override
+  public List<Map<String, Object>> findCartItems(String compositeId) {
+    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
+    if (posData != null) {
+      List<Object> cartList = posData.get("cartList");
+      List<Map<String, Object>> cartItemList = new ArrayList<>();
+
+      if (cartList != null && !cartList.isEmpty()) {
+        for (Object obj : cartList) {
+          Map<String, Object> cartItem = (Map<String, Object>) obj;
+          cartItemList.add(cartItem);
+        }
+      }
+
+      return cartItemList;
+    }
+
+    return null;
+  }
+
+
+    public Long findUserId(String compositeId) {
     Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
     if (posData != null) {
       List<Object> userIdList = posData.get("userId");
@@ -166,8 +200,52 @@ public class CartRedisImplRepository implements CartRedisRepository {
     }
     return null;
   }
+  @Override
+  public Integer findTotalPrice(String compositeId) {
+    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
+    if (posData != null) {
+      List<Object> totalPriceList = posData.get("totalPrice");
+      if (totalPriceList != null && !totalPriceList.isEmpty()) {
+        return (Integer) totalPriceList.get(0);
+      }
+    }
+    return null;
+  }
 
+  @Override
+  public Integer findDeductedPrice(String compositeId) {
+    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
+    if (posData != null) {
+      List<Object> couponIdList = posData.get("deducatedPrice");
+      if (couponIdList != null && !couponIdList.isEmpty()) {
+        return (Integer) couponIdList.get(0);
+      }
+    }
+    return null;
+  }
 
+  @Override
+  public Long findCouponId(String compositeId) {
+    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
+    if (posData != null) {
+      List<Object> couponIdList = posData.get("couponId");
+      if (couponIdList != null && !couponIdList.isEmpty()) {
+        return (Long) couponIdList.get(0);
+      }
+    }
+    return null;
+  }
+  @Override
+  public Integer findPointAmount(String compositeId) {
+    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
+    if (posData != null) {
+      List<Object> amountList = posData.get("amount");
+      if (amountList != null && !amountList.isEmpty()) {
+        return (Integer) amountList.get(0);
+      }
+    }
+    return null;
+  }
 
   @Override
   public void updatePoint(PointDTO pointDTO) {

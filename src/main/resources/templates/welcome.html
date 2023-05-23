@@ -13,10 +13,7 @@
 <script>
     function payment(pg_mid, payment_method){
     IMP.init('imp65716835');
-
-<!--     const amountInput = document.getElementsByName('amount')[0]; // 입력 필드 선택-->
-<!--     const amount = amountInput.value; // 입력 필드에서 금액 가져오기-->
-    var amount = 10000;
+    var amount = 3000;
     var name = "감자";
 
 
@@ -25,7 +22,8 @@
         pay_method: payment_method,
         merchant_uid: 'cart_' + new Date().getTime(),
         name: name,
-        amount: amount,
+        paid_amount: amount,
+        amount: amount + 1,
         m_redirect_url : 'http://naver.com' //알리페이 m_redirect_url 필요. 결제 완료 후 리디렉션 될 URL
     };
 
@@ -47,7 +45,6 @@
 <body>
 <div>
     <form>
-<!--    <input type="text" name="amount" placeholder="결제 금액을 입력하세요">-->
     <button type="button" onClick = "payment('kakaopay', 'card')">카카오페이</button>
     <button type="button" onClick = "payment('smilepay', 'card')">스마일페이</button>
     <button type="button" onClick = "payment('kcp', 'card')">신용카드</button>

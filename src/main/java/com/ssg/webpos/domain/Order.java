@@ -3,7 +3,6 @@ package com.ssg.webpos.domain;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.domain.enums.PayMethod;
-import com.ssg.webpos.dto.CartAddDTO;
 import lombok.*;
 
 import javax.persistence.*;
@@ -52,7 +51,9 @@ public class Order extends BaseTime {
     @JoinColumn(name = "user_id")
     private User user;
     @OneToMany(mappedBy = "order")
-    private List<PointHistory> pointHistoryList = new ArrayList<>();
+    private List<PointUseHistory> pointUseHistoryList = new ArrayList<>();
+    @OneToMany(mappedBy = "order")
+    private List<PointSaveHistory> pointSaveHistoryList = new ArrayList<>();
     @OneToOne
     @JoinColumn(name = "delivery_id")
     @JsonBackReference

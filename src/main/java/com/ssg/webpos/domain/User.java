@@ -1,6 +1,5 @@
 package com.ssg.webpos.domain;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.ssg.webpos.domain.enums.RoleUser;
 import lombok.*;
 
@@ -15,6 +14,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 @Table(name = "user")
 public class User extends BaseTime {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,7 +36,9 @@ public class User extends BaseTime {
     private int point;
 
     @OneToMany(mappedBy = "user")
-    private List<PointHistory> pointHistoryList = new ArrayList<>();
+    private List<PointUseHistory> pointUseHistoryList = new ArrayList<>();
+    @OneToMany(mappedBy = "user")
+    private List<PointSaveHistory> pointSaveHistoryList = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
     private List<DeliveryAddress> deliveryAddressList = new ArrayList<>();

@@ -10,11 +10,11 @@ import javax.validation.constraints.NotNull;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "point_history")
-public class PointHistory extends BaseTime {
+@Table(name = "point_use_history")
+public class PointUseHistory extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "point_history_id")
+    @Column(name = "point_use_history_id")
     private Long id;
     @NotNull
     private int amount;

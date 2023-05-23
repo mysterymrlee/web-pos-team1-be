@@ -19,6 +19,11 @@ public class CouponService {
   public CouponService(CouponRepository couponRepository) {
   }
 
+
+//  public Coupon getCouponInfoById(Long couponId) {
+//    Optional<Coupon> couponOptional = couponRepository.findById(couponId);
+//
+//  }
   // 쿠폰 유효성
   public String validateCoupon(String serialNumber) {
     Optional<Coupon> couponOptional = couponRepository.findBySerialNumber(serialNumber);
@@ -38,6 +43,17 @@ public class CouponService {
       }
     } else {
       return "쿠폰을 찾을 수 없습니다.";
+    }
+  }
+  // status NOT_USED -> USED
+  public void updateCouponStatusToUsed(Long couponId) {
+    Optional<Coupon> couponOptional = couponRepository.findById(couponId);
+    if (couponOptional.isPresent()) {
+      Coupon coupon = couponOptional.get();
+      coupon.setCouponStatus(CouponStatus.USED);
+      couponRepository.save(coupon);
+    } else {
+      throw new IllegalArgumentException("Invalid coupon ID");
     }
   }
 
