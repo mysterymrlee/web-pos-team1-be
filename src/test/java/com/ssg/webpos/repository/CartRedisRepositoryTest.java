@@ -11,7 +11,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -49,12 +48,12 @@ public class CartRedisRepositoryTest {
       coupon.setExpiredDate(LocalDate.now().plusDays(7));
       couponRepository.save(coupon);
 
-      CouponRequestDTO couponRequestDTO = new CouponRequestDTO();
-      couponRequestDTO.setPosId(1L);
-      couponRequestDTO.setStoreId(1L);
-      couponRequestDTO.setSerialNumber(coupon.getSerialNumber());
-      cartRedisRepository.saveCoupon(couponRequestDTO);
-      String compositeId = couponRequestDTO.getStoreId() + "-" + couponRequestDTO.getPosId();
+      CouponAddRequestDTO couponAddRequestDTO = new CouponAddRequestDTO();
+      couponAddRequestDTO.setPosId(1L);
+      couponAddRequestDTO.setStoreId(1L);
+      couponAddRequestDTO.setSerialNumber(coupon.getSerialNumber());
+      cartRedisRepository.saveCoupon(couponAddRequestDTO);
+      String compositeId = couponAddRequestDTO.getStoreId() + "-" + couponAddRequestDTO.getPosId();
       Integer deductedPrice = cartRedisRepository.findDeductedPrice(compositeId);
       System.out.println("deductedPrice = " + deductedPrice);
     }
@@ -144,6 +143,46 @@ public class CartRedisRepositoryTest {
 
   }
 
+
+  @Test
+  @DisplayName("카트, 포인트 redis 저장")
+  public void 카트_포인트_redis_저장 () throws Exception {
+    PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
+    posStoreCompositeId.setPos_id(1L);
+    posStoreCompositeId.setStore_id(1L);
+
+    CartAddRequestDTO requestDTO = new CartAddRequestDTO();
+    requestDTO.setPosId(posStoreCompositeId.getPos_id());
+    requestDTO.setStoreId(posStoreCompositeId.getStore_id());
+    requestDTO.setTotalPrice(10000);
+
+    List<CartAddDTO> cartItemList = new ArrayList<>();
+
+    CartAddDTO cartAddDTO1 = new CartAddDTO();
+    cartAddDTO1.setProductId(5L);
+    cartAddDTO1.setCartQty(5);
+    cartItemList.add(cartAddDTO1);
+
+    CartAddDTO cartAddDTO2 = new CartAddDTO();
+    cartAddDTO2.setProductId(2L);
+    cartAddDTO2.setCartQty(5);
+    cartItemList.add(cartAddDTO2);
+
+    requestDTO.setCartItemList(cartItemList);
+
+    cartRedisRepository.saveCart(requestDTO);
+
+    PointDTO pointDTO = new PointDTO();
+    pointDTO.setPhoneNumber("01012345678");
+    pointDTO.setPointMethod("phoneNumber");
+    pointDTO.setStoreId(1L);
+    pointDTO.setPosId(1L);
+    cartRedisRepository.savePoint(pointDTO);
+
+    Map<String, Map<String, List<Object>>> cartall = cartRedisRepository.findAll();
+    System.out.println("cartall = " + cartall);
+
+  }
     @Test
     @DisplayName("카트 redis 저장")
     public void readCartInfoFromRedisWithPosId () throws Exception {

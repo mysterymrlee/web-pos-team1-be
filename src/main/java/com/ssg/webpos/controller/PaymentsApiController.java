@@ -51,7 +51,7 @@ public class PaymentsApiController {
     return "Welcome";
   }
 
-  @PostMapping("/callback_receive")
+  @PostMapping("/callback-receive")
   public ResponseEntity<?> callback_receive(@RequestBody PaymentsDTO paymentsDTO) {
     paymentsDTO.getStoreId();
     paymentsDTO.getPosId();

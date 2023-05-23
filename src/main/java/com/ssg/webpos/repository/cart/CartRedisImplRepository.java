@@ -10,7 +10,6 @@ import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.util.*;
 
 @Repository
@@ -109,11 +108,11 @@ public class CartRedisImplRepository implements CartRedisRepository {
   }
 
   @Override
-  public void saveCoupon(CouponRequestDTO couponRequestDTO) {
-    String storeId = String.valueOf(couponRequestDTO.getStoreId());
-    String posId = String.valueOf(couponRequestDTO.getPosId());
+  public void saveCoupon(CouponAddRequestDTO couponAddRequestDTO) {
+    String storeId = String.valueOf(couponAddRequestDTO.getStoreId());
+    String posId = String.valueOf(couponAddRequestDTO.getPosId());
     String compositeId = storeId + "-" + posId;
-    String serialNumber = couponRequestDTO.getSerialNumber();
+    String serialNumber = couponAddRequestDTO.getSerialNumber();
     String validationMessage = couponService.validateCoupon(serialNumber);
     boolean couponValid = validationMessage.equals("유효한 쿠폰입니다.");
 

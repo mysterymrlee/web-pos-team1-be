@@ -27,7 +27,7 @@ public class PointService {
     return 0;
   }
 
-  public void updatePoint(Long userId, int totalPrice) {
+  public int updatePoint(Long userId, int totalPrice) {
     try {
       Optional<User> findUser = userRepository.findById(userId);
       if (findUser.isPresent()) {
@@ -40,12 +40,14 @@ public class PointService {
         // point 값을 업데이트
         user.setPoint(updatedPoint);
         userRepository.save(user);
+        return point;
       } else {
-        System.out.println("찾을 수 없습니다.");
+        System.out.println("user 찾지 못했습니다.");
       }
     } catch (Exception e) {
       e.printStackTrace();
     }
+    return 0;
   }
 
   public void deductPoints(Long userId, int deductedAmount) {
