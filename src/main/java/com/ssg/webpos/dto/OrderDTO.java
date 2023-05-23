@@ -12,6 +12,8 @@ import java.util.List;
 @NoArgsConstructor
 public class OrderDTO {
   private Long orderId;
+  private Long posId;
+  private Long storeId;
   private LocalDateTime orderDate;
   private OrderStatus orderStatus;
   private PayMethod payMethod;

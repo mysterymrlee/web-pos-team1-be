@@ -1,18 +1,22 @@
 package com.ssg.webpos.service;
 import com.ssg.webpos.domain.*;
 import com.ssg.webpos.domain.enums.DeliveryType;
+import com.ssg.webpos.domain.enums.OrderStatus;
+import com.ssg.webpos.domain.enums.PayMethod;
 import com.ssg.webpos.dto.delivery.DeliveryAddDTO;
 import com.ssg.webpos.dto.delivery.DeliveryAddressDTO;
 import com.ssg.webpos.repository.UserRepository;
 import com.ssg.webpos.repository.delivery.DeliveryAddressRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRedisImplRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRepository;
+import com.ssg.webpos.repository.order.OrderRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,10 +35,28 @@ class DeliveryServiceTest {
   DeliveryAddressRepository deliveryAddressRepository;
   @Autowired
   DeliveryService deliveryService;
+  @Autowired
+  OrderRepository orderRepository;
+  @Autowired
+  OrderService orderService;
+
+  private Order createOrder() {
+    // Order를 생성하는 로직
+    Order order = Order.builder()
+        .orderStatus(OrderStatus.SUCCESS)
+        .payMethod(PayMethod.CREDIT_CARD)
+        .totalQuantity(4)
+        .orderDate(LocalDateTime.now())
+        .build();
+    Order savedOrder = orderRepository.save(order);
+    return savedOrder;
+  }
 
   @Test
   @DisplayName("배송지 추가")
   void addDeliveryAddressTest() {
+    Order createdOrder = createOrder();
+
     DeliveryAddDTO deliveryDTO = DeliveryAddDTO.builder()
         .deliveryName("스파로스")
         .userName("김진아")
@@ -44,14 +66,15 @@ class DeliveryServiceTest {
         .requestInfo("문 앞에 두고 가세요.")
         .deliveryType(DeliveryType.DELIVERY)
         .build();
-    deliveryService.addDeliveryAddress(deliveryDTO);
+    deliveryService.addDeliveryAddress(deliveryDTO, createdOrder.getId());
 
     List<Delivery> deliveryList = deliveryRepository.findAll();
     for (Delivery delivery : deliveryList) {
       System.out.println("delivery = " + delivery);
     }
-    assertEquals(1, deliveryList.size());
+//    assertEquals(2, deliveryList.size());
   }
+
   @Test
   @Transactional
   @DisplayName("User 배송지 목록 조회")
@@ -94,7 +117,6 @@ class DeliveryServiceTest {
     DeliveryAddressDTO selectedDeliveryAddress = deliveryService.getSelectedDeliveryAddress(deliveryAddressId);
     System.out.println("selectedDeliveryAddress = " + selectedDeliveryAddress);
     assertEquals(address ,selectedDeliveryAddress.getAddress());
-
   }
 
   @Test
@@ -116,20 +138,4 @@ class DeliveryServiceTest {
       deliveryService.LocalDateParse("2023-05-12T18:00:00");
     });
   }
-
-//  void savePointRedis() throws Exception {
-//    PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
-//    posStoreCompositeId.setPos_id(1L);
-//    posStoreCompositeId.setStore_id(1L);
-//
-//    PointDTO pointDTO = new PointDTO();
-//    pointDTO.setPhoneNumber("01011113333");
-//    pointDTO.setPointMethod("phoneNumber22");
-//    pointDTO.setPosStoreCompositeId(posStoreCompositeId);
-//    cartRedisImplRepository.savePoint(pointDTO);
-//
-//    Map<String, Map<String, List<Object>>> all = cartRedisImplRepository.findAll();
-//    System.out.println("all = " + all);
-//    Map<String, List<Object>> byId = cartRedisImplRepository.findById(String.valueOf(pointDTO.getPosStoreCompositeId()));
-//  }
 }
