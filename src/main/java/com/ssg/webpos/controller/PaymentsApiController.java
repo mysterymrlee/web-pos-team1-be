@@ -27,6 +27,7 @@ import java.util.Optional;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
+@RequestMapping("/api/v1/payment")
 public class PaymentsApiController {
   @Autowired
   private final OrderRepository orderRepository;
@@ -43,42 +44,17 @@ public class PaymentsApiController {
 
 
 
-  @RequestMapping(value = "/payment/{orderId}/result", method = RequestMethod.GET)
-  public ResponseEntity<?> getPaymentResult(@PathVariable("orderId") Long orderId) {
-    Optional<Order> optionalOrder = orderRepository.findById(orderId);
-
-    if (optionalOrder.isPresent()) {
-      Order order = optionalOrder.get();
-      // order 에서 결제 정보 가져오기
-      int finalTotalPrice = order.getFinalTotalPrice();
-      PayMethod payMethod = order.getPayMethod();
-      OrderStatus orderStatus = order.getOrderStatus();
-
-      // 결제 정보
-      JSONObject responseObj = new JSONObject();
-      responseObj.put("order_id", orderId);
-      responseObj.put("final_total_price", finalTotalPrice);
-      responseObj.put("pay_method", payMethod.toString());
-      responseObj.put("order_status", orderStatus.toString());
-
-      return new ResponseEntity<>(responseObj.toJSONString(), HttpStatus.OK);
-    } else {
-      // 주문을 찾을 수 없을 때
-      return new ResponseEntity<>("주문을 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
-    }
-  }
-
-  @RequestMapping("/")
+  @GetMapping("/")
   public String welcome(Map<String, Object> model) {
     model.put("time", new Date());
     model.put("message", this.message);
     return "Welcome";
   }
 
-  @RequestMapping(value = "/payment/callback_receive", method = RequestMethod.POST)
+  @PostMapping("/callback_receive")
   public ResponseEntity<?> callback_receive(@RequestBody PaymentsDTO paymentsDTO) {
-    paymentsDTO.setPosId(1L);
-    paymentsDTO.setStoreId(1L);
+    paymentsDTO.getStoreId();
+    paymentsDTO.getPosId();
     paymentsService.processPaymentCallback(paymentsDTO);
 
     // 응답 처리

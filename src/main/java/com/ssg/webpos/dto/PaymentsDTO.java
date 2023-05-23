@@ -21,4 +21,6 @@ public class PaymentsDTO {
   private String error_msg; // 실패 시 에러 메시지
   private String imp_uid;
   private String merchant_uid;
+  private String pg;
+
 }

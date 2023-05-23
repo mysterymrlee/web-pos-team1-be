@@ -1,9 +1,9 @@
 package com.ssg.webpos.repository;
 
+import com.ssg.webpos.domain.Coupon;
 import com.ssg.webpos.domain.PosStoreCompositeId;
-import com.ssg.webpos.dto.CartAddDTO;
-import com.ssg.webpos.dto.CartAddRequestDTO;
-import com.ssg.webpos.dto.PointDTO;
+import com.ssg.webpos.domain.enums.CouponStatus;
+import com.ssg.webpos.dto.*;
 import com.ssg.webpos.repository.cart.CartRedisImplRepository;
 import com.ssg.webpos.service.CartRedisService;
 import org.junit.jupiter.api.Assertions;
@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +21,6 @@ import java.util.Map;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @SpringBootTest
-@Rollback(value = false)
 public class CartRedisRepositoryTest {
   @Autowired
   CartRedisImplRepository cartRedisRepository;
@@ -30,11 +30,33 @@ public class CartRedisRepositoryTest {
 
   @Autowired
   CartRedisService cartRedisService;
+  @Autowired
+  CouponRepository couponRepository;
 
     @Test
     void readRedis() throws Exception {
       Map<String, Map<String, List<Object>>> redis = cartRedisRepository.findAll();
       System.out.println("redis = " + redis);
+    }
+    
+    @Test
+    void findDeducted() {
+      Coupon coupon = new Coupon();
+      coupon.setCouponStatus(CouponStatus.NOT_USED);
+      coupon.setName("500원");
+      coupon.setSerialNumber("111133333");
+      coupon.setDeductedPrice(500);
+      coupon.setExpiredDate(LocalDate.now().plusDays(7));
+      couponRepository.save(coupon);
+
+      CouponRequestDTO couponRequestDTO = new CouponRequestDTO();
+      couponRequestDTO.setPosId(1L);
+      couponRequestDTO.setStoreId(1L);
+      couponRequestDTO.setSerialNumber(coupon.getSerialNumber());
+      cartRedisRepository.saveCoupon(couponRequestDTO);
+      String compositeId = couponRequestDTO.getStoreId() + "-" + couponRequestDTO.getPosId();
+      Integer deductedPrice = cartRedisRepository.findDeductedPrice(compositeId);
+      System.out.println("deductedPrice = " + deductedPrice);
     }
 
     @Test
@@ -91,6 +113,19 @@ public class CartRedisRepositoryTest {
       System.out.println("all = " + all);
 
     }
+  @Test
+  void savePointAmount() throws Exception {
+    PointUseDTO pointUseDTO = new PointUseDTO();
+    pointUseDTO.setStoreId(1L);
+    pointUseDTO.setPosId(1L);
+    pointUseDTO.setAmount(10);
+    cartRedisRepository.savePointAmount(pointUseDTO);
+    Map<String, Map<String, List<Object>>> all = cartRedisRepository.findAll();
+    System.out.println("all = " + all);
+    
+    Integer pointAmount = cartRedisRepository.findPointAmount(pointUseDTO.getStoreId() + "-" + pointUseDTO.getPosId());
+    System.out.println("pointAmount = " + pointAmount);
+  }
 
   @Test
   void findUserId() throws Exception {
@@ -114,7 +149,7 @@ public class CartRedisRepositoryTest {
     public void readCartInfoFromRedisWithPosId () throws Exception {
       PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
       posStoreCompositeId.setPos_id(1L);
-      posStoreCompositeId.setStore_id(3L);
+      posStoreCompositeId.setStore_id(1L);
 
       CartAddRequestDTO requestDTO = new CartAddRequestDTO();
       requestDTO.setPosId(posStoreCompositeId.getPos_id());
@@ -147,9 +182,9 @@ public class CartRedisRepositoryTest {
     public void readPointInfoFromRedisAll () throws Exception {
 
       PointDTO pointDTO = new PointDTO();
-      pointDTO.setPhoneNumber("01011112222");
+      pointDTO.setPhoneNumber("01012345678");
       pointDTO.setPointMethod("phoneNumber");
-      pointDTO.setStoreId(3L);
+      pointDTO.setStoreId(1L);
       pointDTO.setPosId(1L);
       cartRedisRepository.savePoint(pointDTO);
 

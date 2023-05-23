@@ -3,7 +3,9 @@ package com.ssg.webpos.controller;
 import com.ssg.webpos.domain.User;
 import com.ssg.webpos.dto.PointDTO;
 import com.ssg.webpos.dto.PointRequestDTO;
+import com.ssg.webpos.dto.PointUseDTO;
 import com.ssg.webpos.repository.cart.CartRedisRepository;
+import com.ssg.webpos.service.PointService;
 import com.ssg.webpos.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,6 +26,9 @@ public class PointController {
 
   @Autowired
   UserService userService;
+  @Autowired
+  PointService pointService;
+  @Autowired
 
   @GetMapping("")
   public ResponseEntity<List<User>> getPointList() throws Exception {
@@ -31,6 +36,13 @@ public class PointController {
     System.out.println("all = " + all);
     return new ResponseEntity(all, HttpStatus.OK);
   }
+//  // 확인
+//  @GetMapping("/user/{userId}")
+//  public ResponseEntity<Integer> getUserPoint(@PathVariable("userId") Long userId) {
+//    int point = pointService.getUserPoint(userId);
+//    return ResponseEntity.ok(point);
+//  }
+
 
   @PostMapping("/add")
   public ResponseEntity addPoint(@RequestBody @Valid PointRequestDTO requestDTO, BindingResult bindingResult) throws Exception {
@@ -55,6 +67,24 @@ public class PointController {
       return new ResponseEntity(HttpStatus.OK);
     } else {
       return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+  }
+
+  @PostMapping("/use")
+  public ResponseEntity usePoint(@RequestBody @Valid PointUseDTO requestDTO, BindingResult bindingResult) throws Exception {
+    if (bindingResult.hasErrors()) {
+      return new ResponseEntity(HttpStatus.BAD_REQUEST);
+    }
+    int amount = requestDTO.getAmount();
+    Long storeId = requestDTO.getStoreId();
+    Long posId = requestDTO.getPosId();
+    String compositeId = storeId + "-" + posId;
+    Long userId = cartRedisRepository.findUserId(compositeId);
+    if (userId != null) {
+      cartRedisRepository.savePointAmount(requestDTO);
+      return new ResponseEntity(HttpStatus.NO_CONTENT);
+    } else {
+      return new ResponseEntity<>("등록된 회원 없음",HttpStatus.NOT_FOUND);
     }
   }
 }
