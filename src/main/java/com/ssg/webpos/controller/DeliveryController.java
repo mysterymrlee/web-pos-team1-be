@@ -4,7 +4,6 @@ import com.ssg.webpos.domain.Delivery;
 import com.ssg.webpos.domain.enums.DeliveryStatus;
 import com.ssg.webpos.dto.delivery.DeliveryAddDTO;
 import com.ssg.webpos.dto.delivery.DeliveryAddressDTO;
-import com.ssg.webpos.dto.delivery.RequestDeliveryTimeDTO;
 import com.ssg.webpos.repository.delivery.DeliveryRedisRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRepository;
 import com.ssg.webpos.service.DeliveryService;
@@ -121,19 +120,6 @@ public class DeliveryController {
     }
   }
 
-  // 배송 준비 중일 때?! 배송 요청 시간 request
-  @PostMapping("/prepare-delivery/{serialNumber}")
-  public ResponseEntity setRequestDeliveryTime(@PathVariable String serialNumber, @RequestBody RequestDeliveryTimeDTO requestTimeDTO) {
-    Delivery findDelivery = deliveryRepository.findBySerialNumber(serialNumber);
-    // 요청 도착 시간 설정
-    String requestDeliveryTime = requestTimeDTO.getRequestDeliveryTime();
-    LocalDateTime requestTime = deliveryService.LocalDateParse(requestDeliveryTime);
-    System.out.println("requestTime = " + requestTime);
-    findDelivery.setRequestDeliveryTime(requestTime);
-    deliveryRepository.save(findDelivery);
-    return new ResponseEntity(HttpStatus.OK);
-  }
-
   // 배송 중
   @GetMapping("/process-delivery/{serialNumber}")
   public ResponseEntity setStatusProcessDelivery(@PathVariable String serialNumber) {
@@ -141,6 +127,7 @@ public class DeliveryController {
       Delivery findDelivery = deliveryRepository.findBySerialNumber(serialNumber);
       System.out.println("findDelivery = " + findDelivery);
       findDelivery.setDeliveryStatus(DeliveryStatus.PROCESS_DELIVERY);
+      findDelivery.setStartedDate(LocalDateTime.now());
       deliveryRepository.save(findDelivery);
       return new ResponseEntity(findDelivery, HttpStatus.OK);
     } catch (Exception e) {
@@ -156,6 +143,7 @@ public class DeliveryController {
       Delivery findDelivery = deliveryRepository.findBySerialNumber(serialNumber);
       System.out.println("findDelivery = " + findDelivery);
       findDelivery.setDeliveryStatus(DeliveryStatus.COMPLETE_DELIVERY);
+      findDelivery.setFinishedDate(LocalDateTime.now());
       deliveryRepository.save(findDelivery);
       return new ResponseEntity(findDelivery, HttpStatus.OK);
     } catch (Exception e) {

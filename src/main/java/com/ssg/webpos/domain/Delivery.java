@@ -27,7 +27,7 @@ public class Delivery extends BaseTime {
     private LocalDateTime startedDate;
 
     private LocalDateTime finishedDate;
-    private LocalDateTime requestDeliveryTime;
+    private String requestDeliveryTime;
 
     @NotNull
     @Enumerated(EnumType.STRING)
