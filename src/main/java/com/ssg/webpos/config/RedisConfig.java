@@ -29,6 +29,8 @@ public class RedisConfig {
     RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
     redisStandaloneConfiguration.setHostName(redisProperties.getHost());
     redisStandaloneConfiguration.setPort(redisProperties.getPort());
+    redisStandaloneConfiguration.setPassword(redisProperties.getPassword());
+    redisStandaloneConfiguration.setUsername(redisProperties.getUsername());
 
     LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(redisStandaloneConfiguration);
     return lettuceConnectionFactory;
@@ -39,8 +41,6 @@ public class RedisConfig {
     RedisTemplate<String, Map<String, List<Object>>> redisTemplate = new RedisTemplate<>();
     redisTemplate.setKeySerializer(new StringRedisSerializer());
     redisTemplate.setValueSerializer(new StringRedisSerializer());
-//    redisTemplate.setHashKeySerializer(new StringRedisSerializer());
-//    redisTemplate.setHashValueSerializer(new StringRedisSerializer());
     redisTemplate.setConnectionFactory(redisConnectionFactory());
     return redisTemplate;
   }
