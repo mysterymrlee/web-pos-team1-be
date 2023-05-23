@@ -9,6 +9,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,8 @@ public class RedisConfig {
     RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
     redisStandaloneConfiguration.setHostName(redisProperties.getHost());
     redisStandaloneConfiguration.setPort(redisProperties.getPort());
+    redisStandaloneConfiguration.setPassword(redisProperties.getPassword());
+    redisStandaloneConfiguration.setUsername(redisProperties.getUsername());
 
     LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(redisStandaloneConfiguration);
     return lettuceConnectionFactory;
@@ -36,6 +39,8 @@ public class RedisConfig {
   @Bean
   public RedisTemplate<String, Map<String, List<Object>>> redisTemplate() {
     RedisTemplate<String, Map<String, List<Object>>> redisTemplate = new RedisTemplate<>();
+    redisTemplate.setKeySerializer(new StringRedisSerializer());
+    redisTemplate.setValueSerializer(new StringRedisSerializer());
     redisTemplate.setConnectionFactory(redisConnectionFactory());
     return redisTemplate;
   }
