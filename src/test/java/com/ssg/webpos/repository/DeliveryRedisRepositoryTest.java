@@ -1,6 +1,7 @@
 package com.ssg.webpos.repository;
 
 import com.ssg.webpos.domain.enums.DeliveryType;
+import com.ssg.webpos.dto.GiftRequestDTO;
 import com.ssg.webpos.dto.delivery.DeliveryAddDTO;
 import com.ssg.webpos.dto.delivery.DeliveryAddressDTO;
 import com.ssg.webpos.repository.delivery.DeliveryRedisImplRepository;
@@ -79,6 +80,21 @@ public class DeliveryRedisRepositoryTest {
     System.out.println("deliveryAddressDTO = " + findDeliveryRedisImpl);
 
     Assertions.assertEquals(1, findDeliveryRedisImpl.size());
+  }
+
+  @Test
+  @DisplayName("선물 받는 사람 정보 캐싱")
+  void saveGiftRecipientInfoTest() throws Exception {
+    GiftRequestDTO giftRequestDTO = GiftRequestDTO.builder()
+        .posId(1L)
+        .storeId(1L)
+        .name("김진아")
+        .phoneNumber("01055552525")
+        .build();
+
+    deliveryRedisImplRepository.saveGiftRecipientInfo(giftRequestDTO);
+    Map<String, Map<String, List<Object>>> findGiftInfo = deliveryRedisImplRepository.findAll();
+    System.out.println("findGiftInfo = " + findGiftInfo);
   }
 
   @Test

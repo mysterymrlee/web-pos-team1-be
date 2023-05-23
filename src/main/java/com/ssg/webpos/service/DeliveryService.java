@@ -41,7 +41,7 @@ public class DeliveryService {
   // 배송지 추가
   @Transactional
   public void addDeliveryAddress(DeliveryAddDTO deliveryDTO, Long orderId) {
-    LocalDateTime requestFinishedAt = LocalDateParse(deliveryDTO.getRequestFinishedAt());
+//    LocalDateTime requestFinishedAt = LocalDateParse(deliveryDTO.getRequestFinishedAt());
     Order order = orderRepository.findById(orderId).get();
     // delivery 일련번호 생성
     List<Delivery> deliveryList = deliveryRepository.findAll();
@@ -60,10 +60,11 @@ public class DeliveryService {
         .userName(deliveryDTO.getUserName())
         .address(deliveryDTO.getAddress())
         .phoneNumber(deliveryDTO.getPhoneNumber())
-        .finishedDate(requestFinishedAt)
+//        .finishedDate(requestFinishedAt)
         .requestInfo(deliveryDTO.getRequestInfo())
         .deliveryStatus(DeliveryStatus.COMPLETE_PAYMENT)
         .deliveryType(deliveryDTO.getDeliveryType())
+        .requestDeliveryTime(deliveryDTO.getRequestDeliveryTime())
         .startedDate(LocalDateTime.now())
         .serialNumber(deliverySerialNumber)
         .build();
