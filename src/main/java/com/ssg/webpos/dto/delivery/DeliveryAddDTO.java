@@ -27,4 +27,5 @@ public class DeliveryAddDTO implements Serializable {
   private String requestFinishedAt; // yyyy-MM-ddTHH:mm:ss
   private String requestInfo;
   private DeliveryType deliveryType;
+  private String requestDeliveryTime;
 }

@@ -62,9 +62,10 @@ class DeliveryServiceTest {
         .userName("김진아")
         .address("부산광역시 부산진구")
         .phoneNumber("01011113333")
-        .requestFinishedAt("2023-05-16T18:00:00")
+//        .requestFinishedAt("2023-05-16T18:00:00")
         .requestInfo("문 앞에 두고 가세요.")
         .deliveryType(DeliveryType.DELIVERY)
+        .requestDeliveryTime("11:00~13:00")
         .build();
     deliveryService.addDeliveryAddress(deliveryDTO, createdOrder.getId());
 

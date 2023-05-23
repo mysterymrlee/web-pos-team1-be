@@ -1,6 +1,7 @@
 package com.ssg.webpos.repository.delivery;
 
 import com.ssg.webpos.domain.enums.DeliveryType;
+import com.ssg.webpos.dto.GiftRequestDTO;
 import com.ssg.webpos.dto.delivery.DeliveryAddDTO;
 import com.ssg.webpos.dto.delivery.DeliveryAddressDTO;
 import org.jetbrains.annotations.NotNull;
@@ -56,22 +57,29 @@ public class DeliveryRedisImplRepository implements DeliveryRedisRepository {
       posData = new HashMap<>();
     }
 
-//    List<Object> selectedDeliveryAddress = posData.get("selectedDeliveryAddress");
-//    if(selectedDeliveryAddress == null) {
-//      selectedDeliveryAddress = new ArrayList<>();
-//    }
-
     List<Object> selectedDeliveryAddress = new ArrayList<>();
     selectedDeliveryAddress.add(deliveryAddressDTO);
     posData.put("selectedDeliveryAddress", selectedDeliveryAddress);
     System.out.println("posData = " + posData);
     hashOperations.put("CART", compositeId, posData);
+  }
 
-//    Map<String, List<DeliveryAddressDTO>> deliveryDTO= new HashMap<>();
-//    selectedDeliveryAddress.add(deliveryDTO);
-//    posData.put("selectedDeliveryAddress", selectedDeliveryAddress);
-//    System.out.println("posData = " + posData);
-//    hashOperations.put("CART", compositeId, posData);
+  public void saveGiftRecipientInfo(GiftRequestDTO giftRequestDTO) {
+    String posId = String.valueOf(giftRequestDTO.getPosId());
+    String storeId = String.valueOf(giftRequestDTO.getStoreId());
+    String compositeId = storeId + "-" + posId;
+
+    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
+    if(posData == null) {
+      posData = new HashMap<>();
+      hashOperations.put("CART", compositeId, posData);
+    }
+
+    List<Object> giftRecipientInfo = new ArrayList<>();
+    giftRecipientInfo.add(giftRequestDTO);
+    posData.put("giftRecipientInfo", giftRecipientInfo);
+    System.out.println("giftRecipientInfo = " + giftRecipientInfo);
+    hashOperations.put("CART", compositeId, posData);
   }
 
   @Override
@@ -90,16 +98,6 @@ public class DeliveryRedisImplRepository implements DeliveryRedisRepository {
   }
 
   @Override
-  public void delete(String id) {
-    hashOperations.delete("CART", id);
-  }
-
-  @Override
-  public void deleteAll() {
-    redisTemplate.delete("CART");
-  }
-
-  @Override
   public List<String> findByUserId() {
     List<String> user = new ArrayList<>();
     Map<String, Map<String, List<Object>>> posDataMap = hashOperations.entries("CART");
@@ -115,5 +113,26 @@ public class DeliveryRedisImplRepository implements DeliveryRedisRepository {
       }
     }
     return user;
+  }
+
+  public Long findUserId(String compositeId) {
+    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
+    if (posData != null) {
+      List<Object> userIdList = posData.get("userId");
+      if (userIdList != null && !userIdList.isEmpty()) {
+        return (Long) userIdList.get(0);
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public void delete(String id) {
+    hashOperations.delete("CART", id);
+  }
+
+  @Override
+  public void deleteAll() {
+    redisTemplate.delete("CART");
   }
 }

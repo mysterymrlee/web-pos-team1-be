@@ -16,5 +16,5 @@ public class DeliveryRequestDTO {
   private String phoneNumber;
   private String address;
   private String requestInfo;
-  private String requestFinishedAt;
+//  private String requestFinishedAt;
 }
