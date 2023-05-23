@@ -4,7 +4,6 @@ import com.ssg.webpos.domain.Product;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @Data
 @NoArgsConstructor
@@ -19,7 +18,7 @@ public class ProductListResponseDTO {
     private int qty;
     private boolean isEvent;
 
-    public ProductListResponseDTO(Product product) {
+    public ProductListResponseDTO(Product product, boolean isEvent) {
         this.product_id = product.getId();
         this.product_code = product.getProductCode();
         this.name = product.getName();
@@ -27,6 +26,6 @@ public class ProductListResponseDTO {
         this.image_url = product.getImageUrl();
         this.description = product.getDescription();
         this.qty = product.getStock();
-        this.isEvent = (product.getEvent() == null) ? false : true;
+        this.isEvent = isEvent;
     }
 }

@@ -3,6 +3,7 @@ spring:
     include:
       - db
       - import
+      - sms
   jpa:
     hibernate:
       ddl-auto: update

@@ -7,7 +7,7 @@ build/
 
 /src/main/resources/application-db.yml
 /src/main/resources/application-import.yml
-/src/main/resources/application.properties
+/src/main/resources/application-sms.yml
 
 ### STS ###
 .apt_generated
