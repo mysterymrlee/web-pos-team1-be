@@ -8,9 +8,13 @@ build/
 /src/main/resources/application-db.yml
 /src/main/resources/application-import.yml
 /src/main/resources/application-sms.yml
+<<<<<<< HEAD
+
+=======
+>>>>>>> BranchAdminStaffController
 
 ### STS ###
-.apt_generated
+.apt_generatedg
 .classpath
 .factorypath
 .project

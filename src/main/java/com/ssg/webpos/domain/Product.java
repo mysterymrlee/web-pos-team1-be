@@ -57,5 +57,6 @@ public class Product extends BaseTime {
   public void minusStockQuantity(int qty) {
     this.stock -= qty;
   }
+  private int originPrice;
 
 }

@@ -16,6 +16,13 @@ public class PointSaveHistory extends BaseTime {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "point_save_history_id")
   private Long id;
+
+  public PointSaveHistory(int amount, User user, Order order) {
+    this.amount = amount;
+    this.user = user;
+    this.order = order;
+  }
+
   @NotNull
   private int amount;
 

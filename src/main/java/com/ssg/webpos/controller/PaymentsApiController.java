@@ -1,3 +1,4 @@
+
 package com.ssg.webpos.controller;
 
 import com.ssg.webpos.domain.Order;
@@ -44,15 +45,15 @@ public class PaymentsApiController {
 
 
 
-  @GetMapping("/")
+  @GetMapping("")
   public String welcome(Map<String, Object> model) {
     model.put("time", new Date());
     model.put("message", this.message);
     return "Welcome";
   }
 
-  @PostMapping("/callback_receive")
-  public ResponseEntity<?> callback_receive(@RequestBody PaymentsDTO paymentsDTO) {
+  @PostMapping("/callback-receive")
+  public ResponseEntity callback_receive(@RequestBody PaymentsDTO paymentsDTO) {
     paymentsDTO.getStoreId();
     paymentsDTO.getPosId();
     paymentsService.processPaymentCallback(paymentsDTO);
@@ -65,6 +66,6 @@ public class PaymentsApiController {
 
 
 
-    return new ResponseEntity<String>(responseObj.toString(), responseHeaders, HttpStatus.OK);
+    return new ResponseEntity(responseObj, responseHeaders, HttpStatus.OK);
   }
 }

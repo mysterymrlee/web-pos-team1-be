@@ -15,9 +15,9 @@ import javax.transaction.Transactional;
 import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @Transactional
-class PointHistoryServiceTest {
+class PointUseHistoryServiceTest {
   @Autowired
-  PointHistoryService pointHistoryService;
+  PointUseHistoryService pointUseHistoryService;
   @Autowired
   PointUseHistoryRepository pointUseHistoryRepository;
   @Autowired
@@ -44,7 +44,7 @@ class PointHistoryServiceTest {
     PointUseHistory pointHistory = new PointUseHistory();
     pointHistory.setAmount(pointUseDTO.getAmount());
     pointHistory.setUser(user);
-    pointHistoryService.savePointHistory(pointHistory);
+    pointUseHistoryService.savePointUseHistory(pointHistory);
 
     // Then
     PointUseHistory savedPointHistory = pointUseHistoryRepository.findById(pointHistory.getId()).orElse(null);

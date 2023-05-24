@@ -236,7 +236,7 @@ public class BranchAdminManagerController {
     // store_id, "yyyy-mm"
     @PostMapping("/settlement-month/detail")
     public ResponseEntity getDetailMonth(@RequestBody SettlementMonthDetailRequestDTO requestDTO) throws NullPointerException{
-        Long store_id = requestDTO.getStore_id();
+        Long store_id = requestDTO.getStoreId();
         String date = requestDTO.getDate();
 
         List<Order> orderList = orderService.selectByOrdersMonth(store_id,date);
@@ -256,7 +256,7 @@ public class BranchAdminManagerController {
     // store_id, "yyyy-mm-dd"
     @PostMapping("/settlement-day/detail")
     public ResponseEntity getDetailDay(@RequestBody SettlementMonthDetailRequestDTO requestDTO) throws NullPointerException{
-        Long store_id = requestDTO.getStore_id();
+        Long store_id = requestDTO.getStoreId();
         String date = requestDTO.getDate();
 
         List<Order> orderList = orderService.selectByOrdersDay(store_id,date);
