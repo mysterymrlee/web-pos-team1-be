@@ -1,5 +1,6 @@
 package com.ssg.webpos.dto;
 
+import com.ssg.webpos.domain.Cart;
 import com.ssg.webpos.domain.PosStoreCompositeId;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,4 +22,5 @@ public class CartAddDTO implements Serializable {
     this.productId = productId;
     this.cartQty = cartQty;
   }
+
   }

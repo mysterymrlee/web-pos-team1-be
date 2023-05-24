@@ -84,14 +84,18 @@ public class PaymentsServiceTest {
     PaymentsDTO paymentsDTO = new PaymentsDTO();
     paymentsDTO.setPosId(2L);
     paymentsDTO.setStoreId(2L);
-    paymentsDTO.setSuccess(true);
+    paymentsDTO.setSuccess(false);
     paymentsDTO.setName("사과");
     paymentsDTO.setPaid_amount(BigDecimal.valueOf(10000));
     paymentsDTO.setPg("kakaopay");
+
     paymentsService.processPaymentCallback(paymentsDTO);
 
-    int afterStock1 = product1.getStock();
-    int afterStock2 = product2.getStock();
+    Product afterProduct1 = productRepository.findById(productId1).get();
+    Product afterProduct2 = productRepository.findById(productId2).get();
+
+    int afterStock1 = afterProduct1.getStock();
+    int afterStock2 = afterProduct2.getStock();
 
     System.out.println("afterStock1 = " + afterStock1);
     System.out.println("afterStock2 = " + afterStock2);

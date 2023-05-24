@@ -27,4 +27,9 @@ public class PointUseHistory extends BaseTime {
     @JoinColumn(name = "order_id")
     private Order order;
 
+    public PointUseHistory(int amount, User user, Order order) {
+        this.amount = amount;
+        this.user = user;
+        this.order = order;
+    }
 }
