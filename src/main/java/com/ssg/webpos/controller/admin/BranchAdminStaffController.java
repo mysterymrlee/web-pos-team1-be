@@ -61,14 +61,13 @@ public class BranchAdminStaffController {
             List<ProductRequest> productRequests = new ArrayList<>(); // DTO를 엔티티로 변환한 다음 테이블에 입력할 것이다.
             for(SubmitRequestDTO submitRequestDTO:submitRequestDTOs) {
                 ProductRequest productRequest = new ProductRequest();
-                productRequest.setId(submitRequestDTO.getStockReportId());
                 productRequest.setQty(submitRequestDTO.getQty());
 //                Product product = productRepository.findById(submitRequestDTO.getProductId()); // 팀장님 ProductRepository 수정해도 되는지
                 Optional<Product> findProduct = productRepository.findById(submitRequestDTO.getProductId());
-                productRequest.setProduct(findProduct.get());
+                productRequest.setProduct(findProduct.get()); // 양방향 연관관계 필요없음(product에서 product_request 조회x)
                 Optional<Store> store = storeRepository.findById(submitRequestDTOList.getStoreId());
-                productRequest.setStore(store);
-
+//                productRequest.setStore(store.get());
+                productRequest.addStoreWithAssociation(store.get());
             }
 
 

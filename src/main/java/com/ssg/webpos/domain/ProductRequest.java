@@ -30,4 +30,8 @@ public class ProductRequest extends BaseTime{
     private Store store;
     private int currentStock;
 
+    public void addStoreWithAssociation(Store store) {
+        this.store = store;
+        store.getProductRequestList().add(this);
+    }
 }

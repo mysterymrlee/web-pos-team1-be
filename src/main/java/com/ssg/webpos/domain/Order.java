@@ -104,8 +104,13 @@ public Order(OrderStatus orderStatus, PayMethod payMethod, int totalPrice) {
         return Objects.hash(id, pos);
     }
     private int totalOriginPrice;
-    private int profit(int finalTotalPrice, int totalOriginPrice) {
+    private void calcProfit(int finalTotalPrice, int totalOriginPrice) {
         int calculateProfit = finalTotalPrice - totalOriginPrice;
-        return calculateProfit;
+        this.profit = calculateProfit;
     }
+    private int profit;
+
 }
+//Order order = new Order();
+//// order.setProfit(dto.getFinalTotalPrice - dto.getTotalOriginPrice);
+//order.calcProfit(dto.getFinalTotalPrice, dto.getTotalOriginPrice)
