@@ -1,5 +1,3 @@
-package com.ssg.webpos.service;
-
 import com.ssg.webpos.domain.*;
 import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.domain.enums.PayMethod;

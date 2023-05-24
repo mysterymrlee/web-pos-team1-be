@@ -38,4 +38,6 @@ public class SettlementMonth {
     @Column(updatable = false)
     private LocalDateTime createdDate;
     private boolean isSubmited;
+    private int totalOriginPrice;
+    private int profit;
 }
