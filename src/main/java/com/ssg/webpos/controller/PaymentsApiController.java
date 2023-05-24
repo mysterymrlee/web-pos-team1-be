@@ -52,7 +52,7 @@ public class PaymentsApiController {
   }
 
   @PostMapping("/callback_receive")
-  public ResponseEntity<?> callback_receive(@RequestBody PaymentsDTO paymentsDTO) {
+  public ResponseEntity callback_receive(@RequestBody PaymentsDTO paymentsDTO) {
     paymentsDTO.getStoreId();
     paymentsDTO.getPosId();
     paymentsService.processPaymentCallback(paymentsDTO);
@@ -64,7 +64,6 @@ public class PaymentsApiController {
     responseObj.put("process_result", "결제 성공");
 
 
-
-    return new ResponseEntity<String>(responseObj.toString(), responseHeaders, HttpStatus.OK);
+    return new ResponseEntity(responseObj.toString(), responseHeaders, HttpStatus.OK);
   }
 }
