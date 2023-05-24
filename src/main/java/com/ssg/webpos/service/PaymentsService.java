@@ -89,7 +89,8 @@ public class PaymentsService {
         CartAddDTO cartAddDTO = new CartAddDTO();
         cartAddDTO.setProductId((Long) cartItem.get("productId"));
         cartAddDTO.setCartQty((int) cartItem.get("cartQty"));
-        updateProductStock(cartAddDTO);
+        updateProductStock(cartAddDTO,order);
+
       }
 
       if (success) {
@@ -181,7 +182,7 @@ public class PaymentsService {
     return combinedStr;
   }
 
-  private void updateProductStock(CartAddDTO cartAddDTO) {
+  private void updateProductStock(CartAddDTO cartAddDTO, Order order) {
     Product product = productRepository.findById(cartAddDTO.getProductId())
         .orElseThrow(() -> new RuntimeException("Product not found."));
 
@@ -191,6 +192,12 @@ public class PaymentsService {
       throw new RuntimeException("재고가 부족합니다. 현재 재고 수: " + product.getStock() + "개");
     }
     product.minusStockQuantity(orderQty);
+    List<Cart> cartList = order.getCartList();
+    Cart cart = new Cart(product, order);
+    cart.setQty(orderQty);
+    cartList.add(cart);
+
+    cartRepository.saveAll(cartList);
     productRepository.save(product);
   }
 
