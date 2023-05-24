@@ -44,7 +44,7 @@ public class PaymentsApiController {
 
 
 
-  @GetMapping("/")
+  @GetMapping("")
   public String welcome(Map<String, Object> model) {
     model.put("time", new Date());
     model.put("message", this.message);
@@ -52,7 +52,7 @@ public class PaymentsApiController {
   }
 
   @PostMapping("/callback-receive")
-  public ResponseEntity<?> callback_receive(@RequestBody PaymentsDTO paymentsDTO) {
+  public ResponseEntity callback_receive(@RequestBody PaymentsDTO paymentsDTO) {
     paymentsDTO.getStoreId();
     paymentsDTO.getPosId();
     paymentsService.processPaymentCallback(paymentsDTO);
@@ -65,6 +65,6 @@ public class PaymentsApiController {
 
 
 
-    return new ResponseEntity<String>(responseObj.toString(), responseHeaders, HttpStatus.OK);
+    return new ResponseEntity(responseObj, responseHeaders, HttpStatus.OK);
   }
 }
