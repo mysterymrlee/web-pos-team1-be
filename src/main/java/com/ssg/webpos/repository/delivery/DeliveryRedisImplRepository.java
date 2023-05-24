@@ -1,9 +1,6 @@
 package com.ssg.webpos.repository.delivery;
 
-import com.ssg.webpos.domain.enums.DeliveryType;
-import com.ssg.webpos.dto.GiftRequestDTO;
-import com.ssg.webpos.dto.delivery.DeliveryAddDTO;
-import com.ssg.webpos.dto.delivery.DeliveryAddressDTO;
+import com.ssg.webpos.dto.delivery.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -24,9 +21,10 @@ public class DeliveryRedisImplRepository implements DeliveryRedisRepository {
     this.hashOperations = redisTemplate.opsForHash();
   }
 
-  public void saveDelivery(@NotNull DeliveryAddDTO deliveryDTO) {
-    String storeId = String.valueOf(deliveryDTO.getStoreId());
-    String posId = String.valueOf(deliveryDTO.getPosId());
+  // 배송지 추가 시 캐싱
+  public void saveDelivery(DeliveryRedisAddRequestDTO deliveryRedisAddRequestDTO) {
+    String storeId = String.valueOf(deliveryRedisAddRequestDTO.getStoreId());
+    String posId = String.valueOf(deliveryRedisAddRequestDTO.getPosId());
     String compositeId = posId + "-" + storeId;
 
     System.out.println("compositeId = " + compositeId);
@@ -34,20 +32,33 @@ public class DeliveryRedisImplRepository implements DeliveryRedisRepository {
     Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
     if (posData == null) {
       posData = new HashMap<>();
+      hashOperations.put("CART", compositeId, posData);
     }
 
-    List<Object> deliveryList = new ArrayList<>();
-    deliveryDTO.setDeliveryType(DeliveryType.DELIVERY);
-    deliveryList.add(deliveryDTO);
-    posData.put("delivery", deliveryList);
-    System.out.println("posData = " + posData);
+    List<Object> deliveryAddList = new ArrayList<>();
+
+    for (DeliveryRedisAddDTO deliveryAddDTO : deliveryRedisAddRequestDTO.getDeliveryAddList()) {
+      Map<String, Object> addDelivery = new HashMap<>();
+      addDelivery.put("deliveryName", deliveryAddDTO.getDeliveryName());
+      addDelivery.put("userName", deliveryAddDTO.getUserName());
+      addDelivery.put("address", deliveryAddDTO.getAddress());
+      addDelivery.put("phoneNumber", deliveryAddDTO.getPhoneNumber());
+      addDelivery.put("requestInfo", deliveryAddDTO.getRequestInfo());
+      addDelivery.put("requestDeliveryTime", deliveryAddDTO.getRequestDeliveryTime());
+
+      deliveryAddList.add(addDelivery);
+      System.out.println("addDelivery = " + addDelivery);
+    }
+    posData.put("deliveryAddList", deliveryAddList);
+    System.out.println("deliveryAddList = " + deliveryAddList);
     hashOperations.put("CART", compositeId, posData);
   }
 
+  // 회원 배송지 목록에서 선택된 배송지 캐싱
   @Override
-  public void saveSelectedDelivery(DeliveryAddressDTO deliveryAddressDTO) {
-    String storeId = String.valueOf(deliveryAddressDTO.getStoreId());
-    String posId = String.valueOf(deliveryAddressDTO.getPosId());
+  public void saveSelectedDelivery(DeliveryListRedisSelectRequestDTO deliveryListRedisSelectRequestDTO) {
+    String storeId = String.valueOf(deliveryListRedisSelectRequestDTO.getStoreId());
+    String posId = String.valueOf(deliveryListRedisSelectRequestDTO.getPosId());
     String compositeId = posId + "-" + storeId;
 
     System.out.println("compositeId = " + compositeId);
@@ -55,30 +66,53 @@ public class DeliveryRedisImplRepository implements DeliveryRedisRepository {
     Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
     if (posData == null) {
       posData = new HashMap<>();
+      hashOperations.put("CART", compositeId, posData);
     }
 
     List<Object> selectedDeliveryAddress = new ArrayList<>();
-    selectedDeliveryAddress.add(deliveryAddressDTO);
+
+    for(DeliveryListRedisSelectDTO deliveryListRedisSelectDTO : deliveryListRedisSelectRequestDTO.getSelectedDeliveryAddress()) {
+      Map<String, Object> selectedAddress = new HashMap<>();
+      selectedAddress.put("deliveryName", deliveryListRedisSelectDTO.getDeliveryName());
+      selectedAddress.put("userName", deliveryListRedisSelectDTO.getUserName());
+      selectedAddress.put("address", deliveryListRedisSelectDTO.getAddress());
+      selectedAddress.put("postCode", deliveryListRedisSelectDTO.getPostCode());
+      selectedAddress.put("isDefault", deliveryListRedisSelectDTO.isDefault());
+      selectedAddress.put("requestDeliveryTime", deliveryListRedisSelectDTO.getRequestDeliveryTime());
+      selectedAddress.put("requestInfo", deliveryListRedisSelectDTO.getRequestInfo());
+
+      selectedDeliveryAddress.add(selectedAddress);
+      System.out.println("selectedAddress = " + selectedAddress);
+    }
+
     posData.put("selectedDeliveryAddress", selectedDeliveryAddress);
-    System.out.println("posData = " + posData);
+    System.out.println("selectedDeliveryAddress = " + selectedDeliveryAddress);
     hashOperations.put("CART", compositeId, posData);
   }
 
+  // 선물 받는 사람 정보 캐싱
   public void saveGiftRecipientInfo(GiftRequestDTO giftRequestDTO) {
     String posId = String.valueOf(giftRequestDTO.getPosId());
     String storeId = String.valueOf(giftRequestDTO.getStoreId());
     String compositeId = storeId + "-" + posId;
 
     Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
-    if(posData == null) {
+    if (posData == null) {
       posData = new HashMap<>();
       hashOperations.put("CART", compositeId, posData);
     }
 
     List<Object> giftRecipientInfo = new ArrayList<>();
-    giftRecipientInfo.add(giftRequestDTO);
+
+    for (GiftDTO giftDTO : giftRequestDTO.getGiftRecipientInfo()) {
+      Map<String, Object> recipientInfo = new HashMap<>();
+      recipientInfo.put("name", giftDTO.getName());
+      recipientInfo.put("phoneNumber", giftDTO.getPhoneNumber());
+      giftRecipientInfo.add(recipientInfo);
+      System.out.println("giftRecipientInfo = " + giftRecipientInfo);
+    }
+
     posData.put("giftRecipientInfo", giftRecipientInfo);
-    System.out.println("giftRecipientInfo = " + giftRecipientInfo);
     hashOperations.put("CART", compositeId, posData);
   }
 
@@ -113,17 +147,6 @@ public class DeliveryRedisImplRepository implements DeliveryRedisRepository {
       }
     }
     return user;
-  }
-
-  public Long findUserId(String compositeId) {
-    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
-    if (posData != null) {
-      List<Object> userIdList = posData.get("userId");
-      if (userIdList != null && !userIdList.isEmpty()) {
-        return (Long) userIdList.get(0);
-      }
-    }
-    return null;
   }
 
   @Override

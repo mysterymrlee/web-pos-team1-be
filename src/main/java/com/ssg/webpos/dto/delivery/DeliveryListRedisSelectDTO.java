@@ -1,7 +1,7 @@
 package com.ssg.webpos.dto.delivery;
 
-import com.ssg.webpos.domain.enums.DeliveryStatus;
-import com.ssg.webpos.domain.enums.DeliveryType;
+import com.ssg.webpos.domain.DeliveryAddress;
+import com.ssg.webpos.domain.PosStoreCompositeId;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,14 +13,13 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class DeliveryAddDTO implements Serializable {
+public class DeliveryListRedisSelectDTO implements Serializable {
+  private PosStoreCompositeId posStoreCompositeId;
   private String deliveryName;
   private String userName;
   private String address;
-  private String phoneNumber;
-  private String requestInfo;
-  private DeliveryStatus deliveryStatus;
-  private DeliveryType deliveryType;
+  private String postCode;
+  private boolean isDefault;
   private String requestDeliveryTime;
-  private String serialNumber;
+  private String requestInfo;
 }

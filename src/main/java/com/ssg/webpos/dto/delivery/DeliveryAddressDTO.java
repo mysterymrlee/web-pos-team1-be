@@ -2,6 +2,7 @@ package com.ssg.webpos.dto.delivery;
 
 
 import com.ssg.webpos.domain.DeliveryAddress;
+import com.ssg.webpos.domain.PosStoreCompositeId;
 import lombok.*;
 
 import java.io.Serializable;
@@ -12,8 +13,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Builder
 public class DeliveryAddressDTO implements Serializable {
-  private Long storeId;
-  private Long posId;
+  private PosStoreCompositeId posStoreCompositeId;
   private Long deliveryAddressId;
   private String address;
   private String phoneNumber;

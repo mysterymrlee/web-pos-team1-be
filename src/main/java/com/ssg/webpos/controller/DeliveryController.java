@@ -1,9 +1,9 @@
 package com.ssg.webpos.controller;
 
 import com.ssg.webpos.domain.Delivery;
+import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.domain.enums.DeliveryStatus;
-import com.ssg.webpos.dto.delivery.DeliveryAddDTO;
-import com.ssg.webpos.dto.delivery.DeliveryAddressDTO;
+import com.ssg.webpos.dto.delivery.*;
 import com.ssg.webpos.repository.delivery.DeliveryRedisRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRepository;
 import com.ssg.webpos.service.DeliveryService;
@@ -38,15 +38,19 @@ public class DeliveryController {
   }
 
   @PostMapping("/add")
-  public ResponseEntity addDeliveryInfo(@RequestBody DeliveryAddDTO deliveryAddDTO) {
-    System.out.println(deliveryAddDTO);
-    try {
-      deliveryRedisRepository.saveDelivery(deliveryAddDTO);
-      return new ResponseEntity(HttpStatus.CREATED);
-    } catch (Exception e) {
-      e.printStackTrace();
-      return new ResponseEntity(HttpStatus.BAD_REQUEST);
+  public ResponseEntity addDeliveryInfo(@RequestBody DeliveryRedisAddRequestDTO deliveryRedisAddRequestDTO) {
+    Long posId = deliveryRedisAddRequestDTO.getPosId();
+    Long storeId = deliveryRedisAddRequestDTO.getStoreId();
+
+    List<DeliveryRedisAddDTO> deliveryAddList = deliveryRedisAddRequestDTO.getDeliveryAddList();
+    System.out.println("deliveryAddList = " + deliveryAddList);
+
+    for(DeliveryRedisAddDTO deliveryRedisAddDTO: deliveryAddList) {
+      deliveryRedisAddDTO.setPosStoreCompositeId(new PosStoreCompositeId(posId, storeId));
+      deliveryRedisRepository.saveDelivery(deliveryRedisAddRequestDTO);
+      System.out.println("deliveryRedisAddDTO = " + deliveryRedisAddDTO);
     }
+    return new ResponseEntity(HttpStatus.CREATED);
   }
 
   @GetMapping("/list")
@@ -60,18 +64,20 @@ public class DeliveryController {
     }
   }
 
-  @PostMapping("/select/{id}")
-  public ResponseEntity getSelectedDeliveryAddress(@PathVariable long id) {
-    try {
-      DeliveryAddressDTO selectedDeliveryAddress = deliveryService.getSelectedDeliveryAddress(id);
-      selectedDeliveryAddress.setStoreId(1L);
-      selectedDeliveryAddress.setPosId(1L);
-      deliveryRedisRepository.saveSelectedDelivery(selectedDeliveryAddress);
-      return new ResponseEntity(selectedDeliveryAddress, HttpStatus.OK);
-    } catch (Exception e) {
-      e.printStackTrace();
-      return new ResponseEntity(HttpStatus.BAD_REQUEST);
+  @PostMapping("/select-delivery")
+  public ResponseEntity getSelectedDeliveryAddress(@RequestBody DeliveryListRedisSelectRequestDTO deliveryListRedisSelectRequestDTO) {
+    Long storeId = deliveryListRedisSelectRequestDTO.getStoreId();
+    Long posId = deliveryListRedisSelectRequestDTO.getPosId();
+
+    List<DeliveryListRedisSelectDTO> selectedDeliveryAddress = deliveryListRedisSelectRequestDTO.getSelectedDeliveryAddress();
+    System.out.println("selectedDeliveryAddress = " + selectedDeliveryAddress);
+
+    for(DeliveryListRedisSelectDTO deliveryListRedisSelectDTO : selectedDeliveryAddress) {
+      deliveryListRedisSelectDTO.setPosStoreCompositeId(new PosStoreCompositeId(posId, storeId));
+      deliveryRedisRepository.saveSelectedDelivery(deliveryListRedisSelectRequestDTO);
+      System.out.println("deliveryListRedisSelectDTO = " + deliveryListRedisSelectDTO);
     }
+    return new ResponseEntity(HttpStatus.CREATED);
   }
 
   // 배송 상태 변경

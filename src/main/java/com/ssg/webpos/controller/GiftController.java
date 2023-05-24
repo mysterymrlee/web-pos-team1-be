@@ -1,7 +1,11 @@
 package com.ssg.webpos.controller;
 
-import com.ssg.webpos.dto.GiftRequestDTO;
+import com.ssg.webpos.domain.PosStoreCompositeId;
+import com.ssg.webpos.dto.delivery.GiftDTO;
+import com.ssg.webpos.dto.delivery.GiftRequestDTO;
 import com.ssg.webpos.repository.delivery.DeliveryRedisImplRepository;
+import com.ssg.webpos.repository.delivery.DeliveryRepository;
+import com.ssg.webpos.service.DeliveryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,20 +19,32 @@ import java.util.Map;
 public class GiftController {
   @Autowired
   DeliveryRedisImplRepository deliveryRedisImplRepository;
+  @Autowired
+  DeliveryService deliveryService;
+  @Autowired
+  DeliveryRepository deliveryRepository;
 
   @PostMapping("/add")
-  public ResponseEntity saveGiftInfo(@RequestBody GiftRequestDTO giftRequestDTO) {
-    try {
+  public ResponseEntity saveRedisGiftInfo(@RequestBody GiftRequestDTO giftRequestDTO) {
+    Long posId = giftRequestDTO.getPosId();
+    Long storeId = giftRequestDTO.getStoreId();
+    System.out.println("posId = " + posId);
+    System.out.println("storeId = " + storeId);
+
+    List<GiftDTO> giftInfoList = giftRequestDTO.getGiftRecipientInfo();
+    System.out.println("giftInfoList = " + giftInfoList);
+
+    for(GiftDTO giftDTO : giftInfoList) {
+      giftDTO.setPosStoreCompositeId(new PosStoreCompositeId(posId, storeId));
       deliveryRedisImplRepository.saveGiftRecipientInfo(giftRequestDTO);
-      return new ResponseEntity(HttpStatus.CREATED);
-    } catch (Exception e) {
-      e.printStackTrace();
-      return new ResponseEntity(HttpStatus.BAD_REQUEST);
+      System.out.println("giftDTO = " + giftDTO);
     }
+    return new ResponseEntity(HttpStatus.CREATED);
+
   }
 
   @GetMapping("")
-  public ResponseEntity getGiftInfo() {
+  public ResponseEntity getRedisGiftInfo() {
     try {
       Map<String, Map<String, List<Object>>> all = deliveryRedisImplRepository.findAll();
       return new ResponseEntity(all, HttpStatus.OK);
@@ -37,4 +53,8 @@ public class GiftController {
     }
   }
 
+//  @PostMapping("/save")
+//  public ResponseEntity saveGiftInfo(@RequestBody GiftRequestDTO giftRequestDTO) {
+//
+//  }
 }
