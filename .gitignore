@@ -9,8 +9,9 @@ build/
 /src/main/resources/application-import.yml
 /src/main/resources/application-sms.yml
 
+
 ### STS ###
-.apt_generated
+.apt_generatedg
 .classpath
 .factorypath
 .project

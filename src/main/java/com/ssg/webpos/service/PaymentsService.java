@@ -1,11 +1,9 @@
 package com.ssg.webpos.service;
 
-import com.siot.IamportRestClient.IamportClient;
-import com.siot.IamportRestClient.response.IamportResponse;
-import com.siot.IamportRestClient.response.Payment;
 import com.ssg.webpos.domain.*;
 import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.domain.enums.PayMethod;
+import com.ssg.webpos.dto.CartAddDTO;
 import com.ssg.webpos.dto.PaymentsDTO;
 import com.ssg.webpos.repository.PointUseHistoryRepository;
 import com.ssg.webpos.repository.cart.CartRedisRepository;
@@ -15,19 +13,14 @@ import com.ssg.webpos.repository.order.OrderRepository;
 import com.ssg.webpos.repository.pos.PosRepository;
 import com.ssg.webpos.repository.product.ProductRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static com.ssg.webpos.domain.Order.createOrder;
 
 @Service
 @RequiredArgsConstructor
@@ -42,8 +35,9 @@ public class PaymentsService {
   private final PointService pointService;
 
   private final PosRepository posRepository;
-  private final PointHistoryService pointHistoryService;
+  private final PointUseHistoryService pointUseHistoryService;
   private final PointUseHistoryRepository pointUseHistoryRepository;
+  private final PointSaveHistoryService pointSaveHistoryService;
 
 
   @Value("${api_key}")
@@ -92,41 +86,40 @@ public class PaymentsService {
       List<Map<String, Object>> cartItems = cartRedisRepository.findCartItems(compositeId);
 
       for (Map<String, Object> cartItem : cartItems) {
-        Cart cart = new Cart();
-        Long productId = (Long) cartItem.get("productId");
-        int cartQty = (int) cartItem.get("cartQty");
-
-        Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found"));
-
-        cart.setQty(cartQty);
-        cart.setProduct(product);
-        cart.setOrder(savedOrder);
-
-        // Save cart
-        cartRepository.save(cart);
+        CartAddDTO cartAddDTO = new CartAddDTO();
+        cartAddDTO.setProductId((Long) cartItem.get("productId"));
+        cartAddDTO.setCartQty((int) cartItem.get("cartQty"));
+        updateProductStock(cartAddDTO);
       }
 
-      if (success) { // Payment success
+      if (success) {
         Long findUserId = cartRedisRepository.findUserId(compositeId);
         if (findUserId != null) {
             // Deduct points
-            Integer pointAmount = cartRedisRepository.findPointAmount(compositeId);
-            System.out.println("findUserId = " + findUserId);
-            System.out.println(finalTotalPrice.intValue());
-
-            // Update points
-            pointService.updatePoint(findUserId, finalTotalPrice.intValue());
-          if (pointAmount != null) {
-            pointService.deductPoints(userId, pointAmount);
+            Integer pointUseAmount = cartRedisRepository.findPointAmount(compositeId);
+          if (pointUseAmount != null) {
+            pointService.deductPoints(userId, pointUseAmount);
             PointUseHistory pointUseHistory = new PointUseHistory();
-            pointUseHistory.setAmount(pointAmount);
+            pointUseHistory.setAmount(pointUseAmount);
             pointUseHistory.setUser(user);
             pointUseHistory.setOrder(order);
+            pointUseHistoryService.savePointUseHistory(pointUseHistory);
 
-            // Save pointUseHistory
-            pointHistoryService.savePointHistory(pointUseHistory);
+            List<PointUseHistory> pointUseHistoryList = user.getPointUseHistoryList();
+            pointUseHistoryList.add(pointUseHistory);
+            user.setPointUseHistoryList(pointUseHistoryList);
           }
+            // Save pointUseHistory
+            int pointSaveAmount = pointService.updatePoint(findUserId, finalTotalPrice.intValue());
+            PointSaveHistory pointSaveHistory = new PointSaveHistory();
+            pointSaveHistory.setAmount(pointSaveAmount);
+            pointSaveHistory.setOrder(order);
+            pointSaveHistory.setUser(user);
+            pointSaveHistoryService.savePointSaveHistory(pointSaveHistory);
+
+            List<PointSaveHistory> pointSaveHistoryList = user.getPointSaveHistoryList();
+            pointSaveHistoryList.add(pointSaveHistory);
+            user.setPointSaveHistoryList(pointSaveHistoryList);
         }
 
         // cartRedisRepository.delete(compositeId);
@@ -138,7 +131,7 @@ public class PaymentsService {
     }
   }
 
-  private Order createOrder(PaymentsDTO paymentsDTO, String compositeId, User user, Pos pos,
+  private Order createOrder (PaymentsDTO paymentsDTO, String compositeId, User user, Pos pos,
                              BigDecimal finalTotalPrice, Integer totalPrice, boolean success) {
     Order order = new Order();
     order.setOrderDate(LocalDateTime.now());
@@ -186,6 +179,19 @@ public class PaymentsService {
     String orderDateStr = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
     String combinedStr = orderDateStr + serialNumber;
     return combinedStr;
+  }
+
+  private void updateProductStock(CartAddDTO cartAddDTO) {
+    Product product = productRepository.findById(cartAddDTO.getProductId())
+        .orElseThrow(() -> new RuntimeException("Product not found."));
+
+    int orderQty = cartAddDTO.getCartQty();
+
+    if (product.getStock() < orderQty) {
+      throw new RuntimeException("재고가 부족합니다. 현재 재고 수: " + product.getStock() + "개");
+    }
+    product.minusStockQuantity(orderQty);
+    productRepository.save(product);
   }
 
 }

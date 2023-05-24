@@ -9,10 +9,10 @@ public interface CartRedisRepository {
 
   void saveCart(CartAddRequestDTO cartAddRequestDTO);
 
-  void savePoint(PointDTO phoneNumberDTO);
+  void savePoint(PointDTO pointDTO);
   void savePointAmount(PointUseDTO pointUseDTO);
 
-  void saveCoupon(CouponRequestDTO CouponRequestDTO);
+  void saveCoupon(CouponAddRequestDTO CouponAddRequestDTO);
   Map<String, Map<String, List<Object>>>  findAll() throws Exception;
   Map<String, List<Object>> findById(String id);
 

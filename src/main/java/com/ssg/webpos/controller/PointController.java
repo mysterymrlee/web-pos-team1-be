@@ -31,9 +31,9 @@ public class PointController {
   @Autowired
 
   @GetMapping("")
-  public ResponseEntity<List<User>> getPointList() throws Exception {
+  public ResponseEntity getPointList() throws Exception {
     Map<String, Map<String, List<Object>>> all = cartRedisRepository.findAll();
-    System.out.println("all = " + all);
+    System.out.println("PointController / getPointList() / all = " + all);
     return new ResponseEntity(all, HttpStatus.OK);
   }
 //  // 확인
@@ -84,7 +84,7 @@ public class PointController {
       cartRedisRepository.savePointAmount(requestDTO);
       return new ResponseEntity(HttpStatus.NO_CONTENT);
     } else {
-      return new ResponseEntity<>("등록된 회원 없음",HttpStatus.NOT_FOUND);
+      return new ResponseEntity("등록된 회원 없음",HttpStatus.NOT_FOUND);
     }
   }
 }

@@ -7,7 +7,7 @@ import lombok.ToString;
 @Data
 @NoArgsConstructor
 @ToString
-public class CouponRequestDTO {
+public class CouponAddRequestDTO {
   private Long storeId;
   private Long posId;
   private String serialNumber;
