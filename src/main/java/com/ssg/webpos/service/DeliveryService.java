@@ -6,6 +6,7 @@ import com.ssg.webpos.domain.Order;
 import com.ssg.webpos.domain.User;
 import com.ssg.webpos.domain.enums.DeliveryStatus;
 import com.ssg.webpos.dto.delivery.DeliveryAddDTO;
+import com.ssg.webpos.dto.delivery.DeliveryRedisAddDTO;
 import com.ssg.webpos.dto.delivery.DeliveryAddressDTO;
 import com.ssg.webpos.repository.UserRepository;
 import com.ssg.webpos.repository.delivery.DeliveryAddressRepository;
@@ -41,7 +42,6 @@ public class DeliveryService {
   // 배송지 추가
   @Transactional
   public void addDeliveryAddress(DeliveryAddDTO deliveryDTO, Long orderId) {
-//    LocalDateTime requestFinishedAt = LocalDateParse(deliveryDTO.getRequestFinishedAt());
     Order order = orderRepository.findById(orderId).get();
     // delivery 일련번호 생성
     List<Delivery> deliveryList = deliveryRepository.findAll();
@@ -60,7 +60,6 @@ public class DeliveryService {
         .userName(deliveryDTO.getUserName())
         .address(deliveryDTO.getAddress())
         .phoneNumber(deliveryDTO.getPhoneNumber())
-//        .finishedDate(requestFinishedAt)
         .requestInfo(deliveryDTO.getRequestInfo())
         .deliveryStatus(DeliveryStatus.COMPLETE_PAYMENT)
         .deliveryType(deliveryDTO.getDeliveryType())
@@ -85,7 +84,7 @@ public class DeliveryService {
     User user = userRepository.findById(userId).get();
     System.out.println("user = " + user);
 
-    // deliveryList에 저장된 해당 유저의 배송지 목록을 가져와서 DTO로 변환
+//  deliveryList에 저장된 해당 유저의 배송지 목록을 가져와서 DTO로 변환
     List<DeliveryAddressDTO> deliveryAddressList =
         user.getDeliveryAddressList().stream()
             .map(da -> new DeliveryAddressDTO(da))
@@ -94,12 +93,5 @@ public class DeliveryService {
     System.out.println("deliveryAddressList = " + deliveryAddressList);
 
     return deliveryAddressList;
-  }
-
-  // 유저의 배송지 목록에서 배송지 선택
-  public DeliveryAddressDTO getSelectedDeliveryAddress(Long id) {
-    DeliveryAddress deliveryAddress = deliveryAddressRepository.findById(id).get();
-    System.out.println("deliveryAddress = " + deliveryAddress);
-    return new DeliveryAddressDTO(deliveryAddress);
   }
 }
