@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ssg.webpos.dto.msg.MessageDTO;
 import com.ssg.webpos.dto.msg.SmsResponseDTO;
 import com.ssg.webpos.service.SmsService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
