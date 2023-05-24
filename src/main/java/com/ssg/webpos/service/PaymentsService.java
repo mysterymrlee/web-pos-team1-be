@@ -3,6 +3,7 @@ package com.ssg.webpos.service;
 import com.ssg.webpos.domain.*;
 import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.domain.enums.PayMethod;
+import com.ssg.webpos.dto.CartAddDTO;
 import com.ssg.webpos.dto.PaymentsDTO;
 import com.ssg.webpos.repository.PointUseHistoryRepository;
 import com.ssg.webpos.repository.cart.CartRedisRepository;
@@ -85,20 +86,13 @@ public class PaymentsService {
       List<Map<String, Object>> cartItems = cartRedisRepository.findCartItems(compositeId);
 
       for (Map<String, Object> cartItem : cartItems) {
-        Cart cart = new Cart();
-        Long productId = (Long) cartItem.get("productId");
-        int cartQty = (int) cartItem.get("cartQty");
-
-        Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found"));
-
-        cart.setQty(cartQty);
-        cart.setProduct(product);
-        cart.setOrder(savedOrder);
-        cartRepository.save(cart);
+        CartAddDTO cartAddDTO = new CartAddDTO();
+        cartAddDTO.setProductId((Long) cartItem.get("productId"));
+        cartAddDTO.setCartQty((int) cartItem.get("cartQty"));
+        updateProductStock(cartAddDTO);
       }
 
-      if (success) { // Payment success
+      if (success) {
         Long findUserId = cartRedisRepository.findUserId(compositeId);
         if (findUserId != null) {
             // Deduct points
@@ -122,6 +116,10 @@ public class PaymentsService {
             pointSaveHistory.setOrder(order);
             pointSaveHistory.setUser(user);
             pointSaveHistoryService.savePointSaveHistory(pointSaveHistory);
+
+            List<PointSaveHistory> pointSaveHistoryList = user.getPointSaveHistoryList();
+            pointSaveHistoryList.add(pointSaveHistory);
+            user.setPointSaveHistoryList(pointSaveHistoryList);
         }
 
         // cartRedisRepository.delete(compositeId);
@@ -181,6 +179,19 @@ public class PaymentsService {
     String orderDateStr = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
     String combinedStr = orderDateStr + serialNumber;
     return combinedStr;
+  }
+
+  private void updateProductStock(CartAddDTO cartAddDTO) {
+    Product product = productRepository.findById(cartAddDTO.getProductId())
+        .orElseThrow(() -> new RuntimeException("Product not found."));
+
+    int orderQty = cartAddDTO.getCartQty();
+
+    if (product.getStock() < orderQty) {
+      throw new RuntimeException("재고가 부족합니다. 현재 재고 수: " + product.getStock() + "개");
+    }
+    product.minusStockQuantity(orderQty);
+    productRepository.save(product);
   }
 
 }

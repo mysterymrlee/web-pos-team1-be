@@ -47,9 +47,4 @@ public class CartController {
     System.out.println("bindingResult.hasErrors() = " + bindingResult.hasErrors());
     return new ResponseEntity(HttpStatus.NO_CONTENT); // 204
   }
-
-  @DeleteMapping("/delete")
-  public void redisDeleteAll() {
-    cartRedisRepository.deleteAll();
-  }
 }

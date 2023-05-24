@@ -30,7 +30,7 @@
     IMP.request_pay(data, response => {
         alert('callback!:' + JSON.stringify(response));
         jQuery.ajax({
-            url: "/payment/callback_receive",
+            url: "/api/v1/payment/callback-receive",
             method: "POST",
             headers: {"Content-Type": "application/json"},
             data: JSON.stringify(response)
