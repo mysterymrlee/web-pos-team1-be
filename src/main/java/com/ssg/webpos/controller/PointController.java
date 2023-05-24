@@ -28,7 +28,7 @@ public class PointController {
   UserService userService;
   @Autowired
   PointService pointService;
-  @Autowired
+//  @Autowired
 
   @GetMapping("")
   public ResponseEntity<List<User>> getPointList() throws Exception {

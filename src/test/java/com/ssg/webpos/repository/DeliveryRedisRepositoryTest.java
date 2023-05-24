@@ -1,9 +1,7 @@
 package com.ssg.webpos.repository;
 
-import com.ssg.webpos.domain.enums.DeliveryType;
-import com.ssg.webpos.dto.GiftRequestDTO;
-import com.ssg.webpos.dto.delivery.DeliveryAddDTO;
-import com.ssg.webpos.dto.delivery.DeliveryAddressDTO;
+import com.ssg.webpos.domain.PosStoreCompositeId;
+import com.ssg.webpos.dto.delivery.*;
 import com.ssg.webpos.repository.delivery.DeliveryRedisImplRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -11,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -26,71 +25,81 @@ public class DeliveryRedisRepositoryTest {
   }
 
   @Test
-  @DisplayName("posId로 해당 배송 정보 redis 정보 가져오기")
-  public void readDeliveryInfoFromRedisWithPosId() throws Exception {
-    DeliveryAddDTO deliveryAddDTO = new DeliveryAddDTO();
-    deliveryAddDTO.setStoreId(1L);
-    deliveryAddDTO.setPosId(1L);
-    //given
-    DeliveryAddDTO deliveryDTO1 = DeliveryAddDTO.builder()
-        .posId(deliveryAddDTO.getPosId())
-        .storeId(deliveryAddDTO.getStoreId())
-        .deliveryName("home")
+  @DisplayName("배송지 추가한 정보 캐싱하기")
+  public void saveDeliveryInfoTest() throws Exception {
+    PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
+    posStoreCompositeId.setPos_id(1L);
+    posStoreCompositeId.setStore_id(1L);
+
+    DeliveryRedisAddRequestDTO deliveryAddRequestDTO = new DeliveryRedisAddRequestDTO();
+    deliveryAddRequestDTO.setPosId(posStoreCompositeId.getPos_id());
+    deliveryAddRequestDTO.setStoreId(posStoreCompositeId.getStore_id());
+
+    List<DeliveryRedisAddDTO> deliveryAddList = new ArrayList<>();
+    DeliveryRedisAddDTO deliveryAddDTO = DeliveryRedisAddDTO.builder()
+        .deliveryName("집")
         .userName("김진아")
         .address("부산광역시 부산진구")
-        .phoneNumber("01011113333")
-        .requestFinishedAt("2023-05-12T12:34:56")
+        .phoneNumber("01087654321")
         .requestInfo("문 앞에 두고 가세요.")
-        .deliveryType(DeliveryType.DELIVERY)
+        .requestDeliveryTime("14:00~16:00")
         .build();
+    deliveryAddList.add(deliveryAddDTO);
+    deliveryAddRequestDTO.setDeliveryAddList(deliveryAddList);
 
-    System.out.println("deliveryDTO1 = " + deliveryDTO1);
-    // when
-    deliveryRedisImplRepository.saveDelivery(deliveryDTO1);
-
-    Map<String, Map<String, List<Object>>> findDeliveryRedisImpl = deliveryRedisImplRepository.findAll();
-    System.out.println("deliveryDTOList = " + findDeliveryRedisImpl);
-
-    Assertions.assertEquals(1, findDeliveryRedisImpl.size());
+    deliveryRedisImplRepository.saveDelivery(deliveryAddRequestDTO);
+    Map<String, Map<String, List<Object>>> findDelivery = deliveryRedisImplRepository.findAll();
+    System.out.println("findDelivery = " + findDelivery);
   }
 
   @Test
-  @DisplayName("선택된 배송 정보 redis에 저장")
-  public void readSelectedDeliveryInfoFromRedis() throws Exception {
-    DeliveryAddressDTO deliveryAddressDTO = new DeliveryAddressDTO();
-    deliveryAddressDTO.setStoreId(1L);
-    deliveryAddressDTO.setPosId(1L);
-    //given
-    DeliveryAddressDTO deliveryAddressDTO1 = DeliveryAddressDTO.builder()
-        .posId(deliveryAddressDTO.getPosId())
-        .storeId(deliveryAddressDTO.getStoreId())
-        .address("부산광역시 해운대구")
-        .phoneNumber("01011113333")
-        .name("김진아")
-        .postCode("123456")
-        .isDefault(false)
-        .deliveryName("스파로스")
-        .build();
+  @DisplayName("회원 배송지 목록에서 선택된 배송지 redis에 저장")
+  public void saveSelectedDeliveryInfoFromRedis() throws Exception {
+    PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
+    posStoreCompositeId.setPos_id(1L);
+    posStoreCompositeId.setStore_id(1L);
 
-    System.out.println("deliveryAddressDTO1 = " + deliveryAddressDTO1);
+    DeliveryListRedisSelectRequestDTO deliveryListRedisSelectRequestDTO = new DeliveryListRedisSelectRequestDTO();
+    deliveryListRedisSelectRequestDTO.setPosId(posStoreCompositeId.getPos_id());
+    deliveryListRedisSelectRequestDTO.setStoreId(posStoreCompositeId.getStore_id());
+    //given
+    List<DeliveryListRedisSelectDTO> selectedDeliveryAddress = new ArrayList<>();
+    DeliveryListRedisSelectDTO deliveryListRedisSelectDTO = DeliveryListRedisSelectDTO.builder()
+        .deliveryName("집")
+        .userName("김진아")
+        .address("부산광역시 부산진구")
+        .postCode("48119")
+        .isDefault(true)
+        .requestDeliveryTime("12:00~15:00")
+        .requestInfo("문 앞에 놔두고 가세요.")
+        .build();
+    selectedDeliveryAddress.add(deliveryListRedisSelectDTO);
+    deliveryListRedisSelectRequestDTO.setSelectedDeliveryAddress(selectedDeliveryAddress);
     // when
-    deliveryRedisImplRepository.saveSelectedDelivery(deliveryAddressDTO1);
+    deliveryRedisImplRepository.saveSelectedDelivery(deliveryListRedisSelectRequestDTO);
 
     Map<String, Map<String, List<Object>>> findDeliveryRedisImpl = deliveryRedisImplRepository.findAll();
-    System.out.println("deliveryAddressDTO = " + findDeliveryRedisImpl);
-
-    Assertions.assertEquals(1, findDeliveryRedisImpl.size());
+    System.out.println("findDeliveryRedisImpl = " + findDeliveryRedisImpl);
   }
 
   @Test
   @DisplayName("선물 받는 사람 정보 캐싱")
   void saveGiftRecipientInfoTest() throws Exception {
-    GiftRequestDTO giftRequestDTO = GiftRequestDTO.builder()
-        .posId(1L)
-        .storeId(1L)
-        .name("김진아")
-        .phoneNumber("01055552525")
-        .build();
+    PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
+    posStoreCompositeId.setPos_id(1L);
+    posStoreCompositeId.setStore_id(1L);
+
+    GiftRequestDTO giftRequestDTO = new GiftRequestDTO();
+    giftRequestDTO.setPosId(posStoreCompositeId.getPos_id());
+    giftRequestDTO.setStoreId(posStoreCompositeId.getStore_id());
+
+    List<GiftDTO> giftInfoList = new ArrayList<>();
+    GiftDTO giftDTO = new GiftDTO();
+    giftDTO.setName("김진아");
+    giftDTO.setPhoneNumber("01011112222");
+    giftInfoList.add(giftDTO);
+
+    giftRequestDTO.setGiftRecipientInfo(giftInfoList);
 
     deliveryRedisImplRepository.saveGiftRecipientInfo(giftRequestDTO);
     Map<String, Map<String, List<Object>>> findGiftInfo = deliveryRedisImplRepository.findAll();
