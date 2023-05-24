@@ -89,7 +89,8 @@ public class PaymentsService {
         CartAddDTO cartAddDTO = new CartAddDTO();
         cartAddDTO.setProductId((Long) cartItem.get("productId"));
         cartAddDTO.setCartQty((int) cartItem.get("cartQty"));
-        updateProductStock(cartAddDTO,order);
+
+        updateStockAndAddToCart(cartAddDTO, order, success);
 
       }
 
@@ -100,27 +101,16 @@ public class PaymentsService {
             Integer pointUseAmount = cartRedisRepository.findPointAmount(compositeId);
           if (pointUseAmount != null) {
             pointService.deductPoints(userId, pointUseAmount);
-            PointUseHistory pointUseHistory = new PointUseHistory();
-            pointUseHistory.setAmount(pointUseAmount);
-            pointUseHistory.setUser(user);
-            pointUseHistory.setOrder(order);
+            PointUseHistory pointUseHistory = new PointUseHistory(pointUseAmount, user, order);
             pointUseHistoryService.savePointUseHistory(pointUseHistory);
-
-            List<PointUseHistory> pointUseHistoryList = user.getPointUseHistoryList();
-            pointUseHistoryList.add(pointUseHistory);
-            user.setPointUseHistoryList(pointUseHistoryList);
+            user.getPointUseHistoryList().add(pointUseHistory);
           }
-            // Save pointUseHistory
-            int pointSaveAmount = pointService.updatePoint(findUserId, finalTotalPrice.intValue());
-            PointSaveHistory pointSaveHistory = new PointSaveHistory();
-            pointSaveHistory.setAmount(pointSaveAmount);
-            pointSaveHistory.setOrder(order);
-            pointSaveHistory.setUser(user);
-            pointSaveHistoryService.savePointSaveHistory(pointSaveHistory);
 
-            List<PointSaveHistory> pointSaveHistoryList = user.getPointSaveHistoryList();
-            pointSaveHistoryList.add(pointSaveHistory);
-            user.setPointSaveHistoryList(pointSaveHistoryList);
+            // Save PointSaveHistory
+          int pointSaveAmount = pointService.updatePoint(findUserId, finalTotalPrice.intValue());
+          PointSaveHistory pointSaveHistory = new PointSaveHistory(pointSaveAmount, user, order);
+          pointSaveHistoryService.savePointSaveHistory(pointSaveHistory);
+          user.getPointSaveHistoryList().add(pointSaveHistory);
         }
 
         // cartRedisRepository.delete(compositeId);
@@ -182,7 +172,7 @@ public class PaymentsService {
     return combinedStr;
   }
 
-  private void updateProductStock(CartAddDTO cartAddDTO, Order order) {
+  private void updateStockAndAddToCart(CartAddDTO cartAddDTO, Order order, boolean success) {
     Product product = productRepository.findById(cartAddDTO.getProductId())
         .orElseThrow(() -> new RuntimeException("Product not found."));
 
@@ -191,14 +181,16 @@ public class PaymentsService {
     if (product.getStock() < orderQty) {
       throw new RuntimeException("재고가 부족합니다. 현재 재고 수: " + product.getStock() + "개");
     }
-    product.minusStockQuantity(orderQty);
+    if (success) {
+      product.minusStockQuantity(orderQty);
+      productRepository.save(product);
+    }
     List<Cart> cartList = order.getCartList();
     Cart cart = new Cart(product, order);
     cart.setQty(orderQty);
     cartList.add(cart);
 
     cartRepository.saveAll(cartList);
-    productRepository.save(product);
   }
 
 }
