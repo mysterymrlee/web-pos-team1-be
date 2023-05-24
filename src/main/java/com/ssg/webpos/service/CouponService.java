@@ -2,8 +2,6 @@ package com.ssg.webpos.service;
 
 import com.ssg.webpos.domain.Coupon;
 import com.ssg.webpos.domain.enums.CouponStatus;
-import com.ssg.webpos.dto.CouponDTO;
-import com.ssg.webpos.dto.CouponRequestDTO;
 import com.ssg.webpos.repository.CouponRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,10 +18,10 @@ public class CouponService {
   }
 
 
-//  public Coupon getCouponInfoById(Long couponId) {
-//    Optional<Coupon> couponOptional = couponRepository.findById(couponId);
-//
-//  }
+  public Coupon getCouponInfoBySerialNumber(String serialNumber) {
+    Optional<Coupon> couponOptional = couponRepository.findBySerialNumber(serialNumber);
+    return couponOptional.get();
+  }
   // 쿠폰 유효성
   public String validateCoupon(String serialNumber) {
     Optional<Coupon> couponOptional = couponRepository.findBySerialNumber(serialNumber);

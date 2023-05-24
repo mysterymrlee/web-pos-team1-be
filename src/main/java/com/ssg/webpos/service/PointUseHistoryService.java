@@ -7,10 +7,10 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class PointHistoryService {
+public class PointUseHistoryService {
   private final PointUseHistoryRepository pointUseHistoryRepository;
 
-  public void savePointHistory(PointUseHistory pointHistory) {
+  public void savePointUseHistory(PointUseHistory pointHistory) {
     pointUseHistoryRepository.save(pointHistory);
   }
 }

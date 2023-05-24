@@ -30,7 +30,7 @@
     IMP.request_pay(data, response => {
         alert('callback!:' + JSON.stringify(response));
         jQuery.ajax({
-            url: "/payment/callback_receive",
+            url: "/api/v1/payment/callback-receive",
             method: "POST",
             headers: {"Content-Type": "application/json"},
             data: JSON.stringify(response)
@@ -49,6 +49,7 @@
     <button type="button" onClick = "payment('smilepay', 'card')">스마일페이</button>
     <button type="button" onClick = "payment('kcp', 'card')">신용카드</button>
     <button type="button" onClick = "payment('alipay', 'card')">알리페이</button>
+    <button type="button" onClick = "payment('html5_inicis', 'card')">kg이니시스</button>
     </form>
 </div>
 

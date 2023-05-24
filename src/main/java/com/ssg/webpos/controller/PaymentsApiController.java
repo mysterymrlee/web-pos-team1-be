@@ -44,14 +44,14 @@ public class PaymentsApiController {
 
 
 
-  @GetMapping("/")
+  @GetMapping("")
   public String welcome(Map<String, Object> model) {
     model.put("time", new Date());
     model.put("message", this.message);
     return "Welcome";
   }
 
-  @PostMapping("/callback_receive")
+  @PostMapping("/callback-receive")
   public ResponseEntity callback_receive(@RequestBody PaymentsDTO paymentsDTO) {
     paymentsDTO.getStoreId();
     paymentsDTO.getPosId();
@@ -64,6 +64,6 @@ public class PaymentsApiController {
     responseObj.put("process_result", "결제 성공");
 
 
-    return new ResponseEntity(responseObj.toString(), responseHeaders, HttpStatus.OK);
+    return new ResponseEntity(responseObj, responseHeaders, HttpStatus.OK);
   }
 }
