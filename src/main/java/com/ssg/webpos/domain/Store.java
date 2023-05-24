@@ -51,4 +51,5 @@ public class Store extends BaseTime {
 
     @OneToMany(mappedBy = "store")
     private List<Pos> posList = new ArrayList<>();
+    private String imageUrl;
 }

@@ -12,7 +12,7 @@ import javax.validation.constraints.NotNull;
 @AllArgsConstructor
 @NoArgsConstructor
 // 상품 발주 신청
-public class ProductRequest {
+public class ProductRequest extends BaseTime{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_request_id")
@@ -28,5 +28,6 @@ public class ProductRequest {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id")
     private Store store;
+    private int currentStock;
 
 }

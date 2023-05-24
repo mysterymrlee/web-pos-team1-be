@@ -103,4 +103,9 @@ public Order(OrderStatus orderStatus, PayMethod payMethod, int totalPrice) {
     public int hashCode() {
         return Objects.hash(id, pos);
     }
+    private int totalOriginPrice;
+    private int profit(int finalTotalPrice, int totalOriginPrice) {
+        int calculateProfit = finalTotalPrice - totalOriginPrice;
+        return calculateProfit;
+    }
 }

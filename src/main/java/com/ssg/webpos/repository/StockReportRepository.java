@@ -8,4 +8,5 @@ import java.util.List;
 public interface StockReportRepository extends JpaRepository<StockReport,Long> {
     List<StockReport> findByIsSubmit(boolean isSubmit);
     List<StockReport> findAll();
+    List<StockReport> findByIsSubmitAndStoreId(boolean isSubmit, Long storeId);
 }

@@ -24,11 +24,10 @@ public class StockReport extends BaseTime {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    private int qty;
-
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id")
     private Store store;
     private boolean isSubmit;
+    private int currentStock;
 }
