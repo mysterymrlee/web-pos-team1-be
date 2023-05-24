@@ -133,6 +133,7 @@ public class PaymentsService {
     order.setUser(user);
     order.setFinalTotalPrice(finalTotalPrice.intValue());
     order.setTotalPrice(totalPrice);
+    pos.getOrderList().add(order);
 
     if (success) {
       order.setOrderStatus(OrderStatus.SUCCESS);
@@ -155,6 +156,10 @@ public class PaymentsService {
     System.out.println("paymentdeductedPrice = " + deductedPrice);
     if (deductedPrice != null) {
       order.setCouponUsePrice(deductedPrice);
+      Coupon coupon = new Coupon();
+      coupon.setUser(user);
+      coupon.setOrder(order);
+      user.getCouponList().add(coupon);
       Long couponId = cartRedisRepository.findCouponId(compositeId);
       if (success) {
         couponService.updateCouponStatusToUsed(couponId);
