@@ -44,12 +44,13 @@ public class CouponService {
     }
   }
   // status NOT_USED -> USED
-  public void updateCouponStatusToUsed(Long couponId) {
+  public Coupon updateCouponStatusToUsed(Long couponId) {
     Optional<Coupon> couponOptional = couponRepository.findById(couponId);
     if (couponOptional.isPresent()) {
       Coupon coupon = couponOptional.get();
       coupon.setCouponStatus(CouponStatus.USED);
       couponRepository.save(coupon);
+      return coupon;
     } else {
       throw new IllegalArgumentException("Invalid coupon ID");
     }

@@ -4,11 +4,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @ToString
-public class CouponAddRequestDTO {
-  private Long storeId;
+public class TestRequestDTO {
   private Long posId;
-  private String serialNumber;
+  private Long storeId;
+  private List<TestDTO> testItemList;
 }

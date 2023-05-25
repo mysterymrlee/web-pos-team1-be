@@ -42,6 +42,7 @@ public class Order extends BaseTime {
     @Enumerated(EnumType.STRING)
     private PayMethod payMethod;
     private int totalPrice;
+    private String orderName;
     @NotNull
     private int totalQuantity; // 총 주문 수량
     private int couponUsePrice; // 쿠폰 사용 금액
@@ -107,7 +108,7 @@ public Order(OrderStatus orderStatus, PayMethod payMethod, int totalPrice) {
         return Objects.hash(id, pos);
     }
     private int totalOriginPrice;
-    private void calcProfit(int finalTotalPrice, int totalOriginPrice) {
+    public void calcProfit(int finalTotalPrice, int totalOriginPrice) {
         int calculateProfit = finalTotalPrice - totalOriginPrice;
         this.profit = calculateProfit;
     }

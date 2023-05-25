@@ -1,6 +1,5 @@
-package com.ssg.webpos.dto;
+package com.ssg.webpos.dto.cartDto;
 
-import com.ssg.webpos.domain.PosStoreCompositeId;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;

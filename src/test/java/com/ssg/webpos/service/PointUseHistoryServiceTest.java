@@ -2,7 +2,7 @@ package com.ssg.webpos.service;
 
 import com.ssg.webpos.domain.*;
 import com.ssg.webpos.domain.enums.RoleUser;
-import com.ssg.webpos.dto.PointUseDTO;
+import com.ssg.webpos.dto.point.PointUseDTO;
 import com.ssg.webpos.repository.PointUseHistoryRepository;
 import com.ssg.webpos.repository.UserRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
