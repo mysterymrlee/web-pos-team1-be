@@ -11,11 +11,13 @@ import java.util.List;
 
 @SpringBootTest
 public class ProductRequestRepositoryTest {
-    @Autowired
-    ProductRequestRepository productRequestRepository;
+  @Autowired
+  ProductRequestRepository productRequestRepository;
 
-    @Test
-    void contextVoids() {
+  @Test
+  void contextVoids() {
+//    @Test
+//    void contextVoids() {
 //        List<ResponseForDBDTO> lists = new ArrayList<>();
 //        ResponseForDBDTO r1 = new ResponseForDBDTO();
 //        r1.setProductRequestId(1L);
@@ -36,5 +38,5 @@ public class ProductRequestRepositoryTest {
 //        lists.add(r1);
 //        lists.add(r2);
 //        productRequestRepository.saveAll(lists);
-    }
+  }
 }
