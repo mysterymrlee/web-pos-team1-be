@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CouponController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">webpos</a> &gt; <a href="index.source.html" class="el_package">com.ssg.webpos.controller</a> &gt; <span class="el_source">CouponController.java</span></div><h1>CouponController.java</h1><pre class="source lang-java linenums">package com.ssg.webpos.controller;
+
+import com.ssg.webpos.dto.coupon.CouponAddRequestDTO;
+import com.ssg.webpos.dto.coupon.CouponAddResponseDTO;
+import com.ssg.webpos.repository.cart.CartRedisRepository;
+import com.ssg.webpos.service.CouponService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+
+
+@RestController
+@RequestMapping(&quot;/api/v1/gift-card&quot;)
+<span class="nc" id="L17">public class CouponController {</span>
+
+  @Autowired
+  CouponService couponService;
+  @Autowired
+  CartRedisRepository cartRedisRepository;
+
+  @PostMapping(&quot;/valid&quot;)
+  public ResponseEntity addCoupon(@RequestBody @Valid CouponAddRequestDTO requestDTO) throws Exception {
+<span class="nc" id="L26">    String serialNumber = requestDTO.getSerialNumber();</span>
+<span class="nc" id="L27">    cartRedisRepository.saveCoupon(requestDTO);</span>
+<span class="nc" id="L28">    int deductedPrice = couponService.getCouponInfoBySerialNumber(serialNumber).getDeductedPrice();</span>
+<span class="nc" id="L29">    CouponAddResponseDTO couponResponseDTO = new CouponAddResponseDTO(deductedPrice);</span>
+
+<span class="nc" id="L31">    String validationMessage = couponService.validateCoupon(serialNumber);</span>
+    HttpStatus status;
+
+<span class="nc bnc" id="L34" title="All 4 branches missed.">    switch (validationMessage) {</span>
+      case &quot;유효한 쿠폰입니다.&quot;:
+<span class="nc" id="L36">        status = HttpStatus.OK; // 200</span>
+<span class="nc" id="L37">        break;</span>
+      case &quot;쿠폰이 만료되었습니다.&quot;:
+<span class="nc" id="L39">        status = HttpStatus.PAYMENT_REQUIRED; // 402</span>
+<span class="nc" id="L40">        break;</span>
+      case &quot;이미 사용된 쿠폰입니다.&quot;:
+<span class="nc" id="L42">        status = HttpStatus.BAD_REQUEST; // 400</span>
+<span class="nc" id="L43">        break;</span>
+      default: // 쿠폰을 찾을 수 없는 경우
+<span class="nc" id="L45">        status = HttpStatus.NOT_FOUND; // 404</span>
+        break;
+    }
+
+<span class="nc" id="L49">    return new ResponseEntity(couponResponseDTO, status);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

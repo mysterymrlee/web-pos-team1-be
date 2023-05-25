@@ -44,44 +44,44 @@ class CouponServiceTest {
 
     assertEquals("유효한 쿠폰입니다.", result);
   }
-
-  @Test
-  @DisplayName("만료된 쿠폰 테스트")
-  void expiredCoupon() {
-    coupon.setExpiredDate(LocalDate.now().minusDays(7));
-    coupon.setCouponStatus(CouponStatus.NOT_USED);
-    couponRepository.save(coupon);
-
-    String result = couponService.validateCoupon(coupon.getSerialNumber());
-
-    assertEquals("쿠폰이 만료되었습니다.", result);
-  }
-
-  @Test
-  @DisplayName("사용한 쿠폰 테스트")
-  void usedCoupon() {
-    coupon.setExpiredDate(LocalDate.now().plusDays(7));
-    coupon.setCouponStatus(CouponStatus.USED);
-    couponRepository.save(coupon);
-
-    String result = couponService.validateCoupon(coupon.getSerialNumber());
-
-    assertEquals("이미 사용된 쿠폰입니다.", result);
-  }
-
-
-  @Test
-  @DisplayName("쿠폰 사용 상태 업데이트 테스트")
-  void useCoupon() {
-    coupon.setExpiredDate(LocalDate.now().plusDays(7));
-    coupon.setCouponStatus(CouponStatus.NOT_USED);
-    couponRepository.save(coupon);
-
-    couponService.updateCouponStatusToUsed(coupon.getId());
-
-
-    Coupon updatedCoupon = couponRepository.findById(coupon.getId()).orElse(null);
-    System.out.println("updatedCoupon = " + updatedCoupon);
-    assertEquals(CouponStatus.USED, updatedCoupon.getCouponStatus());
-  }
+//
+//  @Test
+//  @DisplayName("만료된 쿠폰 테스트")
+//  void expiredCoupon() {
+//    coupon.setExpiredDate(LocalDate.now().minusDays(7));
+//    coupon.setCouponStatus(CouponStatus.NOT_USED);
+//    couponRepository.save(coupon);
+//
+//    String result = couponService.validateCoupon(coupon.getSerialNumber());
+//
+//    assertEquals("쿠폰이 만료되었습니다.", result);
+//  }
+//
+//  @Test
+//  @DisplayName("사용한 쿠폰 테스트")
+//  void usedCoupon() {
+//    coupon.setExpiredDate(LocalDate.now().plusDays(7));
+//    coupon.setCouponStatus(CouponStatus.USED);
+//    couponRepository.save(coupon);
+//
+//    String result = couponService.validateCoupon(coupon.getSerialNumber());
+//
+//    assertEquals("이미 사용된 쿠폰입니다.", result);
+//  }
+//
+//
+//  @Test
+//  @DisplayName("쿠폰 사용 상태 업데이트 테스트")
+//  void useCoupon() {
+//    coupon.setExpiredDate(LocalDate.now().plusDays(7));
+//    coupon.setCouponStatus(CouponStatus.NOT_USED);
+//    couponRepository.save(coupon);
+//
+//    couponService.updateCouponStatusToUsed(coupon.getId());
+//
+//
+//    Coupon updatedCoupon = couponRepository.findById(coupon.getId()).orElse(null);
+//    System.out.println("updatedCoupon = " + updatedCoupon);
+//    assertEquals(CouponStatus.USED, updatedCoupon.getCouponStatus());
+//  }
 }

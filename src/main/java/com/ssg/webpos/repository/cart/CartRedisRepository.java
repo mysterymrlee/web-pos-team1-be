@@ -16,8 +16,6 @@ public interface CartRedisRepository {
   void savePoint(PointDTO pointDTO);
   void savePointAmount(PointUseDTO pointUseDTO);
 
-  void saveTest(TestRequestDTO testRequestDTO);
-
   void saveCoupon(CouponAddRequestDTO CouponAddRequestDTO);
   Map<String, Map<String, List<Object>>>  findAll() throws Exception;
   Map<String, List<Object>> findById(String id);

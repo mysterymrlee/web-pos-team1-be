@@ -15,6 +15,7 @@ import com.ssg.webpos.repository.product.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -45,7 +46,7 @@ public class PaymentsService {
 
   @Value("${api_secret}")
   private String api_secret;
-
+  @Transactional
   public void processPaymentCallback(PaymentsDTO paymentsDTO) {
     try {
       String error_msg = paymentsDTO.getError_msg();
@@ -118,7 +119,7 @@ public class PaymentsService {
           user.getPointSaveHistoryList().add(pointSaveHistory);
         }
 
-//         cartRedisRepository.delete(compositeId);
+         cartRedisRepository.delete(compositeId);
     } catch (Exception e) {
       e.printStackTrace();
     }

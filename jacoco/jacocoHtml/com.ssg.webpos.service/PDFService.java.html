@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PDFService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">webpos</a> &gt; <a href="index.source.html" class="el_package">com.ssg.webpos.service</a> &gt; <span class="el_source">PDFService.java</span></div><h1>PDFService.java</h1><pre class="source lang-java linenums">package com.ssg.webpos.service;
+
+import com.itextpdf.text.Document;
+import com.itextpdf.text.pdf.PdfWriter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+import org.xhtmlrenderer.pdf.ITextRenderer;
+
+import java.io.ByteArrayOutputStream;
+
+@Service
+public class PDFService {
+
+    private final TemplateEngine templateEngine;
+
+    @Autowired
+<span class="nc" id="L19">    public PDFService(TemplateEngine templateEngine) {</span>
+<span class="nc" id="L20">        this.templateEngine = templateEngine;</span>
+<span class="nc" id="L21">    }</span>
+
+    public byte[] createPDF() throws Exception {
+        // Thymeleaf 템플릿 엔진을 사용하여 HTML을 렌더링
+<span class="nc" id="L25">        Context context = new Context();</span>
+<span class="nc" id="L26">        String htmlContent = templateEngine.process(&quot;test&quot;, context);</span>
+
+        // HTML을 PDF로 변환
+<span class="nc" id="L29">        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();</span>
+<span class="nc" id="L30">        ITextRenderer renderer = new ITextRenderer();</span>
+<span class="nc" id="L31">        Document document = (Document) renderer.getDocument();</span>
+<span class="nc" id="L32">        PdfWriter writer = PdfWriter.getInstance(document, outputStream);</span>
+<span class="nc" id="L33">        document.open();</span>
+<span class="nc" id="L34">        renderer.setDocumentFromString(htmlContent);</span>
+<span class="nc" id="L35">        renderer.layout();</span>
+<span class="nc" id="L36">        renderer.createPDF(writer.getOs());</span>
+<span class="nc" id="L37">        document.close();</span>
+
+<span class="nc" id="L39">        return outputStream.toByteArray();</span>
+    }
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>
