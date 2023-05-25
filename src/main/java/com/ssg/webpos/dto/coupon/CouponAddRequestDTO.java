@@ -1,4 +1,4 @@
-package com.ssg.webpos.dto;
+package com.ssg.webpos.dto.coupon;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -7,8 +7,8 @@ import lombok.ToString;
 @Data
 @NoArgsConstructor
 @ToString
-public class PointUseDTO {
-  private Long posId;
+public class CouponAddRequestDTO {
   private Long storeId;
-  private int amount;
+  private Long posId;
+  private String serialNumber;
 }

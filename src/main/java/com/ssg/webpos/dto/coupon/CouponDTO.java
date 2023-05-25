@@ -1,4 +1,4 @@
-package com.ssg.webpos.dto;
+package com.ssg.webpos.dto.coupon;
 
 import com.ssg.webpos.domain.enums.CouponStatus;
 import lombok.Data;

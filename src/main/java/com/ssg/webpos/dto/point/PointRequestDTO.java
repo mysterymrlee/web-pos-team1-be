@@ -1,4 +1,4 @@
-package com.ssg.webpos.dto;
+package com.ssg.webpos.dto.point;
 
 import com.ssg.webpos.domain.PosStoreCompositeId;
 import lombok.Data;

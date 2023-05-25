@@ -2,18 +2,14 @@ package com.ssg.webpos.service;
 
 import com.ssg.webpos.domain.User;
 import com.ssg.webpos.domain.enums.RoleUser;
-import com.ssg.webpos.dto.PointDTO;
+import com.ssg.webpos.dto.point.PointDTO;
 import com.ssg.webpos.repository.UserRepository;
 import com.ssg.webpos.repository.cart.CartRedisRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest

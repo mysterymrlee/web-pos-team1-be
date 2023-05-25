@@ -1,6 +1,7 @@
 package com.ssg.webpos.controller;
 
-import com.ssg.webpos.dto.*;
+import com.ssg.webpos.dto.coupon.CouponAddRequestDTO;
+import com.ssg.webpos.dto.coupon.CouponAddResponseDTO;
 import com.ssg.webpos.repository.cart.CartRedisRepository;
 import com.ssg.webpos.service.CouponService;
 import org.springframework.beans.factory.annotation.Autowired;

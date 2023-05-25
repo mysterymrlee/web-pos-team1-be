@@ -1,7 +1,7 @@
 package com.ssg.webpos.repository;
 
 import com.ssg.webpos.domain.User;
-import com.ssg.webpos.dto.PointDTO;
+import com.ssg.webpos.dto.point.PointDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

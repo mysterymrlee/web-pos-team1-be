@@ -1,4 +1,4 @@
-package com.ssg.webpos.dto;
+package com.ssg.webpos.dto.cartDto;
 
 import com.ssg.webpos.domain.Cart;
 import com.ssg.webpos.domain.PosStoreCompositeId;
