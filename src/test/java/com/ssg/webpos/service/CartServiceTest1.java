@@ -5,7 +5,7 @@ import com.ssg.webpos.domain.Order;
 import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.domain.Product;
 import com.ssg.webpos.domain.enums.OrderStatus;
-import com.ssg.webpos.dto.CartAddDTO;
+import com.ssg.webpos.dto.cartDto.CartAddDTO;
 import com.ssg.webpos.dto.OrderDTO;
 import com.ssg.webpos.repository.cart.CartRepository;
 import com.ssg.webpos.repository.order.OrderRepository;

@@ -1,7 +1,9 @@
+package com.ssg.webpos.service;
+
 import com.ssg.webpos.domain.*;
 import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.domain.enums.PayMethod;
-import com.ssg.webpos.dto.CartAddDTO;
+import com.ssg.webpos.dto.cartDto.CartAddDTO;
 import com.ssg.webpos.dto.PaymentsDTO;
 import com.ssg.webpos.repository.PointUseHistoryRepository;
 import com.ssg.webpos.repository.cart.CartRedisRepository;
@@ -46,11 +48,7 @@ public class PaymentsService {
 
   public void processPaymentCallback(PaymentsDTO paymentsDTO) {
     try {
-      boolean success = paymentsDTO.isSuccess();
       String error_msg = paymentsDTO.getError_msg();
-      System.out.println("success = " + success);
-
-//      IamportClient ic = new IamportClient(api_key, api_secret);
       String name = paymentsDTO.getName();
       String impUid = paymentsDTO.getImp_uid();
       String merchantUid = paymentsDTO.getMerchant_uid();
@@ -70,29 +68,38 @@ public class PaymentsService {
       Long userId = cartRedisRepository.findUserId(compositeId);
       if (userId != null) {
         user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found."));
+
       }
 
       Pos pos = posRepository.findById(new PosStoreCompositeId(paymentsDTO.getPosId(), paymentsDTO.getStoreId()))
           .orElseThrow(() -> new RuntimeException("Pos not found"));
 
       Integer totalPrice = cartRedisRepository.findTotalPrice(compositeId);
-
-      order = createOrder(paymentsDTO, compositeId, user, pos, finalTotalPrice, totalPrice, success);
+      Integer totalOriginPrice = cartRedisRepository.findTotalOriginPrice(compositeId);
+      String orderName = cartRedisRepository.findOrderName(compositeId);
+      // createOrder
+      order = createOrder(paymentsDTO, compositeId, user, pos, finalTotalPrice, totalPrice, totalOriginPrice, orderName);
+      System.out.println("orderName = " + orderName);
+      System.out.println("totalOriginPrice = " + totalOriginPrice);
 
       // Save order
-      Order savedOrder = orderRepository.save(order);
-      List<Map<String, Object>> cartItems = cartRedisRepository.findCartItems(compositeId);
+      orderRepository.save(order);
 
-      for (Map<String, Object> cartItem : cartItems) {
+      List<Map<String, Object>> cartItemList = cartRedisRepository.findCartItems(compositeId); // 캐싱된 cartItemList 가져오기
+
+      for (Map<String, Object> cartItem : cartItemList) {
         CartAddDTO cartAddDTO = new CartAddDTO();
         cartAddDTO.setProductId((Long) cartItem.get("productId"));
         cartAddDTO.setCartQty((int) cartItem.get("cartQty"));
-
-        updateStockAndAddToCart(cartAddDTO, order, success);
-
+        Product product = updateStockAndAddToCart(cartAddDTO);
+        List<Cart> cartList = order.getCartList();
+        Cart cart = new Cart(product, order);
+        cart.setQty(cartAddDTO.getCartQty());
+        cartList.add(cart);
+        cartRepository.saveAll(cartList);
       }
 
-      if (success) {
+
         Long findUserId = cartRedisRepository.findUserId(compositeId);
         if (findUserId != null) {
             // Deduct points
@@ -111,17 +118,14 @@ public class PaymentsService {
           user.getPointSaveHistoryList().add(pointSaveHistory);
         }
 
-        // cartRedisRepository.delete(compositeId);
-      } else { // Payment failed
-        System.out.println("error_msg = " + error_msg);
-      }
+//         cartRedisRepository.delete(compositeId);
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
 
   private Order createOrder (PaymentsDTO paymentsDTO, String compositeId, User user, Pos pos,
-                             BigDecimal finalTotalPrice, Integer totalPrice, boolean success) {
+                             BigDecimal finalTotalPrice, Integer totalPrice, Integer totalOriginPrice, String OrderName) {
     Order order = new Order();
     order.setOrderDate(LocalDateTime.now());
     List<Order> orderList = orderRepository.findAll();
@@ -131,12 +135,14 @@ public class PaymentsService {
     order.setUser(user);
     order.setFinalTotalPrice(finalTotalPrice.intValue());
     order.setTotalPrice(totalPrice);
+    order.calcProfit(finalTotalPrice.intValue(), totalOriginPrice);
+    order.setTotalOriginPrice(totalOriginPrice);
+    order.setOrderName(OrderName);
+    pos.getOrderList().add(order);
+    System.out.println("pos.getOrderList() = " + pos.getOrderList());
 
-    if (success) {
+
       order.setOrderStatus(OrderStatus.SUCCESS);
-    } else {
-      order.setOrderStatus(OrderStatus.FAIL);
-    }
 
     String pgProvider = paymentsDTO.getPg();
     if (pgProvider.equals("kakaopay")) {
@@ -152,12 +158,16 @@ public class PaymentsService {
     Integer deductedPrice = cartRedisRepository.findDeductedPrice(compositeId);
     System.out.println("paymentdeductedPrice = " + deductedPrice);
     if (deductedPrice != null) {
-      order.setCouponUsePrice(deductedPrice);
+      order.setCouponUsePrice(deductedPrice);;
       Long couponId = cartRedisRepository.findCouponId(compositeId);
-      if (success) {
-        couponService.updateCouponStatusToUsed(couponId);
+      Coupon coupon = couponService.updateCouponStatusToUsed(couponId);
+      coupon.setOrder(order);
+      order.getCouponList().add(coupon);
+      if (user != null) {
+          coupon.setUser(user);
       }
-    }
+
+      }
 
     return order;
   }
@@ -170,7 +180,7 @@ public class PaymentsService {
     return combinedStr;
   }
 
-  private void updateStockAndAddToCart(CartAddDTO cartAddDTO, Order order, boolean success) {
+  private Product updateStockAndAddToCart(CartAddDTO cartAddDTO) {
     Product product = productRepository.findById(cartAddDTO.getProductId())
         .orElseThrow(() -> new RuntimeException("Product not found."));
 
@@ -179,16 +189,10 @@ public class PaymentsService {
     if (product.getStock() < orderQty) {
       throw new RuntimeException("재고가 부족합니다. 현재 재고 수: " + product.getStock() + "개");
     }
-    if (success) {
       product.minusStockQuantity(orderQty);
       productRepository.save(product);
-    }
-    List<Cart> cartList = order.getCartList();
-    Cart cart = new Cart(product, order);
-    cart.setQty(orderQty);
-    cartList.add(cart);
+      return product;
 
-    cartRepository.saveAll(cartList);
   }
 
 }
