@@ -23,7 +23,6 @@ public class Delivery extends BaseTime {
     @Column(name = "delivery_id")
     private Long id;
     private String serialNumber;
-    @NotNull
     private LocalDateTime startedDate;
 
     private LocalDateTime finishedDate;
@@ -42,7 +41,6 @@ public class Delivery extends BaseTime {
     @NotNull
     private String phoneNumber;
 
-    @NotNull
     private String deliveryName;
     @NotNull
     private String userName;

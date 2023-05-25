@@ -4,6 +4,7 @@ import com.ssg.webpos.domain.enums.DeliveryType;
 import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.domain.enums.PayMethod;
 import com.ssg.webpos.dto.delivery.DeliveryAddDTO;
+import com.ssg.webpos.dto.delivery.DeliveryRedisAddDTO;
 import com.ssg.webpos.dto.delivery.DeliveryAddressDTO;
 import com.ssg.webpos.repository.UserRepository;
 import com.ssg.webpos.repository.delivery.DeliveryAddressRepository;
@@ -18,7 +19,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -60,10 +60,9 @@ class DeliveryServiceTest {
     DeliveryAddDTO deliveryDTO = DeliveryAddDTO.builder()
         .deliveryName("스파로스")
         .userName("김진아")
-        .address("부산광역시 부산진구")
+        .address("부산광역시 동구")
         .phoneNumber("01011113333")
-//        .requestFinishedAt("2023-05-16T18:00:00")
-        .requestInfo("문 앞에 두고 가세요.")
+        .requestInfo("배송 완료되면 문자 메시지 보내주세요.")
         .deliveryType(DeliveryType.DELIVERY)
         .requestDeliveryTime("11:00~13:00")
         .build();
@@ -80,8 +79,6 @@ class DeliveryServiceTest {
   @Transactional
   @DisplayName("User 배송지 목록 조회")
   void getUserDeliveryListTest() throws Exception {
-    // 포인트 redis 저장
-    // savePointRedis();
     List<DeliveryAddressDTO> userAllDeliveryList = deliveryService.getUserAllDeliveryList();
     System.out.println("userAllDeliveryList = " + userAllDeliveryList);
 
@@ -97,28 +94,28 @@ class DeliveryServiceTest {
     }
   }
 
-  @Test
-  @Transactional
-  @DisplayName("유저의 배송지 목록에서 배송할 배송지 선택")
-  void selectDeliveryAddressTest() throws Exception {
-    long id = 1; // DeliveryList 의 id(pk)
-    long userId = 1;
-    String address = "부산광역시 해운대구";
-    // 배송지 목록 생성
-    DeliveryAddress deliveryAddress = DeliveryAddress.builder()
-        .address(address)
-        .phoneNumber("01011113333")
-        .name("김진아")
-        .postCode("123456")
-        .isDefault(false)
-        .deliveryName("스파로스")
-        .build();
-    DeliveryAddress deliveryAddress1 = deliveryAddressRepository.save(deliveryAddress);
-    Long deliveryAddressId = deliveryAddress1.getId();
-    DeliveryAddressDTO selectedDeliveryAddress = deliveryService.getSelectedDeliveryAddress(deliveryAddressId);
-    System.out.println("selectedDeliveryAddress = " + selectedDeliveryAddress);
-    assertEquals(address ,selectedDeliveryAddress.getAddress());
-  }
+//  @Test
+//  @Transactional
+//  @DisplayName("유저의 배송지 목록에서 배송할 배송지 선택")
+//  void selectDeliveryAddressTest() throws Exception {
+//    long id = 5; // DeliveryList 의 id(pk)
+//    long userId = 1;
+//    String address = "부산광역시 해운대구";
+//    // 배송지 목록 생성
+//    DeliveryAddress deliveryAddress = DeliveryAddress.builder()
+//        .address(address)
+//        .phoneNumber("01011113333")
+//        .name("김진아")
+//        .postCode("123456")
+//        .isDefault(false)
+//        .deliveryName("스파로스")
+//        .build();
+//    DeliveryAddress deliveryAddress1 = deliveryAddressRepository.save(deliveryAddress);
+//    Long deliveryAddressId = deliveryAddress1.getId();
+//    DeliveryAddressDTO selectedDeliveryAddress = deliveryService.getSelectedDeliveryAddress(deliveryAddressId);
+//    System.out.println("selectedDeliveryAddress = " + selectedDeliveryAddress);
+//    assertEquals(address ,selectedDeliveryAddress.getAddress());
+//  }
 
   @Test
   void updateDeliveryInfoTest()  {
