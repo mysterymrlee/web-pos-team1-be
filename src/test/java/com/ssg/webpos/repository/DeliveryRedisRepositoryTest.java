@@ -2,6 +2,8 @@ package com.ssg.webpos.repository;
 
 import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.dto.delivery.*;
+import com.ssg.webpos.dto.gift.GiftDTO;
+import com.ssg.webpos.dto.gift.GiftRequestDTO;
 import com.ssg.webpos.repository.delivery.DeliveryRedisImplRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -95,7 +97,7 @@ public class DeliveryRedisRepositoryTest {
 
     List<GiftDTO> giftInfoList = new ArrayList<>();
     GiftDTO giftDTO = new GiftDTO();
-    giftDTO.setName("김진아");
+    giftDTO.setName("홍길동");
     giftDTO.setPhoneNumber("01011112222");
     giftInfoList.add(giftDTO);
 

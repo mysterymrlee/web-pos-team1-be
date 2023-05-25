@@ -1,4 +1,4 @@
-package com.ssg.webpos.dto.delivery;
+package com.ssg.webpos.dto.gift;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

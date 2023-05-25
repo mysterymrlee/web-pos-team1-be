@@ -14,7 +14,6 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Builder
 public class DeliveryListRedisSelectDTO implements Serializable {
-  private PosStoreCompositeId posStoreCompositeId;
   private String deliveryName;
   private String userName;
   private String address;

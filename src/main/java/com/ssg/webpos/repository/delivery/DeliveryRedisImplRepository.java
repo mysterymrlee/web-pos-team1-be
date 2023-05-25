@@ -1,7 +1,8 @@
 package com.ssg.webpos.repository.delivery;
 
 import com.ssg.webpos.dto.delivery.*;
-import org.jetbrains.annotations.NotNull;
+import com.ssg.webpos.dto.gift.GiftDTO;
+import com.ssg.webpos.dto.gift.GiftRequestDTO;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;

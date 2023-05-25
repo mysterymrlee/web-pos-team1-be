@@ -1,8 +1,8 @@
 package com.ssg.webpos.controller;
 
 import com.ssg.webpos.domain.Delivery;
-import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.domain.enums.DeliveryStatus;
+import com.ssg.webpos.dto.DeliveryCheckResponseDTO;
 import com.ssg.webpos.dto.delivery.*;
 import com.ssg.webpos.repository.delivery.DeliveryRedisRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRepository;
@@ -39,14 +39,10 @@ public class DeliveryController {
 
   @PostMapping("/add")
   public ResponseEntity addDeliveryInfo(@RequestBody DeliveryRedisAddRequestDTO deliveryRedisAddRequestDTO) {
-    Long posId = deliveryRedisAddRequestDTO.getPosId();
-    Long storeId = deliveryRedisAddRequestDTO.getStoreId();
-
     List<DeliveryRedisAddDTO> deliveryAddList = deliveryRedisAddRequestDTO.getDeliveryAddList();
     System.out.println("deliveryAddList = " + deliveryAddList);
 
-    for(DeliveryRedisAddDTO deliveryRedisAddDTO: deliveryAddList) {
-      deliveryRedisAddDTO.setPosStoreCompositeId(new PosStoreCompositeId(posId, storeId));
+    for (DeliveryRedisAddDTO deliveryRedisAddDTO : deliveryAddList) {
       deliveryRedisRepository.saveDelivery(deliveryRedisAddRequestDTO);
       System.out.println("deliveryRedisAddDTO = " + deliveryRedisAddDTO);
     }
@@ -66,14 +62,10 @@ public class DeliveryController {
 
   @PostMapping("/select-delivery")
   public ResponseEntity getSelectedDeliveryAddress(@RequestBody DeliveryListRedisSelectRequestDTO deliveryListRedisSelectRequestDTO) {
-    Long storeId = deliveryListRedisSelectRequestDTO.getStoreId();
-    Long posId = deliveryListRedisSelectRequestDTO.getPosId();
-
     List<DeliveryListRedisSelectDTO> selectedDeliveryAddress = deliveryListRedisSelectRequestDTO.getSelectedDeliveryAddress();
     System.out.println("selectedDeliveryAddress = " + selectedDeliveryAddress);
 
-    for(DeliveryListRedisSelectDTO deliveryListRedisSelectDTO : selectedDeliveryAddress) {
-      deliveryListRedisSelectDTO.setPosStoreCompositeId(new PosStoreCompositeId(posId, storeId));
+    for (DeliveryListRedisSelectDTO deliveryListRedisSelectDTO : selectedDeliveryAddress) {
       deliveryRedisRepository.saveSelectedDelivery(deliveryListRedisSelectRequestDTO);
       System.out.println("deliveryListRedisSelectDTO = " + deliveryListRedisSelectDTO);
     }
@@ -89,10 +81,11 @@ public class DeliveryController {
       System.out.println("findDelivery = " + findDelivery);
       findDelivery.setDeliveryStatus(DeliveryStatus.COMPLETE_PAYMENT);
       deliveryRepository.save(findDelivery);
-      return new ResponseEntity(findDelivery, HttpStatus.OK);
+
+      return new ResponseEntity(HttpStatus.OK);
     } catch (Exception e) {
       e.printStackTrace();
-      return new ResponseEntity("일치하는 배송 일련번호가 없습니다.", HttpStatus.BAD_REQUEST);
+      return new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -104,10 +97,11 @@ public class DeliveryController {
       System.out.println("findDelivery = " + findDelivery);
       findDelivery.setDeliveryStatus(DeliveryStatus.PREPARE_PRODUCT);
       deliveryRepository.save(findDelivery);
-      return new ResponseEntity(findDelivery, HttpStatus.OK);
+
+      return new ResponseEntity(HttpStatus.OK);
     } catch (Exception e) {
       e.printStackTrace();
-      return new ResponseEntity("일치하는 배송 일련번호가 없습니다.", HttpStatus.BAD_REQUEST);
+      return new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -119,10 +113,11 @@ public class DeliveryController {
       System.out.println("findDelivery = " + findDelivery);
       findDelivery.setDeliveryStatus(DeliveryStatus.PREPARE_DELIVERY);
       deliveryRepository.save(findDelivery);
-      return new ResponseEntity(findDelivery, HttpStatus.OK);
+
+      return new ResponseEntity(HttpStatus.OK);
     } catch (Exception e) {
       e.printStackTrace();
-      return new ResponseEntity("일치하는 배송 일련번호가 없습니다.", HttpStatus.BAD_REQUEST);
+      return new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -135,10 +130,11 @@ public class DeliveryController {
       findDelivery.setDeliveryStatus(DeliveryStatus.PROCESS_DELIVERY);
       findDelivery.setStartedDate(LocalDateTime.now());
       deliveryRepository.save(findDelivery);
-      return new ResponseEntity(findDelivery, HttpStatus.OK);
+
+      return new ResponseEntity(HttpStatus.OK);
     } catch (Exception e) {
       e.printStackTrace();
-      return new ResponseEntity("일치하는 배송 일련번호가 없습니다.", HttpStatus.BAD_REQUEST);
+      return new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -151,10 +147,35 @@ public class DeliveryController {
       findDelivery.setDeliveryStatus(DeliveryStatus.COMPLETE_DELIVERY);
       findDelivery.setFinishedDate(LocalDateTime.now());
       deliveryRepository.save(findDelivery);
-      return new ResponseEntity(findDelivery, HttpStatus.OK);
+
+      return new ResponseEntity(HttpStatus.OK);
     } catch (Exception e) {
       e.printStackTrace();
-      return new ResponseEntity("일치하는 배송 일련번호가 없습니다.", HttpStatus.BAD_REQUEST);
+      return new ResponseEntity(HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @GetMapping("/check-delivery/{serialNumber}")
+  public ResponseEntity checkDelivery(@PathVariable String serialNumber) {
+    try {
+      Delivery findDelivery = deliveryRepository.findBySerialNumber(serialNumber);
+      String msg = "";
+      if (findDelivery.getDeliveryStatus().equals(DeliveryStatus.COMPLETE_PAYMENT)) {
+        msg = "결제 완료되었습니다.";
+      } else if (findDelivery.getDeliveryStatus().equals(DeliveryStatus.PREPARE_PRODUCT)) {
+        msg = "상품 준비 중입니다.";
+      } else if (findDelivery.getDeliveryStatus().equals(DeliveryStatus.PREPARE_DELIVERY)) {
+        msg = "배송 준비 중입니다.";
+      } else if (findDelivery.getDeliveryStatus().equals(DeliveryStatus.PROCESS_DELIVERY)) {
+        msg = "배송 중입니다.";
+      } else {
+        msg = "배송 완료되었습니다.";
+      }
+      // Entity를 DTO로 변환
+      DeliveryCheckResponseDTO deliveryCheckResponseDTO = new DeliveryCheckResponseDTO(findDelivery, msg);
+      return new ResponseEntity(deliveryCheckResponseDTO, HttpStatus.OK);
+    } catch (Exception e) {
+      return new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
   }
 }
