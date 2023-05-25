@@ -1,4 +1,4 @@
-package com.ssg.webpos.dto.delivery;
+package com.ssg.webpos.dto.gift;
 
 import com.ssg.webpos.domain.PosStoreCompositeId;
 import lombok.AllArgsConstructor;
@@ -14,7 +14,6 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class GiftDTO implements Serializable {
-  private PosStoreCompositeId posStoreCompositeId;
   private String name;
   private String phoneNumber;
 }

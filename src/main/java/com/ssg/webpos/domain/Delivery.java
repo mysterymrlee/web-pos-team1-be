@@ -32,8 +32,8 @@ public class Delivery extends BaseTime {
     @Enumerated(EnumType.STRING)
     private DeliveryStatus deliveryStatus;
 
-    @NotNull
     private String address;
+
     @NotNull
     @Enumerated(EnumType.STRING)
     private DeliveryType deliveryType;
@@ -42,6 +42,7 @@ public class Delivery extends BaseTime {
     private String phoneNumber;
 
     private String deliveryName;
+
     @NotNull
     private String userName;
     private String requestInfo;

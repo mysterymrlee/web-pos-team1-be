@@ -13,7 +13,6 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Builder
 public class DeliveryAddressDTO implements Serializable {
-  private PosStoreCompositeId posStoreCompositeId;
   private Long deliveryAddressId;
   private String address;
   private String phoneNumber;

@@ -29,7 +29,6 @@ public class DeliveryService {
   private final DeliveryRepository deliveryRepository;
   private final DeliveryRedisImplRepository deliveryRedisImplRepository;
   private final UserRepository userRepository;
-  private final DeliveryAddressRepository deliveryAddressRepository;
   private final OrderRepository orderRepository;
 
   // 문자열을 LocalDateTime으로 파싱
@@ -39,9 +38,8 @@ public class DeliveryService {
     return dateTime;
   }
 
-  // 배송지 추가
-  @Transactional
-  public void addDeliveryAddress(DeliveryAddDTO deliveryDTO, Long orderId) {
+  // serialNumber 생성
+  public String makeSerialNumber(Long orderId) {
     Order order = orderRepository.findById(orderId).get();
     // delivery 일련번호 생성
     List<Delivery> deliveryList = deliveryRepository.findAll();
@@ -54,6 +52,15 @@ public class DeliveryService {
     System.out.println("strDeliveryId = " + strDeliveryId);
     String deliverySerialNumber = orderDateStr + strDeliveryId;
     System.out.println("deliverySerialNumber = " + deliverySerialNumber);
+
+    return deliverySerialNumber;
+  }
+
+  // 배송지 추가
+  @Transactional
+  public void addDeliveryAddress(DeliveryAddDTO deliveryDTO, Long orderId) {
+    Order order = orderRepository.findById(orderId).get();
+    String deliverySerialNumber = makeSerialNumber(order.getId());
 
     Delivery delivery = Delivery.builder()
         .deliveryName(deliveryDTO.getDeliveryName())
