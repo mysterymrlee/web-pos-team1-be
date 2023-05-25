@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>User.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">webpos</a> &gt; <a href="index.source.html" class="el_package">com.ssg.webpos.domain</a> &gt; <span class="el_source">User.java</span></div><h1>User.java</h1><pre class="source lang-java linenums">package com.ssg.webpos.domain;
+
+import com.ssg.webpos.domain.enums.RoleUser;
+import lombok.*;
+
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Getter
+<span class="nc" id="L14">@Setter</span>
+<span class="nc" id="L15">@AllArgsConstructor</span>
+<span class="nc" id="L16">@NoArgsConstructor</span>
+//@ToString
+@Table(name = &quot;user&quot;)
+public class User extends BaseTime {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = &quot;user_id&quot;)
+<span class="nc" id="L22">    private Long id;</span>
+    @NotNull
+<span class="nc" id="L24">    private String email;</span>
+    @NotNull
+<span class="nc" id="L26">    private String password;</span>
+    @NotNull
+<span class="nc" id="L28">    private String name;</span>
+<span class="nc" id="L29">    private LocalDate birth;</span>
+    @NotNull
+<span class="nc" id="L31">    private String phoneNumber;</span>
+    @NotNull
+    @Enumerated(EnumType.STRING)
+<span class="nc" id="L34">    private RoleUser role;</span>
+    @Column(columnDefinition = &quot;integer default 0&quot;)
+<span class="nc" id="L36">    private int point;</span>
+
+<span class="nc" id="L38">    @OneToMany(mappedBy = &quot;user&quot;)</span>
+<span class="nc" id="L39">    private List&lt;PointUseHistory&gt; pointUseHistoryList = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L40">    @OneToMany(mappedBy = &quot;user&quot;)</span>
+<span class="nc" id="L41">    private List&lt;PointSaveHistory&gt; pointSaveHistoryList = new ArrayList&lt;&gt;();</span>
+
+<span class="nc" id="L43">    @OneToMany(mappedBy = &quot;user&quot;)</span>
+<span class="nc" id="L44">    private List&lt;DeliveryAddress&gt; deliveryAddressList = new ArrayList&lt;&gt;();</span>
+
+<span class="nc" id="L46">    @OneToMany(mappedBy = &quot;user&quot;)</span>
+<span class="nc" id="L47">    private List&lt;Order&gt; orderList = new ArrayList&lt;&gt;();</span>
+
+<span class="nc" id="L49">    @OneToMany(mappedBy = &quot;user&quot;)</span>
+<span class="nc" id="L50">    private List&lt;Coupon&gt; couponList = new ArrayList&lt;&gt;();</span>
+
+    @Override
+    public String toString() {
+<span class="nc" id="L54">        return &quot;User{&quot; +</span>
+            &quot;id=&quot; + id +
+            &quot;, email='&quot; + email + '\'' +
+            &quot;, password='&quot; + password + '\'' +
+            &quot;, name='&quot; + name + '\'' +
+            &quot;, birth=&quot; + birth +
+            &quot;, phoneNumber='&quot; + phoneNumber + '\'' +
+            &quot;, role=&quot; + role +
+            &quot;, point=&quot; + point +
+            &quot;, pointUseHistoryList=&quot; + pointUseHistoryList +
+            &quot;, pointSaveHistoryList=&quot; + pointSaveHistoryList +
+            &quot;, deliveryAddressList=&quot; + deliveryAddressList +
+            &quot;, orderList=&quot; + orderList +
+            &quot;, couponList=&quot; + couponList +
+            '}';
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

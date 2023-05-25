@@ -50,18 +50,4 @@ public class CartController {
     return new ResponseEntity(HttpStatus.NO_CONTENT); // 204
   }
 
-  @PostMapping("/test")
-  public ResponseEntity test(@RequestBody @Valid TestRequestDTO requestDTO, BindingResult bindingResult) {
-    List<TestDTO> testItemList = requestDTO.getTestItemList();
-    System.out.println("cartItemList = " + testItemList);
-
-    for (TestDTO testDTO : testItemList) {
-      cartRedisRepository.saveTest(requestDTO);
-      System.out.println("testDTO = " + testDTO);
-    }
-
-    System.out.println("bindingResult = " + bindingResult);
-    System.out.println("bindingResult.hasErrors() = " + bindingResult.hasErrors());
-    return new ResponseEntity(HttpStatus.NO_CONTENT); // 204
-  }
 }

@@ -41,7 +41,7 @@ public class CartRedisRepositoryTest {
       Map<String, Map<String, List<Object>>> redis = cartRedisRepository.findAll();
       System.out.println("redis = " + redis);
     }
-    
+
     @Test
     void findDeducted() {
       Coupon coupon = new Coupon();
@@ -92,14 +92,14 @@ public class CartRedisRepositoryTest {
       Map<String, Map<String, List<Object>>> all = cartRedisRepository.findAll();
 
       System.out.println("all = " + all);
-  
+
       String compositeId = posStoreCompositeId.getStore_id() + "-" + posStoreCompositeId.getPos_id();
       System.out.println("compositeId = " + compositeId);
       cartRedisService.saveCartToDB(compositeId);
-      
+
 
     }
-    
+
     @Test
     void readPhoneNumber() throws Exception {
       PointDTO pointDTO = new PointDTO();
@@ -125,7 +125,7 @@ public class CartRedisRepositoryTest {
     cartRedisRepository.savePointAmount(pointUseDTO);
     Map<String, Map<String, List<Object>>> all = cartRedisRepository.findAll();
     System.out.println("all = " + all);
-    
+
     Integer pointAmount = cartRedisRepository.findPointAmount(pointUseDTO.getStoreId() + "-" + pointUseDTO.getPosId());
     System.out.println("pointAmount = " + pointAmount);
   }
