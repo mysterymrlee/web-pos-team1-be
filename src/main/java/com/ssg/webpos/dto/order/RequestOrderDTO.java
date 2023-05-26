@@ -5,8 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Data
-@Getter
-@Setter
 public class RequestOrderDTO {
+    private Long storeId;
     private String date;
 }

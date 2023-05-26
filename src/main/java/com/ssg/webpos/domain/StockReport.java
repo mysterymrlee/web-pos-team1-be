@@ -30,4 +30,15 @@ public class StockReport extends BaseTime {
     private Store store;
     private boolean isSubmit;
     private int currentStock;
+
+    // ProductRequest처럼 양방형관계를 지닌 것 만들기
+    // ProductRequest에 사장님 코드 참고해서 작성함
+    // Product prodcut 객체로 해당 객체의 재고 수량 조회
+    public void addProductWithAssociation(Product product) {
+        this.product = product;
+        product.getStock();
+    }
+
+    // 특정 product 를 가지고 있는 StockReport 조회
+    // Jpa로 객체 조회할 수 있는지 확인
 }

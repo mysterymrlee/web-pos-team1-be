@@ -8,5 +8,5 @@ import java.util.List;
 @Data
 public class SubmitResponseDTOList {
     private Long storeId;
-    private List<SubmitResponseDTO> submitResponseDTO;
+    private List<SubmitResponseDTO> submitResponseDTO = new ArrayList<>();
 }

@@ -16,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -50,7 +49,7 @@ public class HqAdminController {
                 reportDTO.setCreatedDate(settlementMonth.getCreatedDate());
                 reportDTOs.add(reportDTO);
             }
-            return new ResponseEntity(reportDTOs, HttpStatus.OK);
+            return new ResponseEntity<>(reportDTOs, HttpStatus.OK);
         } catch (Exception e) {
             e.getStackTrace();
             e.printStackTrace();
@@ -78,7 +77,7 @@ public class HqAdminController {
                 reportDTO.setCreatedDate(settlementMonth.getCreatedDate());
                 reportDTOs.add(reportDTO);
             }
-            return new ResponseEntity(reportDTOs, HttpStatus.OK);
+            return new ResponseEntity<>(reportDTOs, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
@@ -106,7 +105,7 @@ public class HqAdminController {
                 reportDTOs.add(reportDTO);
             }
 
-            return new ResponseEntity(reportDTOs, HttpStatus.OK);
+            return new ResponseEntity<>(reportDTOs, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
@@ -135,7 +134,7 @@ public class HqAdminController {
                 reportDTOs.add(reportDTO);
             }
 
-            return new ResponseEntity(reportDTOs, HttpStatus.OK);
+            return new ResponseEntity<>(reportDTOs, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
@@ -161,7 +160,7 @@ public class HqAdminController {
                 reportDTO.setCreatedDate(settlementDay.getCreatedDate());
                 reportDTOs.add(reportDTO);
             }
-            return new ResponseEntity(reportDTOs,HttpStatus.OK);
+            return new ResponseEntity<>(reportDTOs,HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
@@ -189,7 +188,7 @@ public class HqAdminController {
                 reportDTO.setCreatedDate(settlementDay.getCreatedDate());
                 reportDTOs.add(reportDTO);
             }
-            return new ResponseEntity(reportDTOs, HttpStatus.OK);
+            return new ResponseEntity<>(reportDTOs, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
@@ -216,7 +215,7 @@ public class HqAdminController {
                 reportDTO.setCreatedDate(settlementDay.getCreatedDate());
                 reportDTOs.add(reportDTO);
             }
-            return new ResponseEntity(reportDTOs, HttpStatus.OK);
+            return new ResponseEntity<>(reportDTOs, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
@@ -234,18 +233,17 @@ public class HqAdminController {
             for (StockReport stockReport : stockReports) {
                 StockReportDTO stockReportDTO = new StockReportDTO();
                 stockReportDTO.setStoreName(stockReport.getStore().getName());
-                stockReportDTO.setProductName(stockReport.getProduct().getName());
+                stockReportDTO.setProductName(stockReport.getProduct().getName()); // 같은 이름을 여러개 가진 상품이 있다면?
                 stockReportDTO.setCurrentStock(stockReport.getProduct().getStock());
                 stockReportDTO.setSalePrice(stockReport.getProduct().getSalePrice());
                 stockReportDTOs.add(stockReportDTO);
             }
 
-            return new ResponseEntity(stockReportDTOs, HttpStatus.OK);
+            return new ResponseEntity<>(stockReportDTOs, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
         }
-
     }
 
 
@@ -269,7 +267,7 @@ public class HqAdminController {
                 allStockReportResponseDTO.setCurrentStock(stockReport.getProduct().getStock());
                 allStockReportResponseDTOs.add(allStockReportResponseDTO);
             }
-            return new ResponseEntity(allStockReportResponseDTOs, HttpStatus.OK);
+            return new ResponseEntity<>(allStockReportResponseDTOs, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
@@ -294,7 +292,7 @@ public class HqAdminController {
                 allStockReportResponseDTO.setCurrentStock(stockReport.getProduct().getStock());
                 allStockReportResponseDTOs.add(allStockReportResponseDTO);
             }
-            return new ResponseEntity(allStockReportResponseDTOs, HttpStatus.OK);
+            return new ResponseEntity<>(allStockReportResponseDTOs, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
@@ -320,7 +318,7 @@ public class HqAdminController {
                 storeListDTO.setImageUrl(store.getImageUrl());
                 storeListDTOs.add(storeListDTO);
             }
-            return new ResponseEntity(storeListDTOs, HttpStatus.OK);
+            return new ResponseEntity<>(storeListDTOs, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
