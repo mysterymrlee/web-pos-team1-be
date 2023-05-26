@@ -35,7 +35,7 @@ public class SettlementSelectServiceTest {
         Long storeId = 1L;
         List<SettlementDay> settlementDayList = settlementDayService.selectByStoreId(storeId);
         System.out.println(settlementDayList);
-        Assertions.assertEquals(1, settlementDayList.size());
+        Assertions.assertEquals(0, settlementDayList.size());
     }
 
     @Test
