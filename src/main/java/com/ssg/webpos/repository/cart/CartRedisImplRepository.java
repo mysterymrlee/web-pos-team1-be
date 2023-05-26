@@ -100,29 +100,6 @@ public class CartRedisImplRepository implements CartRedisRepository {
     hashOperations.put("CART", compositeId, posData);
   }
 
-  @Override
-  public void saveTest(TestRequestDTO testRequestDTO) {
-    String posId = String.valueOf(testRequestDTO.getPosId());
-    String storeId = String.valueOf(testRequestDTO.getStoreId());
-    String compositeId = storeId + "-" + posId;
-
-    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
-    if (posData == null) {
-      posData = new HashMap<>();
-    }
-
-    List<Object> testItem = new ArrayList<>();
-
-    for (TestDTO testDTO : testRequestDTO.getTestItemList()) {
-      Map<String, Object> cartItem = new HashMap<>();
-      cartItem.put("productId", testDTO.getProductId());
-      cartItem.put("cartQty", testDTO.getCartQty());
-      testItem.add(cartItem);
-    }
-
-    posData.put("cartList", testItem);
-    hashOperations.put("CART", compositeId, posData);
-  }
 
   @Override
   public void savePointAmount(PointUseDTO pointUseDTO) {

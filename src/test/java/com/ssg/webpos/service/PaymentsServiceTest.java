@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 
+import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
-@Rollback(value = false)
+@Transactional
 public class PaymentsServiceTest {
   @Autowired
   PaymentsService paymentsService;
@@ -58,46 +59,7 @@ public class PaymentsServiceTest {
   }
 
   @Test
-  @DisplayName("결제 실패 시 재고 유지")
-  void MaintenanceStockIfPaymentSuccess() throws Exception {
-    Long productId1 = 1L;
-    Long productId2 = 2L;
-    int cartQty1 = 3;
-    int cartQty2 = 5;
-    saveRedisCart(productId1, productId2, cartQty1, cartQty2);
-    Product product1 = productRepository.findById(productId1).get();
-    Product product2 = productRepository.findById(productId2).get();
-    int beforeStock1 = product1.getStock();
-    int beforeStock2 = product2.getStock();
-
-    System.out.println("beforeStock1 = " + beforeStock1);
-    System.out.println("beforeStock2 = " + beforeStock2);
-
-    PaymentsDTO paymentsDTO = new PaymentsDTO();
-    paymentsDTO.setPosId(2L);
-    paymentsDTO.setStoreId(2L);
-    paymentsDTO.setSuccess(false);
-    paymentsDTO.setName("사과");
-    paymentsDTO.setPaid_amount(BigDecimal.valueOf(10000));
-    paymentsDTO.setPg("kakaopay");
-
-    paymentsService.processPaymentCallback(paymentsDTO);
-
-    Product afterProduct1 = productRepository.findById(productId1).get();
-    Product afterProduct2 = productRepository.findById(productId2).get();
-
-    int afterStock1 = afterProduct1.getStock();
-    int afterStock2 = afterProduct2.getStock();
-
-    System.out.println("afterStock1 = " + afterStock1);
-    System.out.println("afterStock2 = " + afterStock2);
-
-    assertEquals(beforeStock1, afterStock1);
-    assertEquals(beforeStock2, afterStock2);
-  }
-
-  @Test
-  @DisplayName("결제 성공 시 재고 업데이트")
+  @DisplayName("결제 완료 시 재고 업데이트")
   void updateStockIfPaymentSuccess() throws Exception {
     Long productId1 = 1L;
     Long productId2 = 2L;
@@ -145,7 +107,7 @@ public class PaymentsServiceTest {
     Coupon createCoupon = createCoupon();
     System.out.println("beforeCouponStatus" + createCoupon.getCouponStatus());
     saveRedisCoupon(createCoupon);
-    paySuccessProcess();
+    processPayment();
 
     CouponStatus afterCouponStatus = createCoupon.getCouponStatus();
     System.out.println("afterCouponStatus = " + afterCouponStatus);
@@ -153,23 +115,6 @@ public class PaymentsServiceTest {
     assertEquals(CouponStatus.USED, afterCouponStatus);
   }
 
-  @Test
-  @DisplayName("장바구니 추가 후 쿠폰 적용: 쿠폰 상태 NOT_USED -> USED")
-  void addToCartWithCouponIfPaymentFail() throws Exception {
-    Long productId1 = 1L;
-    Long productId2 = 2L;
-    int cartQty1 = 3;
-    int cartQty2 = 5;
-    saveRedisCart(productId1, productId2, cartQty1, cartQty2);
-    Coupon createCoupon = createCoupon();
-    System.out.println("beforeCouponStatus" + createCoupon.getCouponStatus());
-    saveRedisCoupon(createCoupon);
-    paySuccessProcess();
-    CouponStatus afterCouponStatus = createCoupon.getCouponStatus();
-    System.out.println("afterCouponStatus = " + afterCouponStatus);
-
-    assertEquals(CouponStatus.USED, afterCouponStatus);
-  }
 
   @Test
   @DisplayName("장바구니 추가 후 쿠폰 적용 후 포인트 적립")
@@ -195,7 +140,7 @@ public class PaymentsServiceTest {
     Coupon createCoupon = createCoupon();
     saveRedisCoupon(createCoupon);
 
-    paySuccessProcess();
+    processPayment();
 
     int afterPoint = userRepository.findByPhoneNumber(phoneNumber).get().getPoint();
     System.out.println("afterPoint = " + afterPoint);
@@ -233,14 +178,13 @@ public class PaymentsServiceTest {
     int useAmount = saveRedisPointUse(); // 20
 
     // 포인트 사용 후 포인트 적립
-
+    processPayment();
     System.out.println("user.getId() = " + user.getId());
 
     // 사용자 포인트 확인
     int afterPoint = userRepository.findByPhoneNumber(phoneNumber).get().getPoint();
     System.out.println("afterPoint = " + afterPoint);
 
-    // 포인트 사용 및 적립에 대한 검증
     int expectedPoint = currentPoint - useAmount + 10; // 초기 포인트 - 사용 포인트 + 적립 포인트 = 500 - 20 + 10
     System.out.println("expectedPoint = " + expectedPoint);
     assertEquals(expectedPoint, afterPoint);
@@ -290,7 +234,7 @@ public class PaymentsServiceTest {
     Coupon saveCoupon = couponRepository.save(coupon);
     return saveCoupon;
   }
-  private int paySuccessProcess() {
+  private void processPayment() {
     PaymentsDTO paymentsDTO = new PaymentsDTO();
     paymentsDTO.setPosId(2L);
     paymentsDTO.setStoreId(2L);
@@ -300,19 +244,6 @@ public class PaymentsServiceTest {
     paymentsDTO.setPaid_amount(BigDecimal.valueOf(finalTotalPrice));
     paymentsDTO.setPg("kakaopay");
     paymentsService.processPaymentCallback(paymentsDTO);
-    return finalTotalPrice;
-  }
-  private int payFailProcess() {
-    PaymentsDTO paymentsDTO = new PaymentsDTO();
-    paymentsDTO.setPosId(2L);
-    paymentsDTO.setStoreId(2L);
-    paymentsDTO.setSuccess(true);
-    paymentsDTO.setName("사과");
-    int finalTotalPrice = 10000;
-    paymentsDTO.setPaid_amount(BigDecimal.valueOf(finalTotalPrice));
-    paymentsDTO.setPg("kakaopay");
-    paymentsService.processPaymentCallback(paymentsDTO);
-    return finalTotalPrice;
   }
 
   private  void saveRedisPoint() {

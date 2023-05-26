@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PaymentsService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">webpos</a> &gt; <a href="index.source.html" class="el_package">com.ssg.webpos.service</a> &gt; <span class="el_source">PaymentsService.java</span></div><h1>PaymentsService.java</h1><pre class="source lang-java linenums">package com.ssg.webpos.service;
+
+import com.ssg.webpos.domain.*;
+import com.ssg.webpos.domain.enums.OrderStatus;
+import com.ssg.webpos.domain.enums.PayMethod;
+import com.ssg.webpos.dto.cartDto.CartAddDTO;
+import com.ssg.webpos.dto.PaymentsDTO;
+import com.ssg.webpos.repository.PointUseHistoryRepository;
+import com.ssg.webpos.repository.cart.CartRedisRepository;
+import com.ssg.webpos.repository.UserRepository;
+import com.ssg.webpos.repository.cart.CartRepository;
+import com.ssg.webpos.repository.order.OrderRepository;
+import com.ssg.webpos.repository.pos.PosRepository;
+import com.ssg.webpos.repository.product.ProductRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
+
+@Service
+<span class="nc" id="L27">@RequiredArgsConstructor</span>
+public class PaymentsService {
+  private final OrderRepository orderRepository;
+  private final CartRedisRepository cartRedisRepository;
+  private final UserRepository userRepository;
+  private final ProductRepository productRepository;
+  private final CartRepository cartRepository;
+  private final CouponService couponService;
+
+  private final PointService pointService;
+
+  private final PosRepository posRepository;
+  private final PointUseHistoryService pointUseHistoryService;
+  private final PointUseHistoryRepository pointUseHistoryRepository;
+  private final PointSaveHistoryService pointSaveHistoryService;
+
+
+  @Value(&quot;${api_key}&quot;)
+  private String api_key;
+
+  @Value(&quot;${api_secret}&quot;)
+  private String api_secret;
+  @Transactional
+  public void processPaymentCallback(PaymentsDTO paymentsDTO) {
+    try {
+<span class="nc" id="L52">      String error_msg = paymentsDTO.getError_msg();</span>
+<span class="nc" id="L53">      String name = paymentsDTO.getName();</span>
+<span class="nc" id="L54">      String impUid = paymentsDTO.getImp_uid();</span>
+<span class="nc" id="L55">      String merchantUid = paymentsDTO.getMerchant_uid();</span>
+<span class="nc" id="L56">      BigDecimal finalTotalPrice = paymentsDTO.getPaid_amount();</span>
+<span class="nc" id="L57">      System.out.println(&quot;finalTotalPrice = &quot; + finalTotalPrice);</span>
+<span class="nc" id="L58">      System.out.println(&quot;name = &quot; + name);</span>
+<span class="nc" id="L59">      System.out.println(&quot;merchantUid = &quot; + merchantUid);</span>
+<span class="nc" id="L60">      System.out.println(&quot;impUid1 = &quot; + impUid);</span>
+
+<span class="nc" id="L62">      String posId = String.valueOf(paymentsDTO.getPosId());</span>
+<span class="nc" id="L63">      String storeId = String.valueOf(paymentsDTO.getStoreId());</span>
+<span class="nc" id="L64">      String compositeId = storeId + &quot;-&quot; + posId;</span>
+
+<span class="nc" id="L66">      User user = null;</span>
+<span class="nc" id="L67">      Order order = null;</span>
+
+<span class="nc" id="L69">      Long userId = cartRedisRepository.findUserId(compositeId);</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">      if (userId != null) {</span>
+<span class="nc" id="L71">        user = userRepository.findById(userId).orElseThrow(() -&gt; new RuntimeException(&quot;User not found.&quot;));</span>
+
+      }
+
+<span class="nc" id="L75">      Pos pos = posRepository.findById(new PosStoreCompositeId(paymentsDTO.getPosId(), paymentsDTO.getStoreId()))</span>
+<span class="nc" id="L76">          .orElseThrow(() -&gt; new RuntimeException(&quot;Pos not found&quot;));</span>
+
+<span class="nc" id="L78">      Integer totalPrice = cartRedisRepository.findTotalPrice(compositeId);</span>
+<span class="nc" id="L79">      Integer totalOriginPrice = cartRedisRepository.findTotalOriginPrice(compositeId);</span>
+<span class="nc" id="L80">      String orderName = cartRedisRepository.findOrderName(compositeId);</span>
+      // createOrder
+<span class="nc" id="L82">      order = createOrder(paymentsDTO, compositeId, user, pos, finalTotalPrice, totalPrice, totalOriginPrice, orderName);</span>
+<span class="nc" id="L83">      System.out.println(&quot;orderName = &quot; + orderName);</span>
+<span class="nc" id="L84">      System.out.println(&quot;totalOriginPrice = &quot; + totalOriginPrice);</span>
+
+      // Save order
+<span class="nc" id="L87">      orderRepository.save(order);</span>
+
+<span class="nc" id="L89">      List&lt;Map&lt;String, Object&gt;&gt; cartItemList = cartRedisRepository.findCartItems(compositeId); // 캐싱된 cartItemList 가져오기</span>
+
+<span class="nc bnc" id="L91" title="All 2 branches missed.">      for (Map&lt;String, Object&gt; cartItem : cartItemList) {</span>
+<span class="nc" id="L92">        CartAddDTO cartAddDTO = new CartAddDTO();</span>
+<span class="nc" id="L93">        cartAddDTO.setProductId((Long) cartItem.get(&quot;productId&quot;));</span>
+<span class="nc" id="L94">        cartAddDTO.setCartQty((int) cartItem.get(&quot;cartQty&quot;));</span>
+<span class="nc" id="L95">        Product product = updateStockAndAddToCart(cartAddDTO);</span>
+<span class="nc" id="L96">        List&lt;Cart&gt; cartList = order.getCartList();</span>
+<span class="nc" id="L97">        Cart cart = new Cart(product, order);</span>
+<span class="nc" id="L98">        cart.setQty(cartAddDTO.getCartQty());</span>
+<span class="nc" id="L99">        cartList.add(cart);</span>
+<span class="nc" id="L100">        cartRepository.saveAll(cartList);</span>
+<span class="nc" id="L101">      }</span>
+
+
+<span class="nc" id="L104">        Long findUserId = cartRedisRepository.findUserId(compositeId);</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (findUserId != null) {</span>
+            // Deduct points
+<span class="nc" id="L107">            Integer pointUseAmount = cartRedisRepository.findPointAmount(compositeId);</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">          if (pointUseAmount != null) {</span>
+<span class="nc" id="L109">            pointService.deductPoints(userId, pointUseAmount);</span>
+<span class="nc" id="L110">            PointUseHistory pointUseHistory = new PointUseHistory(pointUseAmount, user, order);</span>
+<span class="nc" id="L111">            pointUseHistoryService.savePointUseHistory(pointUseHistory);</span>
+<span class="nc" id="L112">            user.getPointUseHistoryList().add(pointUseHistory);</span>
+          }
+
+            // Save PointSaveHistory
+<span class="nc" id="L116">          int pointSaveAmount = pointService.updatePoint(findUserId, finalTotalPrice.intValue());</span>
+<span class="nc" id="L117">          PointSaveHistory pointSaveHistory = new PointSaveHistory(pointSaveAmount, user, order);</span>
+<span class="nc" id="L118">          pointSaveHistoryService.savePointSaveHistory(pointSaveHistory);</span>
+<span class="nc" id="L119">          user.getPointSaveHistoryList().add(pointSaveHistory);</span>
+        }
+
+<span class="nc" id="L122">         cartRedisRepository.delete(compositeId);</span>
+<span class="nc" id="L123">    } catch (Exception e) {</span>
+<span class="nc" id="L124">      e.printStackTrace();</span>
+<span class="nc" id="L125">    }</span>
+<span class="nc" id="L126">  }</span>
+
+  private Order createOrder (PaymentsDTO paymentsDTO, String compositeId, User user, Pos pos,
+                             BigDecimal finalTotalPrice, Integer totalPrice, Integer totalOriginPrice, String OrderName) {
+<span class="nc" id="L130">    Order order = new Order();</span>
+<span class="nc" id="L131">    order.setOrderDate(LocalDateTime.now());</span>
+<span class="nc" id="L132">    List&lt;Order&gt; orderList = orderRepository.findAll();</span>
+<span class="nc" id="L133">    String serialNumber = generateSerialNumber(orderList);</span>
+<span class="nc" id="L134">    order.setSerialNumber(serialNumber);</span>
+<span class="nc" id="L135">    order.setPos(pos);</span>
+<span class="nc" id="L136">    order.setUser(user);</span>
+<span class="nc" id="L137">    order.setFinalTotalPrice(finalTotalPrice.intValue());</span>
+<span class="nc" id="L138">    order.setTotalPrice(totalPrice);</span>
+<span class="nc" id="L139">    order.calcProfit(finalTotalPrice.intValue(), totalOriginPrice);</span>
+<span class="nc" id="L140">    order.setTotalOriginPrice(totalOriginPrice);</span>
+<span class="nc" id="L141">    order.setOrderName(OrderName);</span>
+<span class="nc" id="L142">    pos.getOrderList().add(order);</span>
+<span class="nc" id="L143">    System.out.println(&quot;pos.getOrderList() = &quot; + pos.getOrderList());</span>
+
+
+<span class="nc" id="L146">      order.setOrderStatus(OrderStatus.SUCCESS);</span>
+
+<span class="nc" id="L148">    String pgProvider = paymentsDTO.getPg();</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">    if (pgProvider.equals(&quot;kakaopay&quot;)) {</span>
+<span class="nc" id="L150">      order.setPayMethod(PayMethod.KAKAO_PAY);</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">    } else if (pgProvider.equals(&quot;kcp&quot;)) {</span>
+<span class="nc" id="L152">      order.setPayMethod(PayMethod.CREDIT_CARD);</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">    } else if (pgProvider.equals(&quot;smilepay&quot;)) {</span>
+<span class="nc" id="L154">      order.setPayMethod(PayMethod.SMILE_PAY);</span>
+    } else {
+<span class="nc" id="L156">      order.setPayMethod(PayMethod.Ali_pay);</span>
+    }
+    // 쿠폰 deductedPrice
+<span class="nc" id="L159">    Integer deductedPrice = cartRedisRepository.findDeductedPrice(compositeId);</span>
+<span class="nc" id="L160">    System.out.println(&quot;paymentdeductedPrice = &quot; + deductedPrice);</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">    if (deductedPrice != null) {</span>
+<span class="nc" id="L162">      order.setCouponUsePrice(deductedPrice);;</span>
+<span class="nc" id="L163">      Long couponId = cartRedisRepository.findCouponId(compositeId);</span>
+<span class="nc" id="L164">      Coupon coupon = couponService.updateCouponStatusToUsed(couponId);</span>
+<span class="nc" id="L165">      coupon.setOrder(order);</span>
+<span class="nc" id="L166">      order.getCouponList().add(coupon);</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">      if (user != null) {</span>
+<span class="nc" id="L168">          coupon.setUser(user);</span>
+      }
+
+      }
+
+<span class="nc" id="L173">    return order;</span>
+  }
+
+  private String generateSerialNumber(List&lt;Order&gt; orderList) {
+<span class="nc" id="L177">    Long newOrderId = orderList.size() + 1L;</span>
+<span class="nc" id="L178">    String serialNumber = String.format(&quot;%03d&quot;, newOrderId);</span>
+<span class="nc" id="L179">    String orderDateStr = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);</span>
+<span class="nc" id="L180">    String combinedStr = orderDateStr + serialNumber;</span>
+<span class="nc" id="L181">    return combinedStr;</span>
+  }
+
+  private Product updateStockAndAddToCart(CartAddDTO cartAddDTO) {
+<span class="nc" id="L185">    Product product = productRepository.findById(cartAddDTO.getProductId())</span>
+<span class="nc" id="L186">        .orElseThrow(() -&gt; new RuntimeException(&quot;Product not found.&quot;));</span>
+
+<span class="nc" id="L188">    int orderQty = cartAddDTO.getCartQty();</span>
+
+<span class="nc bnc" id="L190" title="All 2 branches missed.">    if (product.getStock() &lt; orderQty) {</span>
+<span class="nc" id="L191">      throw new RuntimeException(&quot;재고가 부족합니다. 현재 재고 수: &quot; + product.getStock() + &quot;개&quot;);</span>
+    }
+<span class="nc" id="L193">      product.minusStockQuantity(orderQty);</span>
+<span class="nc" id="L194">      productRepository.save(product);</span>
+<span class="nc" id="L195">      return product;</span>
+
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>
