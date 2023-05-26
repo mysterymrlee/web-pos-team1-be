@@ -1,13 +1,20 @@
 package com.ssg.webpos.controller.admin;
 
 import com.ssg.webpos.domain.*;
+import com.ssg.webpos.dto.order.OrderDetailProductResponseDTOList;
+import com.ssg.webpos.dto.order.OrderDetailRequestDTO;
+import com.ssg.webpos.dto.order.OrderDetailResponseDTO;
 import com.ssg.webpos.dto.order.RequestOrderDTO;
 import com.ssg.webpos.dto.settlement.*;
 import com.ssg.webpos.dto.stock.modify.ModifyRequestDTO;
 import com.ssg.webpos.dto.stock.stockSubmit.SubmitRequestDTO;
 import com.ssg.webpos.dto.stock.stockSubmit.SubmitRequestDTOList;
+import com.ssg.webpos.repository.CouponRepository;
+import com.ssg.webpos.repository.PointUseHistoryRepository;
 import com.ssg.webpos.repository.ProductRequestRepository;
 import com.ssg.webpos.repository.StockReportRepository;
+import com.ssg.webpos.repository.cart.CartRepository;
+import com.ssg.webpos.repository.order.OrderRepository;
 import com.ssg.webpos.repository.product.ProductRepository;
 import com.ssg.webpos.repository.settlement.SettlementDayRepository;
 import com.ssg.webpos.repository.settlement.SettlementMonthRepository;
@@ -19,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -41,11 +49,13 @@ public class BranchAdminManagerController {
     private final SettlementDayService settlementDayService;
     private final SettlementMonthService settlementMonthService;
     private final OrderService orderService;
+    private final OrderRepository orderRepository;
     private final ProductRequestRepository productRequestRepository;
     private final ProductRepository productRepository;
     private final StoreRepository storeRepository;
     private final StockReportRepository stockReportRepository;
-
+    private final CartRepository cartRepository;
+    private final PointUseHistoryRepository pointUseHistoryRepository;
     //일별정산내역 조회
     //RequestSettlementMonthDTO로 String 타입의 year(ex. "2023")을 받으면 parse 활용해서 2023년도의 월별정산내역 조회
     // 받아오는 건 String으로 받아오고 스프링에서 startDate, endDate를 만들어서 레포지토리 매서드로 활용
@@ -288,6 +298,7 @@ public class BranchAdminManagerController {
     }
 
     // store_id,"yyyy-mm-dd"로 주문내역 조회
+    // 이거 orders 전체 칼럼 내용이 나와서 수정해야함
     @PostMapping("/orders")
     public ResponseEntity getOrder(@RequestBody RequestOrderDTO requestOrderDTO) throws NullPointerException{
         try {
@@ -301,6 +312,42 @@ public class BranchAdminManagerController {
         }
     }
 
+    // orders 목록에서 serial_number를 누르면 상세주문내역이 나온다.그러기 위해서는 serial_nubmer를 req로 받아야한다.
+    @GetMapping("/orders-detail")
+    public ResponseEntity getOrderDetail(@RequestParam String serialNumber) {
+        try {
+        OrderDetailResponseDTO orderDetailResponseDTO = new OrderDetailResponseDTO();
+        Order order = orderRepository.findBySerialNumber(serialNumber);
+        Long orderId = order.getId();
+        orderDetailResponseDTO.setSerialNumber(serialNumber);
+        orderDetailResponseDTO.setOrderDate(order.getOrderDate());
+        orderDetailResponseDTO.setTotalPrice(order.getTotalPrice());
+        orderDetailResponseDTO.setCouponUsePrice(order.getCouponUsePrice());
+        // 포인트 정보 가져오기 시작
+        Optional<PointUseHistory> pointUseHistory = pointUseHistoryRepository.findByOrderId(orderId);
+        orderDetailResponseDTO.setPointUsePrice(pointUseHistory.get().getAmount());
+        // 포인트 정보 가져오기 종료
+        orderDetailResponseDTO.setFinalTotalPrice(order.getFinalTotalPrice());
+        List<OrderDetailProductResponseDTOList> orderDetailProductResponseDTOLists = new ArrayList<>();
+        List<Cart> cartList = cartRepository.findAllByOrderId(orderId);
+        // 주문 상품의 이름, 수량, 상품 가격 정보 시작
+        for (Cart cart : cartList) {
+            OrderDetailProductResponseDTOList orderDetailProduct = new OrderDetailProductResponseDTOList();
+            Long productId = cart.getProduct().getId();
+            Optional<Product> product = productRepository.findById(productId);
+            orderDetailProduct.setProductName(product.get().getName());
+            orderDetailProduct.setProductQty(product.get().getStock());
+            orderDetailProduct.setProductSalePrice(product.get().getSalePrice());
+            orderDetailProductResponseDTOLists.add(orderDetailProduct);
+        }
+        orderDetailResponseDTO.setOrderDetailProductResponseDTOList(orderDetailProductResponseDTOLists);
+        // 주문 상품의 이름, 수량, 상품 가격 정보 종료
+        return new ResponseEntity<>(orderDetailResponseDTO, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
+    }
 
     // store_id별 재고내역 조회
     @GetMapping("/stock-report-view/store-id")
@@ -318,6 +365,7 @@ public class BranchAdminManagerController {
     // 재고내역 수정하려면 어떤 상품의 재고수량을 수정할 것인지
     // 단일 수정
     @PostMapping("/stock-report-modify/store-id")
+    @Transactional
     public ResponseEntity stockReportStoreIdModify(@RequestBody ModifyRequestDTO modifyRequestDTO) {
         try {
             // req받은 stockReportId를 가진 stockReport의 현재 재고 수량을 변경한다. 바로 DB에 넣을꺼양^^

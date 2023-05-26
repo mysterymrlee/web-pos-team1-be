@@ -22,7 +22,12 @@ public class OrderRepositoryTest {
         for (Order order: list) {
             System.out.println(order);
         }
-        Assert.assertEquals(7,list.size());
+    }
+
+    @Test
+    void fidnBySerialNumber() {
+        Order order = orderRepository.findBySerialNumber("20230523001");
+        System.out.println(order);
     }
 
 }

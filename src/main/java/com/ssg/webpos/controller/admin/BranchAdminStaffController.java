@@ -4,6 +4,7 @@ import com.ssg.webpos.domain.Product;
 import com.ssg.webpos.domain.ProductRequest;
 import com.ssg.webpos.domain.StockReport;
 import com.ssg.webpos.domain.Store;
+import com.ssg.webpos.dto.stock.StoreIdStockReportResponseDTO;
 import com.ssg.webpos.dto.stock.stockSubmit.*;
 import com.ssg.webpos.repository.ProductRequestRepository;
 import com.ssg.webpos.repository.StockReportRepository;
@@ -11,8 +12,11 @@ import com.ssg.webpos.repository.product.ProductRepository;
 import com.ssg.webpos.repository.store.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,21 +28,32 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 public class BranchAdminStaffController {
-    // staff 기능 : 재고 조회, 수정, 재고 리포트(발주 신청 현황 볼 수 있음ㅁㅁ) 제출
-    // 리포트가 이미 제출된 경우 버튼을 비활성화
-
-    // 재고 신청해야 하는 상품의 수량을 입력한 DTO를 받으면 request_product 테이블에 넣을 DTO를 리턴한다.
     private final ProductRequestRepository productRequestRepository;
     private final ProductRepository productRepository;
     private final StoreRepository storeRepository;
     private final StockReportRepository stockReportRepository;
 
     // store_id별 재고내역 조회
-    @GetMapping("/stock-report-view/store-id")
-    public ResponseEntity stockReportStoreId(@RequestParam Long storeId) {
+    @GetMapping("/stock-report-view/{storeId}")
+    @Transactional
+    public ResponseEntity stockReportStoreId(@PathVariable("storeId") String storeId) {
         try {
-            List<StockReport> stockReport = stockReportRepository.findByStoreId(storeId);
-            return new ResponseEntity<>(stockReport,HttpStatus.OK);
+            // String으로 받아 Long으로 파싱하겠습니다.
+            Long Id = Long.parseLong(storeId);
+            List<StockReport> stockReports = stockReportRepository.findByStoreId(Id);
+            List<StoreIdStockReportResponseDTO> lists = new ArrayList<>();
+            // storeId로 받은 여러개의 stockReport
+            for (StockReport stockReport : stockReports) {
+                StoreIdStockReportResponseDTO DTO = new StoreIdStockReportResponseDTO();
+                DTO.setCurrentStock(stockReport.getCurrentStock());
+                DTO.setSubmit(stockReport.isSubmit()); // boolean은 get이 아닌 is 그대로 가져간다.
+                Product product = stockReport.getProduct();
+                DTO.setProductName(product.getName());
+                DTO.setProductSalePrice(product.getSalePrice());
+                DTO.setCategory(product.getCategory());
+                lists.add(DTO);
+            }
+            return new ResponseEntity<>(lists,HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
