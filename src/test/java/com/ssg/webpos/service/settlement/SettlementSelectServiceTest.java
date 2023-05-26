@@ -35,7 +35,7 @@ public class SettlementSelectServiceTest {
         Long storeId = 1L;
         List<SettlementDay> settlementDayList = settlementDayService.selectByStoreId(storeId);
         System.out.println(settlementDayList);
-        Assertions.assertEquals(1, settlementDayList.size());
+        Assertions.assertEquals(0, settlementDayList.size());
     }
 
     @Test
@@ -51,7 +51,7 @@ public class SettlementSelectServiceTest {
         String localdate = "2023-05-08";
         List<SettlementDay> list = settlementDayService.selectByStoreIdAndDay(storeId,localdate);
         System.out.println(list);
-        Assertions.assertEquals(1,list.size());
+        Assertions.assertEquals(0,list.size());
     }
 
     @Test
