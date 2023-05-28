@@ -1,4 +1,4 @@
-package com.ssg.webpos.dto;
+package com.ssg.webpos.dto.delivery;
 
 import com.ssg.webpos.domain.Delivery;
 import com.ssg.webpos.domain.enums.DeliveryStatus;
@@ -25,6 +25,7 @@ public class DeliveryCheckResponseDTO {
   private LocalDateTime startedDate;
   private LocalDateTime finishedDate;
   private String msg;
+  private String postCode;
 
   public DeliveryCheckResponseDTO(Delivery findDelivery, String msg) {
     this.serialNumber = findDelivery.getSerialNumber();
@@ -38,6 +39,7 @@ public class DeliveryCheckResponseDTO {
     this.requestDeliveryTime = findDelivery.getRequestDeliveryTime();
     this.startedDate = findDelivery.getStartedDate();
     this.finishedDate = findDelivery.getFinishedDate();
+    this.postCode = findDelivery.getPostCode();
     this.msg = msg;
   }
 }

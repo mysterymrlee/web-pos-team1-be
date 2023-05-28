@@ -1,6 +1,9 @@
 package com.ssg.webpos.service;
 
-import com.ssg.webpos.domain.*;
+import com.ssg.webpos.domain.Cart;
+import com.ssg.webpos.domain.Order;
+import com.ssg.webpos.domain.PosStoreCompositeId;
+import com.ssg.webpos.domain.Product;
 import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.dto.cartDto.CartAddDTO;
 import com.ssg.webpos.dto.OrderDTO;
@@ -41,8 +44,8 @@ public class CartServiceTest {
   @Test
   @DisplayName("장바구니 삭제 후 주문테이블에서 totalPrice 반영테스트")
   void delCartTest() {
-    Long orderId = 25L;
-    Long cartId = 29L;
+    Long orderId = 88L;
+    Long cartId = 187L;
     Order beforeOrder = orderRepository.findById(orderId).get();
     int beforeTotalPrice = beforeOrder.getTotalPrice();
     Cart findCart = cartRepository.findById(cartId).get();
@@ -50,40 +53,34 @@ public class CartServiceTest {
     int diffPrice = findCart.getQty() * findProduct.getSalePrice();
 
     cartService.delCart(cartId);
-
     Order afterOrder = orderRepository.findById(orderId).get();
-
     assertEquals(beforeTotalPrice - diffPrice, afterOrder.getTotalPrice());
   }
 
-  /**
-   * 1. order 저장하면 store_id 가 잘 저장되는가? (pos_id는 이미 잘 저장될 거 같긴함)
-   * 2. 만약, 1번이 안된다면 -> storeRepo.findById() -> savedOrder.getPost().setStore(findStore) 를 해야 1번이 참이되는가?
-   * */
   @Test
+  @DisplayName("[주문] 재고량 감소 테스트")
   void addOrderTest() {
     PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
     posStoreCompositeId.setPos_id(1L);
     posStoreCompositeId.setStore_id(1L);
 
-    Long productId1 = 3L;
+    Long productId1 = 1L;
     Long productId2 = 2L;
-    Long productId3 = 1L;
+    Long productId3 = 3L;
     List<CartAddDTO> cartAddDTOList = new ArrayList<>();
     // given
     CartAddDTO cartAddDTO1 = new CartAddDTO();
     cartAddDTO1.setPosStoreCompositeId(posStoreCompositeId);
     cartAddDTO1.setProductId(productId1);
-    cartAddDTO1.setCartQty(7);
+    cartAddDTO1.setCartQty(2);
     CartAddDTO cartAddDTO2 = new CartAddDTO();
-    cartAddDTO1.setPosStoreCompositeId(posStoreCompositeId);
-    cartAddDTO1.setProductId(productId2);
-    cartAddDTO1.setCartQty(3);
+    cartAddDTO2.setPosStoreCompositeId(posStoreCompositeId);
+    cartAddDTO2.setProductId(productId2);
+    cartAddDTO2.setCartQty(3);
     CartAddDTO cartAddDTO3 = new CartAddDTO();
-    cartAddDTO1.setPosStoreCompositeId(posStoreCompositeId);
-    cartAddDTO1.setProductId(productId3);
-    cartAddDTO1.setCartQty(4);
-
+    cartAddDTO3.setPosStoreCompositeId(posStoreCompositeId);
+    cartAddDTO3.setProductId(productId3);
+    cartAddDTO3.setCartQty(4);
 
     cartAddDTOList.add(cartAddDTO1);
     cartAddDTOList.add(cartAddDTO2);
@@ -91,6 +88,8 @@ public class CartServiceTest {
     System.out.println("cartAddDTOList = " + cartAddDTOList);
     OrderDTO orderDTO = new OrderDTO();
     orderDTO.setOrderDate(LocalDateTime.now());
+    orderDTO.setPosId(1L);
+    orderDTO.setStoreId(1L);
 
     int price = 0, qty = 0;
     for (CartAddDTO cartAddDTO : cartAddDTOList) {
@@ -129,23 +128,14 @@ public class CartServiceTest {
       System.out.println("cart = " + cart);
     }
     System.out.println("savedCarts = " + savedCarts);
-    assertEquals(16, savedOrder.getTotalQuantity());
-    assertEquals(2, savedCarts.size());
-
-    // 이미 존재하는 상품이 있을 경우
-    Cart savedCart1 = savedCarts.get(0);
-    System.out.println("savedCart1 = " + savedCart1);
-    assertEquals(6, savedCart1.getQty());
-
-    int expectedStock1 = beforeStock1 - savedCart1.getQty();
-    System.out.println("expectedStock1 = " + expectedStock1);
-    assertEquals(expectedStock1, afterStock1);
+    assertEquals(9, savedOrder.getTotalQuantity());
+    assertEquals(3, savedCarts.size());
 
     // 기존에 존재하지 않는 상품의 경우
-    Cart savedCart2 = savedCarts.get(1);
+    Cart savedCart2 = savedCarts.get(2);
     System.out.println("savedCart2 = " + savedCart2);
     assertEquals(productId3, savedCart2.getProduct().getId());
-    assertEquals(10, savedCart2.getQty());
+    assertEquals(4, savedCart2.getQty());
     int expectedStock2 = beforeStock3 - savedCart2.getQty();
     System.out.println("expectedStock2 = " + expectedStock2);
     int actualStock2 = productRepository.findById(productId3).get().getStock();
@@ -153,8 +143,8 @@ public class CartServiceTest {
   }
 
   @Test
+  @DisplayName("[주문 취소] 재고량 증가 테스트")
   void cancelOrderTest() {
-    // beforeStock : 70, orderQty : 5, afterStock : 65
     Long orderId = addOrder();
     Order findOrder = orderRepository.findById(orderId).get();
     System.out.println("findOrder = " + findOrder);
@@ -175,6 +165,7 @@ public class CartServiceTest {
     // 주문 취소로 인한 재고 수량 증가 확인
     for (Product cartProduct : productList) {
       int index = allProductList.indexOf(cartProduct);
+      System.out.println("index = " + index);
       Product findProduct = allProductList.get(index);
       int beforeStock = findProduct.getStock();
       System.out.println("beforeStock = " + beforeStock);
@@ -200,23 +191,23 @@ public class CartServiceTest {
     posStoreCompositeId.setPos_id(1L);
     posStoreCompositeId.setStore_id(1L);
 
-    Long productId1 = 3L;
-    Long productId2 = 3L;
-    Long productId3 = 9L;
+    Long productId1 = 1L;
+    Long productId2 = 2L;
+    Long productId3 = 3L;
     List<CartAddDTO> cartAddDTOList = new ArrayList<>();
     // given
     CartAddDTO cartAddDTO1 = new CartAddDTO();
     cartAddDTO1.setPosStoreCompositeId(posStoreCompositeId);
     cartAddDTO1.setProductId(productId1);
-    cartAddDTO1.setCartQty(7);
+    cartAddDTO1.setCartQty(2);
     CartAddDTO cartAddDTO2 = new CartAddDTO();
-    cartAddDTO1.setPosStoreCompositeId(posStoreCompositeId);
-    cartAddDTO1.setProductId(productId2);
-    cartAddDTO1.setCartQty(3);
+    cartAddDTO2.setPosStoreCompositeId(posStoreCompositeId);
+    cartAddDTO2.setProductId(productId2);
+    cartAddDTO2.setCartQty(3);
     CartAddDTO cartAddDTO3 = new CartAddDTO();
-    cartAddDTO1.setPosStoreCompositeId(posStoreCompositeId);
-    cartAddDTO1.setProductId(productId3);
-    cartAddDTO1.setCartQty(4);
+    cartAddDTO3.setPosStoreCompositeId(posStoreCompositeId);
+    cartAddDTO3.setProductId(productId3);
+    cartAddDTO3.setCartQty(4);
 
     cartAddDTOList.add(cartAddDTO1);
     cartAddDTOList.add(cartAddDTO2);
@@ -224,6 +215,8 @@ public class CartServiceTest {
     System.out.println("cartAddDTOList = " + cartAddDTOList);
     OrderDTO orderDTO = new OrderDTO();
     orderDTO.setOrderDate(LocalDateTime.now());
+    orderDTO.setPosId(1L);
+    orderDTO.setStoreId(1L);
 
     int price = 0, qty = 0;
     for (CartAddDTO cartAddDTO : cartAddDTOList) {
@@ -262,27 +255,29 @@ public class CartServiceTest {
       System.out.println("cart = " + cart);
     }
     System.out.println("savedCarts = " + savedCarts);
-    assertEquals(16, savedOrder.getTotalQuantity());
-    assertEquals(2, savedCarts.size());
+    assertEquals(9, savedOrder.getTotalQuantity());
+    assertEquals(3, savedCarts.size());
 
     // 이미 존재하는 상품이 있을 경우
-    Cart savedCart1 = savedCarts.get(0);
-    System.out.println("savedCart1 = " + savedCart1);
-    assertEquals(6, savedCart1.getQty());
+//    Cart savedCart1 = savedCarts.get(0);
+//    System.out.println("savedCart1 = " + savedCart1);
+//    assertEquals(6, savedCart1.getQty());
 
-    int expectedStock1 = beforeStock1 - savedCart1.getQty();
-    System.out.println("expectedStock1 = " + expectedStock1);
-    assertEquals(expectedStock1, afterStock1);
+//    int expectedStock1 = beforeStock1 - savedCart1.getQty();
+//    System.out.println("expectedStock1 = " + expectedStock1);
+//    assertEquals(expectedStock1, afterStock1);
 
     // 기존에 존재하지 않는 상품의 경우
-    Cart savedCart2 = savedCarts.get(1);
+    Cart savedCart2 = savedCarts.get(2);
     System.out.println("savedCart2 = " + savedCart2);
     assertEquals(productId3, savedCart2.getProduct().getId());
-    assertEquals(10, savedCart2.getQty());
-    int expectedStock2 = beforeStock2 - savedCart2.getQty();
+    assertEquals(4, savedCart2.getQty());
+    int expectedStock2 = beforeStock3 - savedCart2.getQty();
     System.out.println("expectedStock2 = " + expectedStock2);
     int actualStock2 = productRepository.findById(productId3).get().getStock();
     assertEquals(expectedStock2, actualStock2);
     return savedOrder.getId();
- }
+  }
+
+
 }

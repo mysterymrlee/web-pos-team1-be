@@ -49,22 +49,22 @@ public class User extends BaseTime {
     @OneToMany(mappedBy = "user")
     private List<Coupon> couponList = new ArrayList<>();
 
-    @Override
-    public String toString() {
-        return "User{" +
-            "id=" + id +
-            ", email='" + email + '\'' +
-            ", password='" + password + '\'' +
-            ", name='" + name + '\'' +
-            ", birth=" + birth +
-            ", phoneNumber='" + phoneNumber + '\'' +
-            ", role=" + role +
-            ", point=" + point +
-            ", pointUseHistoryList=" + pointUseHistoryList +
-            ", pointSaveHistoryList=" + pointSaveHistoryList +
-            ", deliveryAddressList=" + deliveryAddressList +
-            ", orderList=" + orderList +
-            ", couponList=" + couponList +
-            '}';
-    }
+//    @Override
+//    public String toString() {
+//        return "User{" +
+//            "id=" + id +
+//            ", email='" + email + '\'' +
+//            ", password='" + password + '\'' +
+//            ", name='" + name + '\'' +
+//            ", birth=" + birth +
+//            ", phoneNumber='" + phoneNumber + '\'' +
+//            ", role=" + role +
+//            ", point=" + point +
+//            ", pointUseHistoryList=" + pointUseHistoryList +
+//            ", pointSaveHistoryList=" + pointSaveHistoryList +
+//            ", deliveryAddressList=" + deliveryAddressList +
+//            ", orderList=" + orderList +
+//            ", couponList=" + couponList +
+//            '}';
+//    }
 }
