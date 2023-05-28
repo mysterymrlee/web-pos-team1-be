@@ -23,4 +23,5 @@ public class DeliveryAddDTO implements Serializable {
   private DeliveryType deliveryType;
   private String requestDeliveryTime;
   private String serialNumber;
+  private String postCode;
 }

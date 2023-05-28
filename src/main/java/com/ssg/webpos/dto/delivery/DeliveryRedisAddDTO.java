@@ -15,6 +15,6 @@ public class DeliveryRedisAddDTO implements Serializable {
   private String userName;
   private String address;
   private String phoneNumber;
-  private String requestInfo;
   private String requestDeliveryTime;
+  private String postCode;
 }

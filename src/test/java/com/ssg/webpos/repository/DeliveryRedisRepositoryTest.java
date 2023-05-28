@@ -43,8 +43,8 @@ public class DeliveryRedisRepositoryTest {
         .userName("김진아")
         .address("부산광역시 부산진구")
         .phoneNumber("01087654321")
-        .requestInfo("문 앞에 두고 가세요.")
         .requestDeliveryTime("14:00~16:00")
+        .postCode("48060")
         .build();
     deliveryAddList.add(deliveryAddDTO);
     deliveryAddRequestDTO.setDeliveryAddList(deliveryAddList);
@@ -97,8 +97,9 @@ public class DeliveryRedisRepositoryTest {
 
     List<GiftDTO> giftInfoList = new ArrayList<>();
     GiftDTO giftDTO = new GiftDTO();
-    giftDTO.setName("홍길동");
+    giftDTO.setReceiver("홍길순");
     giftDTO.setPhoneNumber("01011112222");
+    giftDTO.setSender("김진아");
     giftInfoList.add(giftDTO);
 
     giftRequestDTO.setGiftRecipientInfo(giftInfoList);

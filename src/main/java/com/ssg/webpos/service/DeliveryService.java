@@ -1,15 +1,13 @@
 package com.ssg.webpos.service;
 
 import com.ssg.webpos.domain.Delivery;
-import com.ssg.webpos.domain.DeliveryAddress;
 import com.ssg.webpos.domain.Order;
 import com.ssg.webpos.domain.User;
 import com.ssg.webpos.domain.enums.DeliveryStatus;
 import com.ssg.webpos.dto.delivery.DeliveryAddDTO;
-import com.ssg.webpos.dto.delivery.DeliveryRedisAddDTO;
 import com.ssg.webpos.dto.delivery.DeliveryAddressDTO;
+import com.ssg.webpos.dto.gift.GiftSmsDTO;
 import com.ssg.webpos.repository.UserRepository;
-import com.ssg.webpos.repository.delivery.DeliveryAddressRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRedisImplRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
@@ -71,8 +69,8 @@ public class DeliveryService {
         .deliveryStatus(DeliveryStatus.COMPLETE_PAYMENT)
         .deliveryType(deliveryDTO.getDeliveryType())
         .requestDeliveryTime(deliveryDTO.getRequestDeliveryTime())
-        .startedDate(LocalDateTime.now())
         .serialNumber(deliverySerialNumber)
+        .postCode(deliveryDTO.getPostCode())
         .build();
     order.setDelivery(delivery);
     delivery.setOrder(order);

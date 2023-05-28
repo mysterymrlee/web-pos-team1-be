@@ -44,8 +44,8 @@ public class DeliveryRedisImplRepository implements DeliveryRedisRepository {
       addDelivery.put("userName", deliveryAddDTO.getUserName());
       addDelivery.put("address", deliveryAddDTO.getAddress());
       addDelivery.put("phoneNumber", deliveryAddDTO.getPhoneNumber());
-      addDelivery.put("requestInfo", deliveryAddDTO.getRequestInfo());
       addDelivery.put("requestDeliveryTime", deliveryAddDTO.getRequestDeliveryTime());
+      addDelivery.put("postCode", deliveryAddDTO.getPostCode());
 
       deliveryAddList.add(addDelivery);
       System.out.println("addDelivery = " + addDelivery);
@@ -107,8 +107,9 @@ public class DeliveryRedisImplRepository implements DeliveryRedisRepository {
 
     for (GiftDTO giftDTO : giftRequestDTO.getGiftRecipientInfo()) {
       Map<String, Object> recipientInfo = new HashMap<>();
-      recipientInfo.put("name", giftDTO.getName());
+      recipientInfo.put("receiver", giftDTO.getReceiver());
       recipientInfo.put("phoneNumber", giftDTO.getPhoneNumber());
+      recipientInfo.put("sender", giftDTO.getSender());
       giftRecipientInfo.add(recipientInfo);
       System.out.println("giftRecipientInfo = " + giftRecipientInfo);
     }

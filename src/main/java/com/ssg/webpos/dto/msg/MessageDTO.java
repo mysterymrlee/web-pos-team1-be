@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class MessageDTO {
   private String to;
   private String content;
+  private String giftUrl;
 }
