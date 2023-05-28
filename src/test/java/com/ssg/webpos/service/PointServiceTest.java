@@ -27,7 +27,7 @@ class PointServiceTest {
   @Test
   @DisplayName("포인트 업데이트 테스트")
   void updatePoint() {
-    String phoneNumber = "01012345678";
+    String phoneNumber = "01033334444";
     User user = new User();
     user.setName("홍길동");
     user.setEmail("1111@naver.com");
@@ -49,7 +49,7 @@ class PointServiceTest {
 
 
   @Test
-  @DisplayName("user 포인트 차감 테스트")
+  @DisplayName("포인트 차감 테스트")
   void deductPointsFromUser() throws Exception {
     // Given
     User user = new User();
