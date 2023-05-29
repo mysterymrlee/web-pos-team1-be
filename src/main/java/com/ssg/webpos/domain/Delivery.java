@@ -40,12 +40,14 @@ public class Delivery extends BaseTime {
 
     @NotNull
     private String phoneNumber;
+    private String sender;
 
     private String deliveryName;
 
     @NotNull
     private String userName;
     private String requestInfo;
+    private String postCode;
 
     @OneToOne(mappedBy = "delivery")
     @JsonManagedReference

@@ -2,7 +2,7 @@ package com.ssg.webpos.controller;
 
 import com.ssg.webpos.domain.Delivery;
 import com.ssg.webpos.domain.enums.DeliveryStatus;
-import com.ssg.webpos.dto.DeliveryCheckResponseDTO;
+import com.ssg.webpos.dto.delivery.DeliveryCheckResponseDTO;
 import com.ssg.webpos.dto.delivery.*;
 import com.ssg.webpos.repository.delivery.DeliveryRedisRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRepository;

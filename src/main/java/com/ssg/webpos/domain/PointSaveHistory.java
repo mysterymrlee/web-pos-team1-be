@@ -9,7 +9,7 @@ import javax.validation.constraints.NotNull;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
+//@ToString
 @Table(name = "point_save_history")
 public class PointSaveHistory extends BaseTime {
   @Id
@@ -33,4 +33,16 @@ public class PointSaveHistory extends BaseTime {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "order_id")
   private Order order;
+
+  private byte pointStatus; // 0: 적립, 1: 취소
+
+//  @Override
+//  public String toString() {
+//    return "PointSaveHistory{" +
+//        "id=" + id +
+//        ", amount=" + amount +
+//        ", user=" + user +
+//        ", order=" + order +
+//        '}';
+//  }
 }

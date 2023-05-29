@@ -52,11 +52,13 @@ public class GiftController {
   public ResponseEntity saveGiftInfo(@RequestBody GiftRequestDTO giftRequestDTO) {
     GiftDTO giftRecipientInfo = giftRequestDTO.getGiftRecipientInfo().get(0);
     Delivery delivery = new Delivery();
-    String name = giftRecipientInfo.getName();
+    String receiver = giftRecipientInfo.getReceiver();
     String phoneNumber = giftRecipientInfo.getPhoneNumber();
+    String sender = giftRecipientInfo.getSender();
 
-    delivery.setUserName(name);
+    delivery.setUserName(receiver);
     delivery.setPhoneNumber(phoneNumber);
+    delivery.setSender(sender);
     delivery.setDeliveryType(DeliveryType.GIFT);
     delivery.setDeliveryStatus(DeliveryStatus.COMPLETE_PAYMENT);
 
@@ -65,4 +67,6 @@ public class GiftController {
 
     return new ResponseEntity(HttpStatus.OK);
   }
+
+//  @PostMapping("/")
 }
