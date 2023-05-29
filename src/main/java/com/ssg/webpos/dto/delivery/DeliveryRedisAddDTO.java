@@ -11,11 +11,10 @@ import java.io.Serializable;
 @ToString
 @Builder
 public class DeliveryRedisAddDTO implements Serializable {
-  private PosStoreCompositeId posStoreCompositeId;
   private String deliveryName;
   private String userName;
   private String address;
   private String phoneNumber;
-  private String requestInfo;
   private String requestDeliveryTime;
+  private String postCode;
 }

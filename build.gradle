@@ -2,8 +2,40 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '2.7.11'
 	id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+	id 'jacoco'
+
+}
+jacoco {
+	toolVersion = '0.8.4'
 }
 
+test {
+	useJUnitPlatform()
+	finalizedBy 'jacocoTestReport'
+}
+
+jacocoTestReport {
+	reports {
+		html.enabled true // html 설정
+		csv.enabled true // csv 설정
+		xml.enabled false // xml 미설정
+	}
+	finalizedBy 'jacocoTestCoverageVerification'
+}
+jacocoTestCoverageVerification {
+	violationRules {
+		rule {
+			enabled = true
+			element = 'CLASS'
+
+			limit {
+				counter = 'LINE'
+				value = 'COVEREDRATIO'
+				minimum = 0.75
+			}
+		}
+	}
+}
 group = 'com.ssg'
 version = '0.0.7-SNAPSHOT'
 sourceCompatibility = '11'
@@ -35,7 +67,9 @@ dependencies {
 	// sms api
 	implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'
-    testImplementation 'org.testng:testng:7.1.0'
+	// jacoco for test coverage check
+	implementation 'org.jacoco:org.jacoco.core:0.8.4'
+	testImplementation 'org.testng:testng:7.1.0'
     compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
@@ -55,6 +89,6 @@ tasks.named('test') {
 }
 
 wrapper {
-	gradleVersion = '7.2'
+	gradleVersion = '8.0'
 }
 

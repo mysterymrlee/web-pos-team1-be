@@ -1,5 +1,6 @@
 package com.ssg.webpos.domain;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.ssg.webpos.domain.enums.RoleUser;
 import lombok.*;
 
@@ -60,11 +61,6 @@ public class User extends BaseTime {
             ", phoneNumber='" + phoneNumber + '\'' +
             ", role=" + role +
             ", point=" + point +
-            ", pointUseHistoryList=" + pointUseHistoryList +
-            ", pointSaveHistoryList=" + pointSaveHistoryList +
-            ", deliveryAddressList=" + deliveryAddressList +
-            ", orderList=" + orderList +
-            ", couponList=" + couponList +
             '}';
     }
 }

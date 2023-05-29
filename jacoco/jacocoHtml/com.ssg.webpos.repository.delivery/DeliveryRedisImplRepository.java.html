@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DeliveryRedisImplRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">webpos</a> &gt; <a href="index.source.html" class="el_package">com.ssg.webpos.repository.delivery</a> &gt; <span class="el_source">DeliveryRedisImplRepository.java</span></div><h1>DeliveryRedisImplRepository.java</h1><pre class="source lang-java linenums">package com.ssg.webpos.repository.delivery;
+
+import com.ssg.webpos.dto.delivery.*;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Repository;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Repository
+public class DeliveryRedisImplRepository implements DeliveryRedisRepository {
+  private RedisTemplate&lt;String, Map&lt;String, List&lt;Object&gt;&gt;&gt; redisTemplate;
+  private HashOperations hashOperations;
+
+<span class="nc" id="L19">  public DeliveryRedisImplRepository(RedisTemplate&lt;String, Map&lt;String, List&lt;Object&gt;&gt;&gt; redisTemplate) {</span>
+<span class="nc" id="L20">    this.redisTemplate = redisTemplate;</span>
+<span class="nc" id="L21">    this.hashOperations = redisTemplate.opsForHash();</span>
+<span class="nc" id="L22">  }</span>
+
+  // 배송지 추가 시 캐싱
+  public void saveDelivery(DeliveryRedisAddRequestDTO deliveryRedisAddRequestDTO) {
+<span class="nc" id="L26">    String storeId = String.valueOf(deliveryRedisAddRequestDTO.getStoreId());</span>
+<span class="nc" id="L27">    String posId = String.valueOf(deliveryRedisAddRequestDTO.getPosId());</span>
+<span class="nc" id="L28">    String compositeId = posId + &quot;-&quot; + storeId;</span>
+
+<span class="nc" id="L30">    System.out.println(&quot;compositeId = &quot; + compositeId);</span>
+
+<span class="nc" id="L32">    Map&lt;String, List&lt;Object&gt;&gt; posData = (Map&lt;String, List&lt;Object&gt;&gt;) hashOperations.get(&quot;CART&quot;, compositeId);</span>
+<span class="nc bnc" id="L33" title="All 2 branches missed.">    if (posData == null) {</span>
+<span class="nc" id="L34">      posData = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L35">      hashOperations.put(&quot;CART&quot;, compositeId, posData);</span>
+    }
+
+<span class="nc" id="L38">    List&lt;Object&gt; deliveryAddList = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L40" title="All 2 branches missed.">    for (DeliveryRedisAddDTO deliveryAddDTO : deliveryRedisAddRequestDTO.getDeliveryAddList()) {</span>
+<span class="nc" id="L41">      Map&lt;String, Object&gt; addDelivery = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L42">      addDelivery.put(&quot;deliveryName&quot;, deliveryAddDTO.getDeliveryName());</span>
+<span class="nc" id="L43">      addDelivery.put(&quot;userName&quot;, deliveryAddDTO.getUserName());</span>
+<span class="nc" id="L44">      addDelivery.put(&quot;address&quot;, deliveryAddDTO.getAddress());</span>
+<span class="nc" id="L45">      addDelivery.put(&quot;phoneNumber&quot;, deliveryAddDTO.getPhoneNumber());</span>
+<span class="nc" id="L46">      addDelivery.put(&quot;requestInfo&quot;, deliveryAddDTO.getRequestInfo());</span>
+<span class="nc" id="L47">      addDelivery.put(&quot;requestDeliveryTime&quot;, deliveryAddDTO.getRequestDeliveryTime());</span>
+
+<span class="nc" id="L49">      deliveryAddList.add(addDelivery);</span>
+<span class="nc" id="L50">      System.out.println(&quot;addDelivery = &quot; + addDelivery);</span>
+<span class="nc" id="L51">    }</span>
+<span class="nc" id="L52">    posData.put(&quot;deliveryAddList&quot;, deliveryAddList);</span>
+<span class="nc" id="L53">    System.out.println(&quot;deliveryAddList = &quot; + deliveryAddList);</span>
+<span class="nc" id="L54">    hashOperations.put(&quot;CART&quot;, compositeId, posData);</span>
+<span class="nc" id="L55">  }</span>
+
+  // 회원 배송지 목록에서 선택된 배송지 캐싱
+  @Override
+  public void saveSelectedDelivery(DeliveryListRedisSelectRequestDTO deliveryListRedisSelectRequestDTO) {
+<span class="nc" id="L60">    String storeId = String.valueOf(deliveryListRedisSelectRequestDTO.getStoreId());</span>
+<span class="nc" id="L61">    String posId = String.valueOf(deliveryListRedisSelectRequestDTO.getPosId());</span>
+<span class="nc" id="L62">    String compositeId = posId + &quot;-&quot; + storeId;</span>
+
+<span class="nc" id="L64">    System.out.println(&quot;compositeId = &quot; + compositeId);</span>
+
+<span class="nc" id="L66">    Map&lt;String, List&lt;Object&gt;&gt; posData = (Map&lt;String, List&lt;Object&gt;&gt;) hashOperations.get(&quot;CART&quot;, compositeId);</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">    if (posData == null) {</span>
+<span class="nc" id="L68">      posData = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L69">      hashOperations.put(&quot;CART&quot;, compositeId, posData);</span>
+    }
+
+<span class="nc" id="L72">    List&lt;Object&gt; selectedDeliveryAddress = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L74" title="All 2 branches missed.">    for(DeliveryListRedisSelectDTO deliveryListRedisSelectDTO : deliveryListRedisSelectRequestDTO.getSelectedDeliveryAddress()) {</span>
+<span class="nc" id="L75">      Map&lt;String, Object&gt; selectedAddress = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L76">      selectedAddress.put(&quot;deliveryName&quot;, deliveryListRedisSelectDTO.getDeliveryName());</span>
+<span class="nc" id="L77">      selectedAddress.put(&quot;userName&quot;, deliveryListRedisSelectDTO.getUserName());</span>
+<span class="nc" id="L78">      selectedAddress.put(&quot;address&quot;, deliveryListRedisSelectDTO.getAddress());</span>
+<span class="nc" id="L79">      selectedAddress.put(&quot;postCode&quot;, deliveryListRedisSelectDTO.getPostCode());</span>
+<span class="nc" id="L80">      selectedAddress.put(&quot;isDefault&quot;, deliveryListRedisSelectDTO.isDefault());</span>
+<span class="nc" id="L81">      selectedAddress.put(&quot;requestDeliveryTime&quot;, deliveryListRedisSelectDTO.getRequestDeliveryTime());</span>
+<span class="nc" id="L82">      selectedAddress.put(&quot;requestInfo&quot;, deliveryListRedisSelectDTO.getRequestInfo());</span>
+
+<span class="nc" id="L84">      selectedDeliveryAddress.add(selectedAddress);</span>
+<span class="nc" id="L85">      System.out.println(&quot;selectedAddress = &quot; + selectedAddress);</span>
+<span class="nc" id="L86">    }</span>
+
+<span class="nc" id="L88">    posData.put(&quot;selectedDeliveryAddress&quot;, selectedDeliveryAddress);</span>
+<span class="nc" id="L89">    System.out.println(&quot;selectedDeliveryAddress = &quot; + selectedDeliveryAddress);</span>
+<span class="nc" id="L90">    hashOperations.put(&quot;CART&quot;, compositeId, posData);</span>
+<span class="nc" id="L91">  }</span>
+
+  // 선물 받는 사람 정보 캐싱
+  public void saveGiftRecipientInfo(GiftRequestDTO giftRequestDTO) {
+<span class="nc" id="L95">    String posId = String.valueOf(giftRequestDTO.getPosId());</span>
+<span class="nc" id="L96">    String storeId = String.valueOf(giftRequestDTO.getStoreId());</span>
+<span class="nc" id="L97">    String compositeId = storeId + &quot;-&quot; + posId;</span>
+
+<span class="nc" id="L99">    Map&lt;String, List&lt;Object&gt;&gt; posData = (Map&lt;String, List&lt;Object&gt;&gt;) hashOperations.get(&quot;CART&quot;, compositeId);</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">    if (posData == null) {</span>
+<span class="nc" id="L101">      posData = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L102">      hashOperations.put(&quot;CART&quot;, compositeId, posData);</span>
+    }
+
+<span class="nc" id="L105">    List&lt;Object&gt; giftRecipientInfo = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L107" title="All 2 branches missed.">    for (GiftDTO giftDTO : giftRequestDTO.getGiftRecipientInfo()) {</span>
+<span class="nc" id="L108">      Map&lt;String, Object&gt; recipientInfo = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L109">      recipientInfo.put(&quot;name&quot;, giftDTO.getName());</span>
+<span class="nc" id="L110">      recipientInfo.put(&quot;phoneNumber&quot;, giftDTO.getPhoneNumber());</span>
+<span class="nc" id="L111">      giftRecipientInfo.add(recipientInfo);</span>
+<span class="nc" id="L112">      System.out.println(&quot;giftRecipientInfo = &quot; + giftRecipientInfo);</span>
+<span class="nc" id="L113">    }</span>
+
+<span class="nc" id="L115">    posData.put(&quot;giftRecipientInfo&quot;, giftRecipientInfo);</span>
+<span class="nc" id="L116">    hashOperations.put(&quot;CART&quot;, compositeId, posData);</span>
+<span class="nc" id="L117">  }</span>
+
+  @Override
+  public Map&lt;String, Map&lt;String, List&lt;Object&gt;&gt;&gt; findAll() throws Exception {
+<span class="nc" id="L121">    Map&lt;String, Map&lt;String, List&lt;Object&gt;&gt;&gt; result = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L122">    Map&lt;String, Map&lt;String, List&lt;Object&gt;&gt;&gt; posData = hashOperations.entries(&quot;CART&quot;);</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">    for (Map.Entry&lt;String, Map&lt;String, List&lt;Object&gt;&gt;&gt; entry : posData.entrySet()) {</span>
+<span class="nc" id="L124">      result.put(entry.getKey(), entry.getValue());</span>
+<span class="nc" id="L125">    }</span>
+<span class="nc" id="L126">    return result;</span>
+  }
+
+  @Override
+  public Map&lt;String, List&lt;Object&gt;&gt; findById(String id) {
+<span class="nc" id="L131">    return (Map&lt;String, List&lt;Object&gt;&gt;) hashOperations.get(&quot;CART&quot;, id);</span>
+  }
+
+  @Override
+  public List&lt;String&gt; findByUserId() {
+<span class="nc" id="L136">    List&lt;String&gt; user = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L137">    Map&lt;String, Map&lt;String, List&lt;Object&gt;&gt;&gt; posDataMap = hashOperations.entries(&quot;CART&quot;);</span>
+<span class="nc" id="L138">    System.out.println(&quot;posDataMap = &quot; + posDataMap);</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">    for (Map.Entry&lt;String, Map&lt;String, List&lt;Object&gt;&gt;&gt; entry : posDataMap.entrySet()) {</span>
+<span class="nc" id="L140">      Map&lt;String, List&lt;Object&gt;&gt; posData = entry.getValue();</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">      if (posData != null) {</span>
+<span class="nc" id="L142">        List&lt;Object&gt; userIdList = posData.get(&quot;userId&quot;);</span>
+<span class="nc bnc" id="L143" title="All 4 branches missed.">        if (userIdList != null &amp;&amp; !userIdList.isEmpty()) {</span>
+<span class="nc" id="L144">          Long userId = (Long) userIdList.get(0); // userId 값을 Long으로 가져옴</span>
+<span class="nc" id="L145">          user.add(String.valueOf(userId));</span>
+        }
+      }
+<span class="nc" id="L148">    }</span>
+<span class="nc" id="L149">    return user;</span>
+  }
+
+  @Override
+  public void delete(String id) {
+<span class="nc" id="L154">    hashOperations.delete(&quot;CART&quot;, id);</span>
+<span class="nc" id="L155">  }</span>
+
+  @Override
+  public void deleteAll() {
+<span class="nc" id="L159">    redisTemplate.delete(&quot;CART&quot;);</span>
+<span class="nc" id="L160">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

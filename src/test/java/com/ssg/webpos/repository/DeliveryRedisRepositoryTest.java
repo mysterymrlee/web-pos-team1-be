@@ -2,6 +2,8 @@ package com.ssg.webpos.repository;
 
 import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.dto.delivery.*;
+import com.ssg.webpos.dto.gift.GiftDTO;
+import com.ssg.webpos.dto.gift.GiftRequestDTO;
 import com.ssg.webpos.repository.delivery.DeliveryRedisImplRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -41,11 +43,11 @@ public class DeliveryRedisRepositoryTest {
         .userName("김진아")
         .address("부산광역시 부산진구")
         .phoneNumber("01087654321")
-        .requestInfo("문 앞에 두고 가세요.")
         .requestDeliveryTime("14:00~16:00")
+        .postCode("48060")
         .build();
     deliveryAddList.add(deliveryAddDTO);
-    deliveryAddRequestDTO.setDeliveryAddList(deliveryAddList);
+//    deliveryAddRequestDTO.setDeliveryAddList(deliveryAddList);
 
     deliveryRedisImplRepository.saveDelivery(deliveryAddRequestDTO);
     Map<String, Map<String, List<Object>>> findDelivery = deliveryRedisImplRepository.findAll();
@@ -95,8 +97,9 @@ public class DeliveryRedisRepositoryTest {
 
     List<GiftDTO> giftInfoList = new ArrayList<>();
     GiftDTO giftDTO = new GiftDTO();
-    giftDTO.setName("김진아");
+    giftDTO.setReceiver("홍길순");
     giftDTO.setPhoneNumber("01011112222");
+    giftDTO.setSender("김진아");
     giftInfoList.add(giftDTO);
 
     giftRequestDTO.setGiftRecipientInfo(giftInfoList);

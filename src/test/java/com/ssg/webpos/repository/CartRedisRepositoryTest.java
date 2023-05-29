@@ -3,7 +3,11 @@ package com.ssg.webpos.repository;
 import com.ssg.webpos.domain.Coupon;
 import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.domain.enums.CouponStatus;
-import com.ssg.webpos.dto.*;
+import com.ssg.webpos.dto.cartDto.CartAddDTO;
+import com.ssg.webpos.dto.cartDto.CartAddRequestDTO;
+import com.ssg.webpos.dto.coupon.CouponAddRequestDTO;
+import com.ssg.webpos.dto.point.PointDTO;
+import com.ssg.webpos.dto.point.PointUseDTO;
 import com.ssg.webpos.repository.cart.CartRedisImplRepository;
 import com.ssg.webpos.service.CartRedisService;
 import org.junit.jupiter.api.Assertions;
@@ -37,7 +41,7 @@ public class CartRedisRepositoryTest {
       Map<String, Map<String, List<Object>>> redis = cartRedisRepository.findAll();
       System.out.println("redis = " + redis);
     }
-    
+
     @Test
     void findDeducted() {
       Coupon coupon = new Coupon();
@@ -88,14 +92,14 @@ public class CartRedisRepositoryTest {
       Map<String, Map<String, List<Object>>> all = cartRedisRepository.findAll();
 
       System.out.println("all = " + all);
-  
+
       String compositeId = posStoreCompositeId.getStore_id() + "-" + posStoreCompositeId.getPos_id();
       System.out.println("compositeId = " + compositeId);
       cartRedisService.saveCartToDB(compositeId);
-      
+
 
     }
-    
+
     @Test
     void readPhoneNumber() throws Exception {
       PointDTO pointDTO = new PointDTO();
@@ -121,7 +125,7 @@ public class CartRedisRepositoryTest {
     cartRedisRepository.savePointAmount(pointUseDTO);
     Map<String, Map<String, List<Object>>> all = cartRedisRepository.findAll();
     System.out.println("all = " + all);
-    
+
     Integer pointAmount = cartRedisRepository.findPointAmount(pointUseDTO.getStoreId() + "-" + pointUseDTO.getPosId());
     System.out.println("pointAmount = " + pointAmount);
   }

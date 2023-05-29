@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CartRedisImplRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">webpos</a> &gt; <a href="index.source.html" class="el_package">com.ssg.webpos.repository.cart</a> &gt; <span class="el_source">CartRedisImplRepository.java</span></div><h1>CartRedisImplRepository.java</h1><pre class="source lang-java linenums">package com.ssg.webpos.repository.cart;
+
+import com.ssg.webpos.dto.*;
+import com.ssg.webpos.dto.cartDto.CartAddDTO;
+import com.ssg.webpos.dto.cartDto.CartAddRequestDTO;
+import com.ssg.webpos.dto.coupon.CouponAddRequestDTO;
+import com.ssg.webpos.dto.point.PointDTO;
+import com.ssg.webpos.dto.point.PointUseDTO;
+import com.ssg.webpos.repository.CouponRepository;
+import com.ssg.webpos.repository.UserRepository;
+import com.ssg.webpos.repository.product.ProductRepository;
+import com.ssg.webpos.service.CouponService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Repository;
+
+import java.util.*;
+
+@Repository
+public class CartRedisImplRepository implements CartRedisRepository {
+  @Autowired
+  UserRepository userRepository;
+
+  @Autowired
+  ProductRepository productRepository;
+
+  @Autowired
+  CartRepository cartRepository;
+  @Autowired
+  CouponService couponService;
+  @Autowired
+  CouponRepository couponRepository;
+  private RedisTemplate&lt;String, Map&lt;String, List&lt;Object&gt;&gt;&gt; redisTemplate;
+
+
+  private HashOperations hashOperations;
+
+<span class="nc" id="L39">  public CartRedisImplRepository(RedisTemplate&lt;String,Map&lt;String, List&lt;Object&gt;&gt;&gt; redisTemplate) {</span>
+<span class="nc" id="L40">    this.redisTemplate = redisTemplate;</span>
+<span class="nc" id="L41">    this.hashOperations = redisTemplate.opsForHash();</span>
+<span class="nc" id="L42">  }</span>
+
+  @Override
+  public void saveCart(CartAddRequestDTO cartAddRequestDTO) {
+<span class="nc" id="L46">    String posId = String.valueOf(cartAddRequestDTO.getPosId());</span>
+<span class="nc" id="L47">    String storeId = String.valueOf(cartAddRequestDTO.getStoreId());</span>
+<span class="nc" id="L48">    String compositeId = storeId + &quot;-&quot; + posId;</span>
+
+<span class="nc" id="L50">    Map&lt;String, List&lt;Object&gt;&gt; posData = (Map&lt;String, List&lt;Object&gt;&gt;) hashOperations.get(&quot;CART&quot;, compositeId);</span>
+<span class="nc bnc" id="L51" title="All 2 branches missed.">    if (posData == null) {</span>
+<span class="nc" id="L52">      posData = new HashMap&lt;&gt;();</span>
+    }
+
+<span class="nc" id="L55">    List&lt;Object&gt; cartList = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L57" title="All 2 branches missed.">    for (CartAddDTO cartAddDTO : cartAddRequestDTO.getCartItemList()) {</span>
+<span class="nc" id="L58">      Map&lt;String, Object&gt; cartItem = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L59">      cartItem.put(&quot;productId&quot;, cartAddDTO.getProductId());</span>
+<span class="nc" id="L60">      cartItem.put(&quot;cartQty&quot;, cartAddDTO.getCartQty());</span>
+<span class="nc" id="L61">      cartList.add(cartItem);</span>
+<span class="nc" id="L62">    }</span>
+
+<span class="nc" id="L64">    int totalPrice = cartAddRequestDTO.getTotalPrice();</span>
+<span class="nc" id="L65">    posData.put(&quot;totalPrice&quot;, Collections.singletonList(totalPrice));</span>
+<span class="nc" id="L66">    int totalOriginPrice = cartAddRequestDTO.getTotalOriginPrice();</span>
+<span class="nc" id="L67">    String orderName = cartAddRequestDTO.getOrderName();</span>
+<span class="nc" id="L68">    System.out.println(&quot;saveCart/orderName = &quot; + orderName);</span>
+<span class="nc" id="L69">    posData.put(&quot;orderName&quot;, Collections.singletonList(orderName));</span>
+<span class="nc" id="L70">    posData.put(&quot;totalOriginPrice&quot;, Collections.singletonList(totalOriginPrice));</span>
+<span class="nc" id="L71">    posData.put(&quot;cartList&quot;, cartList);</span>
+<span class="nc" id="L72">    hashOperations.put(&quot;CART&quot;, compositeId, posData);</span>
+<span class="nc" id="L73">  }</span>
+
+
+
+  @Override
+  public void savePoint(PointDTO pointDTO) {
+<span class="nc" id="L79">    String posId = String.valueOf(pointDTO.getPosId());</span>
+<span class="nc" id="L80">    String storeId = String.valueOf(pointDTO.getStoreId());</span>
+<span class="nc" id="L81">    String pointMethod = pointDTO.getPointMethod();</span>
+<span class="nc" id="L82">    String compositeId = storeId + &quot;-&quot; + posId;</span>
+
+<span class="nc" id="L84">    Map&lt;String, List&lt;Object&gt;&gt; posData = (Map&lt;String, List&lt;Object&gt;&gt;) hashOperations.get(&quot;CART&quot;, compositeId);</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">    if (posData == null) {</span>
+<span class="nc" id="L86">      posData = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L87">      hashOperations.put(&quot;CART&quot;, compositeId, posData);</span>
+    }
+
+<span class="nc" id="L90">    posData.put(&quot;pointMethod&quot;, Collections.singletonList(pointMethod));</span>
+
+<span class="nc" id="L92">    List&lt;Object&gt; phoneNumbers = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L93">    phoneNumbers.add(pointDTO.getPhoneNumber());</span>
+<span class="nc" id="L94">    posData.put(&quot;phoneNumber&quot;, phoneNumbers);</span>
+
+<span class="nc" id="L96">    String phoneNumber = pointDTO.getPhoneNumber();</span>
+<span class="nc" id="L97">    Long userId = userRepository.findByPhoneNumber(phoneNumber).get().getId();</span>
+<span class="nc" id="L98">    posData.put(&quot;userId&quot;, Collections.singletonList(userId));</span>
+
+<span class="nc" id="L100">    hashOperations.put(&quot;CART&quot;, compositeId, posData);</span>
+<span class="nc" id="L101">  }</span>
+
+
+  @Override
+  public void savePointAmount(PointUseDTO pointUseDTO) {
+<span class="nc" id="L106">    String posId = String.valueOf(pointUseDTO.getPosId());</span>
+<span class="nc" id="L107">    String storeId = String.valueOf(pointUseDTO.getStoreId());</span>
+<span class="nc" id="L108">    int amount = pointUseDTO.getAmount();</span>
+<span class="nc" id="L109">    String compositeId = storeId + &quot;-&quot; + posId;</span>
+
+<span class="nc" id="L111">    Map&lt;String, List&lt;Object&gt;&gt; posData = (Map&lt;String, List&lt;Object&gt;&gt;) hashOperations.get(&quot;CART&quot;, compositeId);</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">    if (posData == null) {</span>
+<span class="nc" id="L113">      posData = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L114">      hashOperations.put(&quot;CART&quot;, compositeId, posData);</span>
+    }
+<span class="nc" id="L116">    posData.put(&quot;amount&quot;, Collections.singletonList(amount));</span>
+<span class="nc" id="L117">    hashOperations.put(&quot;CART&quot;, compositeId, posData);</span>
+<span class="nc" id="L118">  }</span>
+
+  @Override
+  public void saveCoupon(CouponAddRequestDTO couponAddRequestDTO) {
+<span class="nc" id="L122">    String storeId = String.valueOf(couponAddRequestDTO.getStoreId());</span>
+<span class="nc" id="L123">    String posId = String.valueOf(couponAddRequestDTO.getPosId());</span>
+<span class="nc" id="L124">    String compositeId = storeId + &quot;-&quot; + posId;</span>
+<span class="nc" id="L125">    String serialNumber = couponAddRequestDTO.getSerialNumber();</span>
+<span class="nc" id="L126">    String validationMessage = couponService.validateCoupon(serialNumber);</span>
+<span class="nc" id="L127">    boolean couponValid = validationMessage.equals(&quot;유효한 쿠폰입니다.&quot;);</span>
+
+<span class="nc" id="L129">    Map&lt;String, List&lt;Object&gt;&gt; posData = (Map&lt;String, List&lt;Object&gt;&gt;) hashOperations.get(&quot;CART&quot;, compositeId);</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">    if (posData == null) {</span>
+<span class="nc" id="L131">      posData = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L132">      hashOperations.put(&quot;CART&quot;, compositeId, posData);</span>
+    }
+<span class="nc" id="L134">    posData.put(&quot;useCoupon&quot;, Collections.singletonList(couponValid));</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">    if (couponValid) {</span>
+<span class="nc" id="L136">      Long couponId = couponRepository.findBySerialNumber(serialNumber).get().getId();</span>
+<span class="nc" id="L137">      int deductedPrice = couponRepository.findBySerialNumber(serialNumber).get().getDeductedPrice();</span>
+<span class="nc" id="L138">      String name = couponRepository.findBySerialNumber(serialNumber).get().getName();</span>
+
+<span class="nc" id="L140">      posData.put(&quot;couponId&quot;, Collections.singletonList(couponId));</span>
+<span class="nc" id="L141">      posData.put(&quot;deducatedPrice&quot;, Collections.singletonList(deductedPrice));</span>
+<span class="nc" id="L142">      posData.put(&quot;couponName&quot;, Collections.singletonList(name));</span>
+    }
+
+
+<span class="nc" id="L146">    hashOperations.put(&quot;CART&quot;, compositeId, posData);</span>
+<span class="nc" id="L147">  }</span>
+
+
+  @Override
+  public Map&lt;String, Map&lt;String, List&lt;Object&gt;&gt;&gt; findAll() throws Exception {
+<span class="nc" id="L152">    Map&lt;String, Map&lt;String, List&lt;Object&gt;&gt;&gt; result = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L153">    Map&lt;String, Map&lt;String, List&lt;Object&gt;&gt;&gt; posData = hashOperations.entries(&quot;CART&quot;);</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">    for (Map.Entry&lt;String, Map&lt;String, List&lt;Object&gt;&gt;&gt; entry : posData.entrySet()) {</span>
+<span class="nc" id="L155">      result.put(entry.getKey(), entry.getValue());</span>
+<span class="nc" id="L156">    }</span>
+<span class="nc" id="L157">    return result;</span>
+  }
+
+  @Override
+  public Map&lt;String, List&lt;Object&gt;&gt;  findById(String id) {
+<span class="nc" id="L162">    return (Map&lt;String, List&lt;Object&gt;&gt;) hashOperations.get(&quot;CART&quot;, id);</span>
+  }
+
+  @Override
+  public List&lt;String&gt; findPhoneNumbersByCompositeId(String compositeId) {
+<span class="nc" id="L167">    List&lt;String&gt; phoneNumbers = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L168">    Map&lt;String, List&lt;Object&gt;&gt; posData = (Map&lt;String, List&lt;Object&gt;&gt;) hashOperations.get(&quot;CART&quot;, compositeId);</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">    if (posData != null) {</span>
+<span class="nc" id="L170">      List&lt;Object&gt; phoneNumberList = posData.get(&quot;phoneNumber&quot;);</span>
+<span class="nc bnc" id="L171" title="All 4 branches missed.">      if (phoneNumberList != null &amp;&amp; !phoneNumberList.isEmpty()) {</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">        for (Object obj : phoneNumberList) {</span>
+<span class="nc" id="L173">          String phoneNumber = (String) obj;</span>
+<span class="nc" id="L174">          phoneNumbers.add(phoneNumber);</span>
+<span class="nc" id="L175">        }</span>
+      }
+    }
+
+<span class="nc" id="L179">    return phoneNumbers;</span>
+  }
+  @Override
+  public List&lt;Map&lt;String, Object&gt;&gt; findCartItems(String compositeId) {
+<span class="nc" id="L183">    Map&lt;String, List&lt;Object&gt;&gt; posData = (Map&lt;String, List&lt;Object&gt;&gt;) hashOperations.get(&quot;CART&quot;, compositeId);</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">    if (posData != null) {</span>
+<span class="nc" id="L185">      List&lt;Object&gt; cartList = posData.get(&quot;cartList&quot;);</span>
+<span class="nc" id="L186">      List&lt;Map&lt;String, Object&gt;&gt; cartItemList = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L188" title="All 4 branches missed.">      if (cartList != null &amp;&amp; !cartList.isEmpty()) {</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">        for (Object obj : cartList) {</span>
+<span class="nc" id="L190">          Map&lt;String, Object&gt; cartItem = (Map&lt;String, Object&gt;) obj;</span>
+<span class="nc" id="L191">          cartItemList.add(cartItem);</span>
+<span class="nc" id="L192">        }</span>
+      }
+
+<span class="nc" id="L195">      return cartItemList;</span>
+    }
+
+<span class="nc" id="L198">    return null;</span>
+  }
+
+
+    public Long findUserId(String compositeId) {
+<span class="nc" id="L203">    Map&lt;String, List&lt;Object&gt;&gt; posData = (Map&lt;String, List&lt;Object&gt;&gt;) hashOperations.get(&quot;CART&quot;, compositeId);</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">    if (posData != null) {</span>
+<span class="nc" id="L205">      List&lt;Object&gt; userIdList = posData.get(&quot;userId&quot;);</span>
+<span class="nc bnc" id="L206" title="All 4 branches missed.">      if (userIdList != null &amp;&amp; !userIdList.isEmpty()) {</span>
+<span class="nc" id="L207">        return (Long) userIdList.get(0);</span>
+      }
+    }
+<span class="nc" id="L210">    return null;</span>
+  }
+  @Override
+  public Integer findTotalPrice(String compositeId) {
+<span class="nc" id="L214">    Map&lt;String, List&lt;Object&gt;&gt; posData = (Map&lt;String, List&lt;Object&gt;&gt;) hashOperations.get(&quot;CART&quot;, compositeId);</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">    if (posData != null) {</span>
+<span class="nc" id="L216">      List&lt;Object&gt; totalPriceList = posData.get(&quot;totalPrice&quot;);</span>
+<span class="nc bnc" id="L217" title="All 4 branches missed.">      if (totalPriceList != null &amp;&amp; !totalPriceList.isEmpty()) {</span>
+<span class="nc" id="L218">        return (Integer) totalPriceList.get(0);</span>
+      }
+    }
+<span class="nc" id="L221">    return null;</span>
+  }
+
+  @Override
+  public Integer findTotalOriginPrice(String compositeId) {
+<span class="nc" id="L226">    Map&lt;String, List&lt;Object&gt;&gt; posData = (Map&lt;String, List&lt;Object&gt;&gt;) hashOperations.get(&quot;CART&quot;, compositeId);</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">    if (posData != null) {</span>
+<span class="nc" id="L228">      List&lt;Object&gt; totalOriginPriceList = posData.get(&quot;totalOriginPrice&quot;);</span>
+<span class="nc bnc" id="L229" title="All 4 branches missed.">      if (totalOriginPriceList != null &amp;&amp; !totalOriginPriceList.isEmpty()) {</span>
+<span class="nc" id="L230">        return (Integer) totalOriginPriceList.get(0);</span>
+      }
+    }
+<span class="nc" id="L233">    return null;</span>
+  }
+  @Override
+  public String findOrderName(String compositeId) {
+<span class="nc" id="L237">    Map&lt;String, List&lt;Object&gt;&gt; posData = (Map&lt;String, List&lt;Object&gt;&gt;) hashOperations.get(&quot;CART&quot;, compositeId);</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">    if (posData != null) {</span>
+<span class="nc" id="L239">      List&lt;Object&gt; orderNameList = posData.get(&quot;orderName&quot;);</span>
+<span class="nc bnc" id="L240" title="All 4 branches missed.">      if (orderNameList != null &amp;&amp; !orderNameList.isEmpty()) {</span>
+<span class="nc" id="L241">        return (String) orderNameList.get(0);</span>
+      }
+    }
+<span class="nc" id="L244">    return null;</span>
+  }
+
+  @Override
+  public Integer findDeductedPrice(String compositeId) {
+<span class="nc" id="L249">    Map&lt;String, List&lt;Object&gt;&gt; posData = (Map&lt;String, List&lt;Object&gt;&gt;) hashOperations.get(&quot;CART&quot;, compositeId);</span>
+<span class="nc bnc" id="L250" title="All 2 branches missed.">    if (posData != null) {</span>
+<span class="nc" id="L251">      List&lt;Object&gt; couponIdList = posData.get(&quot;deducatedPrice&quot;);</span>
+<span class="nc bnc" id="L252" title="All 4 branches missed.">      if (couponIdList != null &amp;&amp; !couponIdList.isEmpty()) {</span>
+<span class="nc" id="L253">        return (Integer) couponIdList.get(0);</span>
+      }
+    }
+<span class="nc" id="L256">    return null;</span>
+  }
+
+  @Override
+  public Long findCouponId(String compositeId) {
+<span class="nc" id="L261">    Map&lt;String, List&lt;Object&gt;&gt; posData = (Map&lt;String, List&lt;Object&gt;&gt;) hashOperations.get(&quot;CART&quot;, compositeId);</span>
+<span class="nc bnc" id="L262" title="All 2 branches missed.">    if (posData != null) {</span>
+<span class="nc" id="L263">      List&lt;Object&gt; couponIdList = posData.get(&quot;couponId&quot;);</span>
+<span class="nc bnc" id="L264" title="All 4 branches missed.">      if (couponIdList != null &amp;&amp; !couponIdList.isEmpty()) {</span>
+<span class="nc" id="L265">        return (Long) couponIdList.get(0);</span>
+      }
+    }
+<span class="nc" id="L268">    return null;</span>
+  }
+  @Override
+  public Integer findPointAmount(String compositeId) {
+<span class="nc" id="L272">    Map&lt;String, List&lt;Object&gt;&gt; posData = (Map&lt;String, List&lt;Object&gt;&gt;) hashOperations.get(&quot;CART&quot;, compositeId);</span>
+<span class="nc bnc" id="L273" title="All 2 branches missed.">    if (posData != null) {</span>
+<span class="nc" id="L274">      List&lt;Object&gt; amountList = posData.get(&quot;amount&quot;);</span>
+<span class="nc bnc" id="L275" title="All 4 branches missed.">      if (amountList != null &amp;&amp; !amountList.isEmpty()) {</span>
+<span class="nc" id="L276">        return (Integer) amountList.get(0);</span>
+      }
+    }
+<span class="nc" id="L279">    return null;</span>
+  }
+
+  @Override
+  public void updatePoint(PointDTO pointDTO) {
+<span class="nc" id="L284">    String compositeId = pointDTO.getPosId() + &quot;-&quot; + pointDTO.getStoreId();</span>
+
+<span class="nc" id="L286">    hashOperations.delete(&quot;CART&quot;, compositeId);</span>
+<span class="nc" id="L287">    savePoint(pointDTO);</span>
+<span class="nc" id="L288">  }</span>
+
+  @Override
+  public void delete(String id) {
+<span class="nc" id="L292">    hashOperations.delete(&quot;CART&quot;, id);</span>
+<span class="nc" id="L293">  }</span>
+  @Override
+  public void deleteAll() {
+<span class="nc" id="L296">    redisTemplate.delete(&quot;CART&quot;);</span>
+<span class="nc" id="L297">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

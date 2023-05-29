@@ -1,15 +1,13 @@
 package com.ssg.webpos.service;
 
 import com.ssg.webpos.domain.Delivery;
-import com.ssg.webpos.domain.DeliveryAddress;
 import com.ssg.webpos.domain.Order;
 import com.ssg.webpos.domain.User;
 import com.ssg.webpos.domain.enums.DeliveryStatus;
 import com.ssg.webpos.dto.delivery.DeliveryAddDTO;
-import com.ssg.webpos.dto.delivery.DeliveryRedisAddDTO;
 import com.ssg.webpos.dto.delivery.DeliveryAddressDTO;
+import com.ssg.webpos.dto.gift.GiftSmsDTO;
 import com.ssg.webpos.repository.UserRepository;
-import com.ssg.webpos.repository.delivery.DeliveryAddressRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRedisImplRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
@@ -29,7 +27,6 @@ public class DeliveryService {
   private final DeliveryRepository deliveryRepository;
   private final DeliveryRedisImplRepository deliveryRedisImplRepository;
   private final UserRepository userRepository;
-  private final DeliveryAddressRepository deliveryAddressRepository;
   private final OrderRepository orderRepository;
 
   // 문자열을 LocalDateTime으로 파싱
@@ -39,9 +36,8 @@ public class DeliveryService {
     return dateTime;
   }
 
-  // 배송지 추가
-  @Transactional
-  public void addDeliveryAddress(DeliveryAddDTO deliveryDTO, Long orderId) {
+  // serialNumber 생성
+  public String makeSerialNumber(Long orderId) {
     Order order = orderRepository.findById(orderId).get();
     // delivery 일련번호 생성
     List<Delivery> deliveryList = deliveryRepository.findAll();
@@ -55,6 +51,15 @@ public class DeliveryService {
     String deliverySerialNumber = orderDateStr + strDeliveryId;
     System.out.println("deliverySerialNumber = " + deliverySerialNumber);
 
+    return deliverySerialNumber;
+  }
+
+  // 배송지 추가
+  @Transactional
+  public void addDeliveryAddress(DeliveryAddDTO deliveryDTO, Long orderId) {
+    Order order = orderRepository.findById(orderId).get();
+    String deliverySerialNumber = makeSerialNumber(order.getId());
+
     Delivery delivery = Delivery.builder()
         .deliveryName(deliveryDTO.getDeliveryName())
         .userName(deliveryDTO.getUserName())
@@ -64,8 +69,8 @@ public class DeliveryService {
         .deliveryStatus(DeliveryStatus.COMPLETE_PAYMENT)
         .deliveryType(deliveryDTO.getDeliveryType())
         .requestDeliveryTime(deliveryDTO.getRequestDeliveryTime())
-        .startedDate(LocalDateTime.now())
         .serialNumber(deliverySerialNumber)
+        .postCode(deliveryDTO.getPostCode())
         .build();
     order.setDelivery(delivery);
     delivery.setOrder(order);

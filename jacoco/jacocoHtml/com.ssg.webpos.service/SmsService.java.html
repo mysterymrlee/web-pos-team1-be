@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SmsService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">webpos</a> &gt; <a href="index.source.html" class="el_package">com.ssg.webpos.service</a> &gt; <span class="el_source">SmsService.java</span></div><h1>SmsService.java</h1><pre class="source lang-java linenums">package com.ssg.webpos.service;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ssg.webpos.dto.msg.MessageDTO;
+import com.ssg.webpos.dto.msg.SmsRequestDTO;
+import com.ssg.webpos.dto.msg.SmsResponseDTO;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.tomcat.util.codec.binary.Base64;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
+
+<span class="nc" id="L31">@Slf4j</span>
+@Service
+<span class="nc" id="L33">@RequiredArgsConstructor</span>
+public class SmsService {
+  @Value(&quot;${naver-cloud-sms.accessKey}&quot;)
+  private String accessKey;
+
+  @Value(&quot;${naver-cloud-sms.secretKey}&quot;)
+  private String secretKey;
+
+  @Value(&quot;${naver-cloud-sms.serviceId}&quot;)
+  private String serviceId;
+
+  @Value(&quot;${naver-cloud-sms.senderPhone}&quot;)
+  private String phone;
+
+  // Signature 필드 값 생성
+  public String makeSignature(String time) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException {
+<span class="nc" id="L49">    String space = &quot; &quot;;					// one space</span>
+<span class="nc" id="L50">    String newLine = &quot;\n&quot;;					// new line</span>
+<span class="nc" id="L51">    String method = &quot;POST&quot;;					// method</span>
+<span class="nc" id="L52">    String url = &quot;/sms/v2/services/&quot; + this.serviceId + &quot;/messages&quot;;	// url (include query string)</span>
+<span class="nc" id="L53">    String accessKey = this.accessKey;			// access key id (from portal or Sub Account)</span>
+<span class="nc" id="L54">    String secretKey = this.secretKey;</span>
+
+<span class="nc" id="L56">    String message = new StringBuilder()</span>
+<span class="nc" id="L57">        .append(method)</span>
+<span class="nc" id="L58">        .append(space)</span>
+<span class="nc" id="L59">        .append(url)</span>
+<span class="nc" id="L60">        .append(newLine)</span>
+<span class="nc" id="L61">        .append(time)</span>
+<span class="nc" id="L62">        .append(newLine)</span>
+<span class="nc" id="L63">        .append(accessKey)</span>
+<span class="nc" id="L64">        .toString();</span>
+
+<span class="nc" id="L66">    SecretKeySpec signingKey = new SecretKeySpec(secretKey.getBytes(&quot;UTF-8&quot;), &quot;HmacSHA256&quot;);</span>
+<span class="nc" id="L67">    Mac mac = Mac.getInstance(&quot;HmacSHA256&quot;);</span>
+<span class="nc" id="L68">    mac.init(signingKey);</span>
+
+<span class="nc" id="L70">    byte[] rawHmac = mac.doFinal(message.getBytes(&quot;UTF-8&quot;));</span>
+<span class="nc" id="L71">    String encodeBase64String = Base64.encodeBase64String(rawHmac);</span>
+
+<span class="nc" id="L73">    return encodeBase64String;</span>
+  }
+
+  public SmsResponseDTO sendSms(MessageDTO messageDto) throws JsonProcessingException, RestClientException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException {
+<span class="nc" id="L77">    String time = Long.toString(System.currentTimeMillis());</span>
+
+<span class="nc" id="L79">    HttpHeaders headers = new HttpHeaders();</span>
+<span class="nc" id="L80">    headers.setContentType(MediaType.APPLICATION_JSON);</span>
+<span class="nc" id="L81">    headers.set(&quot;x-ncp-apigw-timestamp&quot;, time);</span>
+<span class="nc" id="L82">    headers.set(&quot;x-ncp-iam-access-key&quot;, accessKey);</span>
+<span class="nc" id="L83">    headers.set(&quot;x-ncp-apigw-signature-v2&quot;, makeSignature(time));</span>
+
+<span class="nc" id="L85">    List&lt;MessageDTO&gt; messages = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L86">    messages.add(messageDto);</span>
+
+<span class="nc" id="L88">    SmsRequestDTO request = SmsRequestDTO.builder()</span>
+<span class="nc" id="L89">        .type(&quot;SMS&quot;)</span>
+<span class="nc" id="L90">        .contentType(&quot;COMM&quot;)</span>
+<span class="nc" id="L91">        .countryCode(&quot;82&quot;)</span>
+<span class="nc" id="L92">        .from(phone)</span>
+<span class="nc" id="L93">        .content(messageDto.getContent())</span>
+<span class="nc" id="L94">        .messages(messages)</span>
+<span class="nc" id="L95">        .build();</span>
+
+    // 쌓은 바디를 json 형태로 반환
+<span class="nc" id="L98">    ObjectMapper objectMapper = new ObjectMapper();</span>
+<span class="nc" id="L99">    String body = objectMapper.writeValueAsString(request);</span>
+    // jsonBody와 헤더 조립
+<span class="nc" id="L101">    HttpEntity&lt;String&gt; httpBody = new HttpEntity&lt;&gt;(body, headers);</span>
+
+<span class="nc" id="L103">    RestTemplate restTemplate = new RestTemplate();</span>
+<span class="nc" id="L104">    restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory());</span>
+    // restTemplate로 post 요청 보내고 오류가 없으면 202 코드 반환
+<span class="nc" id="L106">    SmsResponseDTO response = restTemplate.postForObject(new URI(&quot;https://sens.apigw.ntruss.com/sms/v2/services/&quot;+ serviceId +&quot;/messages&quot;), httpBody, SmsResponseDTO.class);</span>
+
+<span class="nc" id="L108">    return response;</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

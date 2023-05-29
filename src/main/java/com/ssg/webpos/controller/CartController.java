@@ -2,8 +2,10 @@ package com.ssg.webpos.controller;
 
 import com.ssg.webpos.domain.Cart;
 import com.ssg.webpos.domain.PosStoreCompositeId;
-import com.ssg.webpos.dto.CartAddDTO;
-import com.ssg.webpos.dto.CartAddRequestDTO;
+import com.ssg.webpos.dto.cartDto.CartAddDTO;
+import com.ssg.webpos.dto.cartDto.CartAddRequestDTO;
+import com.ssg.webpos.dto.TestDTO;
+import com.ssg.webpos.dto.TestRequestDTO;
 import com.ssg.webpos.repository.cart.CartRedisRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -47,4 +49,5 @@ public class CartController {
     System.out.println("bindingResult.hasErrors() = " + bindingResult.hasErrors());
     return new ResponseEntity(HttpStatus.NO_CONTENT); // 204
   }
+
 }

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Coupon.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">webpos</a> &gt; <a href="index.source.html" class="el_package">com.ssg.webpos.domain</a> &gt; <span class="el_source">Coupon.java</span></div><h1>Coupon.java</h1><pre class="source lang-java linenums">package com.ssg.webpos.domain;
+
+import com.ssg.webpos.domain.enums.CouponStatus;
+import lombok.*;
+
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
+
+@Entity
+@Getter
+<span class="nc" id="L12">@Setter</span>
+<span class="nc" id="L13">@AllArgsConstructor</span>
+<span class="nc" id="L14">@NoArgsConstructor</span>
+@Table(name = &quot;coupon&quot;)
+public class Coupon extends BaseTime {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = &quot;coupon_id&quot;)
+<span class="nc" id="L20">    private Long id;</span>
+    @NotNull
+<span class="nc" id="L22">    private String serialNumber;</span>
+    @NotNull
+<span class="nc" id="L24">    private String name;</span>
+<span class="nc" id="L25">    private String content;</span>
+    @NotNull
+<span class="nc" id="L27">    private int deductedPrice;</span>
+    @NotNull
+<span class="nc" id="L29">    private LocalDate expiredDate;</span>
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+<span class="nc" id="L33">    private CouponStatus couponStatus;</span>
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;order_id&quot;)
+<span class="nc" id="L37">    private Order order;</span>
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;user_id&quot;)
+<span class="nc" id="L41">    private User user;</span>
+
+    @Override
+    public String toString() {
+<span class="nc" id="L45">        return &quot;Coupon{&quot; +</span>
+            &quot;id=&quot; + id +
+            &quot;, serialNumber='&quot; + serialNumber + '\'' +
+            &quot;, name='&quot; + name + '\'' +
+            &quot;, content='&quot; + content + '\'' +
+            &quot;, deductedPrice=&quot; + deductedPrice +
+            &quot;, expiredDate=&quot; + expiredDate +
+            &quot;, couponStatus=&quot; + couponStatus +
+            &quot;, order=&quot; + order +
+            &quot;, user=&quot; + user +
+            '}';
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

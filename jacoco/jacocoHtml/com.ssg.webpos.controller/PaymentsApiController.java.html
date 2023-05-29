@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PaymentsApiController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">webpos</a> &gt; <a href="index.source.html" class="el_package">com.ssg.webpos.controller</a> &gt; <span class="el_source">PaymentsApiController.java</span></div><h1>PaymentsApiController.java</h1><pre class="source lang-java linenums">
+package com.ssg.webpos.controller;
+
+import com.ssg.webpos.domain.Order;
+import com.ssg.webpos.domain.enums.OrderStatus;
+import com.ssg.webpos.domain.enums.PayMethod;
+import com.ssg.webpos.dto.PaymentsDTO;
+import com.ssg.webpos.repository.cart.CartRedisRepository;
+import com.ssg.webpos.repository.UserRepository;
+import com.ssg.webpos.repository.order.OrderRepository;
+import com.ssg.webpos.service.PaymentsService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import net.minidev.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Date;
+import java.util.Map;
+import java.util.Optional;
+
+
+<span class="nc" id="L28">@Slf4j</span>
+@Controller
+<span class="nc" id="L30">@RequiredArgsConstructor</span>
+@RequestMapping(&quot;/api/v1/payment&quot;)
+public class PaymentsApiController {
+  @Autowired
+  private final OrderRepository orderRepository;
+  @Autowired
+  private CartRedisRepository cartRedisRepository;
+
+  @Autowired
+  private PaymentsService paymentsService;
+
+  @Autowired
+  private UserRepository userRepository;
+<span class="nc" id="L43">  @Value(&quot;${application.message:Hello World}&quot;)</span>
+  private String message = &quot;Hello Payments World!!&quot;;
+
+
+
+  @GetMapping(&quot;&quot;)
+  public String welcome(Map&lt;String, Object&gt; model) {
+<span class="nc" id="L50">    model.put(&quot;time&quot;, new Date());</span>
+<span class="nc" id="L51">    model.put(&quot;message&quot;, this.message);</span>
+<span class="nc" id="L52">    return &quot;Welcome&quot;;</span>
+  }
+
+  @PostMapping(&quot;/callback-receive&quot;)
+  public ResponseEntity callback_receive(@RequestBody PaymentsDTO paymentsDTO) {
+<span class="nc" id="L57">    paymentsDTO.getStoreId();</span>
+<span class="nc" id="L58">    paymentsDTO.getPosId();</span>
+<span class="nc" id="L59">    paymentsService.processPaymentCallback(paymentsDTO);</span>
+
+    // 응답 처리
+<span class="nc" id="L62">    HttpHeaders responseHeaders = new HttpHeaders();</span>
+<span class="nc" id="L63">    responseHeaders.add(&quot;Content-Type&quot;, &quot;application/json; charset=UTF-8&quot;);</span>
+<span class="nc" id="L64">    JSONObject responseObj = new JSONObject();</span>
+<span class="nc" id="L65">    responseObj.put(&quot;process_result&quot;, &quot;결제 성공&quot;);</span>
+
+
+
+<span class="nc" id="L69">    return new ResponseEntity(responseObj, responseHeaders, HttpStatus.OK);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

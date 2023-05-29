@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DeliveryService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">webpos</a> &gt; <a href="index.source.html" class="el_package">com.ssg.webpos.service</a> &gt; <span class="el_source">DeliveryService.java</span></div><h1>DeliveryService.java</h1><pre class="source lang-java linenums">package com.ssg.webpos.service;
+
+import com.ssg.webpos.domain.Delivery;
+import com.ssg.webpos.domain.DeliveryAddress;
+import com.ssg.webpos.domain.Order;
+import com.ssg.webpos.domain.User;
+import com.ssg.webpos.domain.enums.DeliveryStatus;
+import com.ssg.webpos.dto.delivery.DeliveryAddDTO;
+import com.ssg.webpos.dto.delivery.DeliveryRedisAddDTO;
+import com.ssg.webpos.dto.delivery.DeliveryAddressDTO;
+import com.ssg.webpos.repository.UserRepository;
+import com.ssg.webpos.repository.delivery.DeliveryAddressRepository;
+import com.ssg.webpos.repository.delivery.DeliveryRedisImplRepository;
+import com.ssg.webpos.repository.delivery.DeliveryRepository;
+import com.ssg.webpos.repository.order.OrderRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import javax.transaction.Transactional;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+<span class="nc" id="L27">@RequiredArgsConstructor</span>
+public class DeliveryService {
+  private final DeliveryRepository deliveryRepository;
+  private final DeliveryRedisImplRepository deliveryRedisImplRepository;
+  private final UserRepository userRepository;
+  private final DeliveryAddressRepository deliveryAddressRepository;
+  private final OrderRepository orderRepository;
+
+  // 문자열을 LocalDateTime으로 파싱
+  public LocalDateTime LocalDateParse(String requestFinishedAt) throws DateTimeParseException {
+<span class="nc" id="L37">    LocalDateTime dateTime = LocalDateTime.parse(requestFinishedAt, DateTimeFormatter.ISO_LOCAL_DATE_TIME);</span>
+<span class="nc" id="L38">    System.out.println(&quot;LocalDateTime = &quot; + dateTime); // 2023-05-25T17:25:00</span>
+<span class="nc" id="L39">    return dateTime;</span>
+  }
+
+  // 배송지 추가
+  @Transactional
+  public void addDeliveryAddress(DeliveryAddDTO deliveryDTO, Long orderId) {
+<span class="nc" id="L45">    Order order = orderRepository.findById(orderId).get();</span>
+    // delivery 일련번호 생성
+<span class="nc" id="L47">    List&lt;Delivery&gt; deliveryList = deliveryRepository.findAll();</span>
+<span class="nc" id="L48">    Long deliveryId = deliveryList.size() + 1L;</span>
+
+<span class="nc" id="L50">    LocalDateTime orderDate = order.getOrderDate();</span>
+<span class="nc" id="L51">    String orderDateStr = orderDate.format(DateTimeFormatter.BASIC_ISO_DATE);</span>
+<span class="nc" id="L52">    System.out.println(&quot;orderDateStr = &quot; + orderDateStr);</span>
+<span class="nc" id="L53">    String strDeliveryId = String.format(&quot;%03d&quot;, deliveryId);</span>
+<span class="nc" id="L54">    System.out.println(&quot;strDeliveryId = &quot; + strDeliveryId);</span>
+<span class="nc" id="L55">    String deliverySerialNumber = orderDateStr + strDeliveryId;</span>
+<span class="nc" id="L56">    System.out.println(&quot;deliverySerialNumber = &quot; + deliverySerialNumber);</span>
+
+<span class="nc" id="L58">    Delivery delivery = Delivery.builder()</span>
+<span class="nc" id="L59">        .deliveryName(deliveryDTO.getDeliveryName())</span>
+<span class="nc" id="L60">        .userName(deliveryDTO.getUserName())</span>
+<span class="nc" id="L61">        .address(deliveryDTO.getAddress())</span>
+<span class="nc" id="L62">        .phoneNumber(deliveryDTO.getPhoneNumber())</span>
+<span class="nc" id="L63">        .requestInfo(deliveryDTO.getRequestInfo())</span>
+<span class="nc" id="L64">        .deliveryStatus(DeliveryStatus.COMPLETE_PAYMENT)</span>
+<span class="nc" id="L65">        .deliveryType(deliveryDTO.getDeliveryType())</span>
+<span class="nc" id="L66">        .requestDeliveryTime(deliveryDTO.getRequestDeliveryTime())</span>
+<span class="nc" id="L67">        .startedDate(LocalDateTime.now())</span>
+<span class="nc" id="L68">        .serialNumber(deliverySerialNumber)</span>
+<span class="nc" id="L69">        .build();</span>
+<span class="nc" id="L70">    order.setDelivery(delivery);</span>
+<span class="nc" id="L71">    delivery.setOrder(order);</span>
+<span class="nc" id="L72">    deliveryRepository.save(delivery);</span>
+<span class="nc" id="L73">  }</span>
+
+  // 해당 유저의 저장된 모든 배송지 조회
+  public List&lt;DeliveryAddressDTO&gt; getUserAllDeliveryList() {
+    // 포인트 redis에서 userId 찾기
+<span class="nc" id="L78">    List&lt;String&gt; findUserIdList = deliveryRedisImplRepository.findByUserId();</span>
+<span class="nc" id="L79">    long userId = Long.parseLong(findUserIdList.get(0));</span>
+<span class="nc" id="L80">    System.out.println(&quot;findUserIdList = &quot; + findUserIdList);</span>
+<span class="nc" id="L81">    System.out.println(&quot;userId = &quot; + userId);</span>
+
+    // 찾은 userId로 user 가져오기
+<span class="nc" id="L84">    User user = userRepository.findById(userId).get();</span>
+<span class="nc" id="L85">    System.out.println(&quot;user = &quot; + user);</span>
+
+//  deliveryList에 저장된 해당 유저의 배송지 목록을 가져와서 DTO로 변환
+<span class="nc" id="L88">    List&lt;DeliveryAddressDTO&gt; deliveryAddressList =</span>
+<span class="nc" id="L89">        user.getDeliveryAddressList().stream()</span>
+<span class="nc" id="L90">            .map(da -&gt; new DeliveryAddressDTO(da))</span>
+<span class="nc" id="L91">            .collect(Collectors.toList());</span>
+
+<span class="nc" id="L93">    System.out.println(&quot;deliveryAddressList = &quot; + deliveryAddressList);</span>
+
+<span class="nc" id="L95">    return deliveryAddressList;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,7 +1,8 @@
 package com.ssg.webpos.repository.delivery;
 
 import com.ssg.webpos.dto.delivery.*;
-import org.jetbrains.annotations.NotNull;
+import com.ssg.webpos.dto.gift.GiftDTO;
+import com.ssg.webpos.dto.gift.GiftRequestDTO;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -43,8 +44,8 @@ public class DeliveryRedisImplRepository implements DeliveryRedisRepository {
       addDelivery.put("userName", deliveryAddDTO.getUserName());
       addDelivery.put("address", deliveryAddDTO.getAddress());
       addDelivery.put("phoneNumber", deliveryAddDTO.getPhoneNumber());
-      addDelivery.put("requestInfo", deliveryAddDTO.getRequestInfo());
       addDelivery.put("requestDeliveryTime", deliveryAddDTO.getRequestDeliveryTime());
+      addDelivery.put("postCode", deliveryAddDTO.getPostCode());
 
       deliveryAddList.add(addDelivery);
       System.out.println("addDelivery = " + addDelivery);
@@ -106,8 +107,9 @@ public class DeliveryRedisImplRepository implements DeliveryRedisRepository {
 
     for (GiftDTO giftDTO : giftRequestDTO.getGiftRecipientInfo()) {
       Map<String, Object> recipientInfo = new HashMap<>();
-      recipientInfo.put("name", giftDTO.getName());
+      recipientInfo.put("receiver", giftDTO.getReceiver());
       recipientInfo.put("phoneNumber", giftDTO.getPhoneNumber());
+      recipientInfo.put("sender", giftDTO.getSender());
       giftRecipientInfo.add(recipientInfo);
       System.out.println("giftRecipientInfo = " + giftRecipientInfo);
     }

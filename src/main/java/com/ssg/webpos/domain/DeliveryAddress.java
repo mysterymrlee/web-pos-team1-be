@@ -35,18 +35,18 @@ public class DeliveryAddress extends BaseTime {
     @JsonIgnore
     private User user;
 
-//    @Override
-//    public String toString() {
-//        return "DeliveryAddress{" +
-//            "id=" + id +
-//            ", address='" + address + '\'' +
-//            ", phoneNumber='" + phoneNumber + '\'' +
-//            ", name='" + name + '\'' +
-//            ", requestInfo='" + requestInfo + '\'' +
-//            ", postCode='" + postCode + '\'' +
-//            ", isDefault=" + isDefault +
-//            ", deliveryName='" + deliveryName + '\'' +
-//            ", user=" + user +
-//            '}';
-//    }
+    @Override
+    public String toString() {
+        return "DeliveryAddress{" +
+            "id=" + id +
+            ", address='" + address + '\'' +
+            ", phoneNumber='" + phoneNumber + '\'' +
+            ", name='" + name + '\'' +
+            ", requestInfo='" + requestInfo + '\'' +
+            ", postCode='" + postCode + '\'' +
+            ", isDefault=" + isDefault +
+            ", deliveryName='" + deliveryName + '\'' +
+            ", user=" + user +
+            '}';
+    }
 }

@@ -1,10 +1,15 @@
 package com.ssg.webpos.service;
 
 import com.ssg.webpos.domain.*;
+import com.ssg.webpos.domain.enums.CouponStatus;
 import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.domain.enums.PayMethod;
-import com.ssg.webpos.dto.CartAddDTO;
+import com.ssg.webpos.dto.cartDto.CartAddDTO;
 import com.ssg.webpos.dto.OrderDTO;
+import com.ssg.webpos.repository.CouponRepository;
+import com.ssg.webpos.repository.PointSaveHistoryRepository;
+import com.ssg.webpos.repository.PointUseHistoryRepository;
+import com.ssg.webpos.repository.UserRepository;
 import com.ssg.webpos.repository.cart.CartRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
 import com.ssg.webpos.repository.pos.PosRepository;
@@ -23,7 +28,10 @@ public class CartService {
   private final CartRepository cartRepository;
   private final ProductRepository productRepository;
   private final PosRepository posRepository;
-
+  private final UserRepository userRepository;
+  private final PointUseHistoryRepository pointUseHistoryRepository;
+  private final PointSaveHistoryRepository pointSaveHistoryRepository;
+  private final CouponRepository couponRepository;
 
   // 장바구니 상품 개별 삭제
   @Transactional
@@ -108,16 +116,71 @@ public class CartService {
   }
 
   @Transactional
-  public void cancelOrder(Long orderId) {
-    Order order = orderRepository.findById(orderId).get();
+  public void cancelOrder(Long orderId, Long userId) {
+    Order order = orderRepository.findById(orderId).orElseThrow(
+        () -> new RuntimeException("주문 내역을 찾을 수 없습니다."));
     order.setOrderStatus(OrderStatus.CANCEL);
+    User findUser = userRepository.findById(userId).get();
+
+    // 사용한 포인트 반환
+    int currentPoint = findUser.getPoint();
+    System.out.println("currentPoint = " + currentPoint);
+
+    PointUseHistory findUsePoint = pointUseHistoryRepository.findByOrderId(orderId).orElseThrow(
+        () -> new RuntimeException("주문 시 사용한 포인트 내역이 없습니다."));
+    int usePointAmount = findUsePoint.getAmount();
+    System.out.println("usePointAmount = " + usePointAmount);
+
+    currentPoint += usePointAmount;
+    System.out.println("currentPoint = " + currentPoint);
+
+    findUser.setPoint(currentPoint);
+    userRepository.save(findUser);
+    findUsePoint.setPointStatus((byte) 1);
+    pointUseHistoryRepository.save(findUsePoint);
+
+    System.out.println("findUsePoint = " + findUsePoint);
+    System.out.println("findUser = " + findUser);
+
+    // 적립 포인트 취소
+    PointSaveHistory findSavePoint = pointSaveHistoryRepository.findByOrderId(orderId).orElseThrow(
+        () -> new RuntimeException("주문 시 적립한 포인트 내역이 없습니다."));
+    int savePointAmount = findSavePoint.getAmount();
+    System.out.println("savePointAmount = " + savePointAmount);
+
+    currentPoint -= savePointAmount;
+    System.out.println("currentPoint = " + currentPoint);
+
+    findUser.setPoint(currentPoint);
+    userRepository.save(findUser);
+    findSavePoint.setPointStatus((byte) 1);
+    pointSaveHistoryRepository.save(findSavePoint);
+
+    System.out.println("findSavePoint = " + findSavePoint);
+    System.out.println("findUser = " + findUser);
+
+    // 쿠폰 상태 변경
+    Coupon useCoupon = couponRepository.findByOrderId(orderId);
+    System.out.println("useCoupon = " + useCoupon);
+
+    if (useCoupon != null) {
+      useCoupon.setCouponStatus(CouponStatus.NOT_USED);
+      couponRepository.save(useCoupon);
+    } else {
+      System.out.println("주문 시 사용한 쿠폰이 없습니다.");
+    }
 
     // 재고 수량 증가
     List<Cart> cartList = order.getCartList();
+    System.out.println("cartList = " + cartList);
     for (Cart cart : cartList) {
       Product product = cart.getProduct();
+      System.out.println("product = " + product);
       int qty = cart.getQty();
+      System.out.println("qty = " + qty);
       product.plusStockQuantity(qty);
+      int stock = product.getStock();
+      System.out.println("stock = " + stock);
     }
 
     orderRepository.save(order);

@@ -11,11 +11,13 @@ import java.util.List;
 public class StockReportRepositoryTest {
     @Autowired
     StockReportRepository stockReportRepository;
+
+    // LazyInitializationException이 일어났다.
     @Test
     void contextVoid() {
-        List<StockReport> r = stockReportRepository.findByIsSubmitAndStoreId(true,1L);
-        for (StockReport stockReport: r) {
-            System.out.println(stockReport);
+        List<StockReport> lists = stockReportRepository.findByStoreId(1L);
+        for (StockReport list : lists) {
+            System.out.println(list);
         }
     }
 }

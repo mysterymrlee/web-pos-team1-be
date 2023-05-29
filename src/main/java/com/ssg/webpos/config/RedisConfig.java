@@ -1,6 +1,5 @@
 package com.ssg.webpos.config;
 
-import com.ssg.webpos.dto.CartAddDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.context.annotation.Bean;

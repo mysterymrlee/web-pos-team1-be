@@ -9,4 +9,6 @@ public interface StockReportRepository extends JpaRepository<StockReport,Long> {
     List<StockReport> findByIsSubmit(boolean isSubmit);
     List<StockReport> findAll();
     List<StockReport> findByIsSubmitAndStoreId(boolean isSubmit, Long storeId);
+    List<StockReport> findByStoreId(Long storeId);
+    List<StockReport> findStockReportById(Long id);
 }

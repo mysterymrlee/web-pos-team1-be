@@ -1,8 +1,10 @@
 package com.ssg.webpos.controller;
 
-import com.ssg.webpos.domain.PosStoreCompositeId;
-import com.ssg.webpos.dto.delivery.GiftDTO;
-import com.ssg.webpos.dto.delivery.GiftRequestDTO;
+import com.ssg.webpos.domain.Delivery;
+import com.ssg.webpos.domain.enums.DeliveryStatus;
+import com.ssg.webpos.domain.enums.DeliveryType;
+import com.ssg.webpos.dto.gift.GiftDTO;
+import com.ssg.webpos.dto.gift.GiftRequestDTO;
 import com.ssg.webpos.repository.delivery.DeliveryRedisImplRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRepository;
 import com.ssg.webpos.service.DeliveryService;
@@ -26,21 +28,14 @@ public class GiftController {
 
   @PostMapping("/add")
   public ResponseEntity saveRedisGiftInfo(@RequestBody GiftRequestDTO giftRequestDTO) {
-    Long posId = giftRequestDTO.getPosId();
-    Long storeId = giftRequestDTO.getStoreId();
-    System.out.println("posId = " + posId);
-    System.out.println("storeId = " + storeId);
-
     List<GiftDTO> giftInfoList = giftRequestDTO.getGiftRecipientInfo();
     System.out.println("giftInfoList = " + giftInfoList);
 
-    for(GiftDTO giftDTO : giftInfoList) {
-      giftDTO.setPosStoreCompositeId(new PosStoreCompositeId(posId, storeId));
+    for (GiftDTO giftDTO : giftInfoList) {
       deliveryRedisImplRepository.saveGiftRecipientInfo(giftRequestDTO);
       System.out.println("giftDTO = " + giftDTO);
     }
     return new ResponseEntity(HttpStatus.CREATED);
-
   }
 
   @GetMapping("")
@@ -53,8 +48,25 @@ public class GiftController {
     }
   }
 
-//  @PostMapping("/save")
-//  public ResponseEntity saveGiftInfo(@RequestBody GiftRequestDTO giftRequestDTO) {
-//
-//  }
+  @PostMapping("/save")
+  public ResponseEntity saveGiftInfo(@RequestBody GiftRequestDTO giftRequestDTO) {
+    GiftDTO giftRecipientInfo = giftRequestDTO.getGiftRecipientInfo().get(0);
+    Delivery delivery = new Delivery();
+    String receiver = giftRecipientInfo.getReceiver();
+    String phoneNumber = giftRecipientInfo.getPhoneNumber();
+    String sender = giftRecipientInfo.getSender();
+
+    delivery.setUserName(receiver);
+    delivery.setPhoneNumber(phoneNumber);
+    delivery.setSender(sender);
+    delivery.setDeliveryType(DeliveryType.GIFT);
+    delivery.setDeliveryStatus(DeliveryStatus.COMPLETE_PAYMENT);
+
+    System.out.println("delivery = " + delivery);
+    deliveryRepository.save(delivery);
+
+    return new ResponseEntity(HttpStatus.OK);
+  }
+
+//  @PostMapping("/")
 }

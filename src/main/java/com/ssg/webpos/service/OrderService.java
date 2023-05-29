@@ -28,13 +28,11 @@ public class OrderService {
         }
     }
 
-    // store_id, date로 orders 조회
-    // String으로 받으면
-    // 이거 일별, 월별로 나누어야하는데..
-    // prototype
-    public List<Order> selectByPos_StoreIdAndOrderDate(Long storeId, LocalDateTime orderDate) {
+    // "yyyy-mm-dd" 형식의 String 타입 orderDate와 storeId로 주문내역 조회
+    public List<Order> selectByPos_StoreIdAndOrderDate(Long storeId, String orderDate) {
         try {
-            List<Order> lists = orderRepository.findOrderByPos_StoreIdAndOrderDate(storeId,orderDate);
+            LocalDateTime date = LocalDateTime.parse(orderDate);
+            List<Order> lists = orderRepository.findOrderByPos_StoreIdAndOrderDate(storeId,date);
             return lists;
         } catch (Exception e) {
             e.printStackTrace();

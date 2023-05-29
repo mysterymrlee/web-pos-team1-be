@@ -1,6 +1,11 @@
 package com.ssg.webpos.repository.cart;
 
 import com.ssg.webpos.dto.*;
+import com.ssg.webpos.dto.cartDto.CartAddDTO;
+import com.ssg.webpos.dto.cartDto.CartAddRequestDTO;
+import com.ssg.webpos.dto.coupon.CouponAddRequestDTO;
+import com.ssg.webpos.dto.point.PointDTO;
+import com.ssg.webpos.dto.point.PointUseDTO;
 import com.ssg.webpos.repository.CouponRepository;
 import com.ssg.webpos.repository.UserRepository;
 import com.ssg.webpos.repository.product.ProductRepository;
@@ -58,7 +63,11 @@ public class CartRedisImplRepository implements CartRedisRepository {
 
     int totalPrice = cartAddRequestDTO.getTotalPrice();
     posData.put("totalPrice", Collections.singletonList(totalPrice));
-
+    int totalOriginPrice = cartAddRequestDTO.getTotalOriginPrice();
+    String orderName = cartAddRequestDTO.getOrderName();
+    System.out.println("saveCart/orderName = " + orderName);
+    posData.put("orderName", Collections.singletonList(orderName));
+    posData.put("totalOriginPrice", Collections.singletonList(totalOriginPrice));
     posData.put("cartList", cartList);
     hashOperations.put("CART", compositeId, posData);
   }
@@ -90,6 +99,7 @@ public class CartRedisImplRepository implements CartRedisRepository {
 
     hashOperations.put("CART", compositeId, posData);
   }
+
 
   @Override
   public void savePointAmount(PointUseDTO pointUseDTO) {
@@ -206,6 +216,29 @@ public class CartRedisImplRepository implements CartRedisRepository {
       List<Object> totalPriceList = posData.get("totalPrice");
       if (totalPriceList != null && !totalPriceList.isEmpty()) {
         return (Integer) totalPriceList.get(0);
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public Integer findTotalOriginPrice(String compositeId) {
+    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
+    if (posData != null) {
+      List<Object> totalOriginPriceList = posData.get("totalOriginPrice");
+      if (totalOriginPriceList != null && !totalOriginPriceList.isEmpty()) {
+        return (Integer) totalOriginPriceList.get(0);
+      }
+    }
+    return null;
+  }
+  @Override
+  public String findOrderName(String compositeId) {
+    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
+    if (posData != null) {
+      List<Object> orderNameList = posData.get("orderName");
+      if (orderNameList != null && !orderNameList.isEmpty()) {
+        return (String) orderNameList.get(0);
       }
     }
     return null;

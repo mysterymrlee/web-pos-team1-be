@@ -1,9 +1,6 @@
 
 package com.ssg.webpos.controller;
 
-import com.ssg.webpos.domain.Order;
-import com.ssg.webpos.domain.enums.OrderStatus;
-import com.ssg.webpos.domain.enums.PayMethod;
 import com.ssg.webpos.dto.PaymentsDTO;
 import com.ssg.webpos.repository.cart.CartRedisRepository;
 import com.ssg.webpos.repository.UserRepository;

@@ -33,4 +33,6 @@ public class PointSaveHistory extends BaseTime {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "order_id")
   private Order order;
+
+  private byte pointStatus; // 0: 적립, 1: 취소
 }
