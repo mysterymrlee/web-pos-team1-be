@@ -37,24 +37,24 @@ jobs:
       run : ./gradlew clean build --exclude-task test
         
       # jwt 정보 로딩
-    - name: Copy Secret
+    - name: Copy Secret DB
       env:
-          OCCUPY_SECRET: ${{ secrets.OCCUPY_SECRET }}
-          OCCUPY_SECRET_DIR: src/main/resources
-          OCCUPY_SECRET_DIR_FILE_NAME: application-db.yml
-      run: echo $OCCUPY_SECRET | base64 --decode > $OCCUPY_SECRET_DIR/$OCCUPY_SECRET_DIR_FILE_NAME
+          SECRET_DB: ${{ secrets.SECRET_DB }}
+          SECRET_DB_DIR: src/main/resources
+          SECRET_DB_DIR_FILE_NAME: application-db.yml
+      run: echo $SECRET_DB | base64 --decode > $SECRET_DB_DIR/$SECRET_DB_DIR_FILE_NAME
 
   
-    - name: Copy Secret1
+    - name: Copy Secret Iamport
       env:
-          OCCUPY_SECRET1: ${{ secrets.OCCUPY_SECRET1 }}
-          OCCUPY_SECRET1_DIR: src/main/resources
-          OCCUPY_SECRET1_DIR_FILE_NAME: application-import.yml
-      run: echo $OCCUPY_SECRET1 | base64 --decode > $OCCUPY_SECRET1_DIR/$OCCUPY_SECRET1_DIR_FILE_NAME
+          SECRET_IAMPORT: ${{ secrets.SECRET_IAMPORT }}
+          SECRET_IAMPORT_DIR: src/main/resources
+          SECRET_IAMPORT_DIR_FILE_NAME: application-import.yml
+      run: echo $SECRET_IAMPORT | base64 --decode > $SECRET_IAMPORT_DIR/$SECRET_IAMPORT_DIR_FILE_NAME
       
-    - name: Copy Secret2
+    - name: Copy Secret Sms
       env:
-          OCCUPY_SECRET2: ${{ secrets.OCCUPY_SECRET2 }}
-          OCCUPY_SECRET2_DIR: src/main/resources
-          OCCUPY_SECRET2_DIR_FILE_NAME: application-sms.yml
-      run: echo $OCCUPY_SECRET2 | base64 --decode > $OCCUPY_SECRET2_DIR/$OCCUPY_SECRET2_DIR_FILE_NAME
+          SECRET_SMS: ${{ secrets.SECRET_SMS }}
+          SECRET_SMS_DIR: src/main/resources
+          SECRET_SMS_DIR_FILE_NAME: application-sms.yml
+      run: echo $SECRET_SMS | base64 --decode > $SECRET_SMS_DIR/$SECRET_SMS_DIR_FILE_NAME
