@@ -1,4 +1,5 @@
 package com.ssg.webpos.service;
+
 import com.ssg.webpos.domain.*;
 import com.ssg.webpos.domain.enums.DeliveryType;
 import com.ssg.webpos.domain.enums.OrderStatus;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -58,13 +60,14 @@ class DeliveryServiceTest {
     Order createdOrder = createOrder();
 
     DeliveryAddDTO deliveryDTO = DeliveryAddDTO.builder()
-        .deliveryName("스파로스")
+        .deliveryName("집")
         .userName("김진아")
-        .address("부산광역시 동구")
-        .phoneNumber("01011113333")
-        .requestInfo("배송 완료되면 문자 메시지 보내주세요.")
+        .address("부산광역시 해운대구")
+        .phoneNumber("01012345678")
+        .requestInfo("초인종 누르지 말아주세요.")
         .deliveryType(DeliveryType.DELIVERY)
-        .requestDeliveryTime("11:00~13:00")
+        .requestDeliveryTime("15:00~18:00")
+        .postCode("48060")
         .build();
     deliveryService.addDeliveryAddress(deliveryDTO, createdOrder.getId());
 
@@ -84,6 +87,7 @@ class DeliveryServiceTest {
 
     assertEquals(2, userAllDeliveryList.size());
   }
+
   @Test
   @Transactional
   @DisplayName("배송지 목록 조회")
@@ -94,46 +98,11 @@ class DeliveryServiceTest {
     }
   }
 
-//  @Test
-//  @Transactional
-//  @DisplayName("유저의 배송지 목록에서 배송할 배송지 선택")
-//  void selectDeliveryAddressTest() throws Exception {
-//    long id = 5; // DeliveryList 의 id(pk)
-//    long userId = 1;
-//    String address = "부산광역시 해운대구";
-//    // 배송지 목록 생성
-//    DeliveryAddress deliveryAddress = DeliveryAddress.builder()
-//        .address(address)
-//        .phoneNumber("01011113333")
-//        .name("김진아")
-//        .postCode("123456")
-//        .isDefault(false)
-//        .deliveryName("스파로스")
-//        .build();
-//    DeliveryAddress deliveryAddress1 = deliveryAddressRepository.save(deliveryAddress);
-//    Long deliveryAddressId = deliveryAddress1.getId();
-//    DeliveryAddressDTO selectedDeliveryAddress = deliveryService.getSelectedDeliveryAddress(deliveryAddressId);
-//    System.out.println("selectedDeliveryAddress = " + selectedDeliveryAddress);
-//    assertEquals(address ,selectedDeliveryAddress.getAddress());
-//  }
-
-  @Test
-  void updateDeliveryInfoTest()  {
-
-    Long deliveryId = 1L;
-    Delivery delivery = deliveryRepository.findById(deliveryId).get();
-  }
-
-  @Test
-  void deleteDeliveryInfoTest() {
-
-  }
-
   @Test
   @DisplayName("배송 시간 입력 포맷 검증 에러")
   void addressFormat() {
     Assertions.assertThrows(DateTimeParseException.class, () -> {
-      deliveryService.LocalDateParse("2023-05-12T18:00:00");
+      deliveryService.LocalDateParse("10:00");
     });
   }
 }

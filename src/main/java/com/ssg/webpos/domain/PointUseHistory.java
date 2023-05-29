@@ -27,9 +27,22 @@ public class PointUseHistory extends BaseTime {
     @JoinColumn(name = "order_id")
     private Order order;
 
+    private byte pointStatus; // 0: 적립, 1: 취소
+
     public PointUseHistory(int amount, User user, Order order) {
         this.amount = amount;
         this.user = user;
         this.order = order;
+    }
+
+    @Override
+    public String toString() {
+        return "PointUseHistory{" +
+            "id=" + id +
+            ", amount=" + amount +
+            ", user=" + user +
+            ", order=" + order +
+            ", pointStatus=" + pointStatus +
+            '}';
     }
 }
