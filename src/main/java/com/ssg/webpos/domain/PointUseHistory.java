@@ -34,4 +34,15 @@ public class PointUseHistory extends BaseTime {
         this.user = user;
         this.order = order;
     }
+
+    @Override
+    public String toString() {
+        return "PointUseHistory{" +
+            "id=" + id +
+            ", amount=" + amount +
+            ", user=" + user +
+            ", order=" + order +
+            ", pointStatus=" + pointStatus +
+            '}';
+    }
 }
