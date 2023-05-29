@@ -1,0 +1,57 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+
+name: Java CI with Gradle
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+    - name: Build with Gradle
+      uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
+      with:
+        arguments: build
+        
+      # jwt 정보 로딩
+    - name: Copy Secret
+      env:
+          OCCUPY_SECRET: ${{ secrets.OCCUPY_SECRET }}
+          OCCUPY_SECRET_DIR: src/main/resources
+          OCCUPY_SECRET_DIR_FILE_NAME: application-db.yml
+      run: echo $OCCUPY_SECRET | base64 --decode > $OCCUPY_SECRET_DIR/$OCCUPY_SECRET_DIR_FILE_NAME
+
+  
+    - name: Copy Secret1
+      env:
+          OCCUPY_SECRET1: ${{ secrets.OCCUPY_SECRET1 }}
+          OCCUPY_SECRET1_DIR: src/main/resources
+          OCCUPY_SECRET1_DIR_FILE_NAME: application-import.yml
+      run: echo $OCCUPY_SECRET1 | base64 --decode > $OCCUPY_SECRET1_DIR/$OCCUPY_SECRET1_DIR_FILE_NAME
+      
+    - name: Copy Secret2
+      env:
+          OCCUPY_SECRET2: ${{ secrets.OCCUPY_SECRET2 }}
+          OCCUPY_SECRET2_DIR: src/main/resources
+          OCCUPY_SECRET2_DIR_FILE_NAME: application-sms.yml
+      run: echo $OCCUPY_SECRET2 | base64 --decode > $OCCUPY_SECRET2_DIR/$OCCUPY_SECRET2_DIR_FILE_NAME
