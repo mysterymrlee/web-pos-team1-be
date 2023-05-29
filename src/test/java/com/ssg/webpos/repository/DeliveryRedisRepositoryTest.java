@@ -47,7 +47,7 @@ public class DeliveryRedisRepositoryTest {
         .postCode("48060")
         .build();
     deliveryAddList.add(deliveryAddDTO);
-    deliveryAddRequestDTO.setDeliveryAddList(deliveryAddList);
+//    deliveryAddRequestDTO.setDeliveryAddList(deliveryAddList);
 
     deliveryRedisImplRepository.saveDelivery(deliveryAddRequestDTO);
     Map<String, Map<String, List<Object>>> findDelivery = deliveryRedisImplRepository.findAll();

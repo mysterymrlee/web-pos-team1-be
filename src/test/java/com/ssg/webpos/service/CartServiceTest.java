@@ -1,12 +1,15 @@
 package com.ssg.webpos.service;
 
-import com.ssg.webpos.domain.Cart;
-import com.ssg.webpos.domain.Order;
-import com.ssg.webpos.domain.PosStoreCompositeId;
-import com.ssg.webpos.domain.Product;
+import com.ssg.webpos.domain.*;
+import com.ssg.webpos.domain.enums.CouponStatus;
 import com.ssg.webpos.domain.enums.OrderStatus;
+import com.ssg.webpos.domain.enums.PayMethod;
 import com.ssg.webpos.dto.cartDto.CartAddDTO;
 import com.ssg.webpos.dto.OrderDTO;
+import com.ssg.webpos.repository.CouponRepository;
+import com.ssg.webpos.repository.PointSaveHistoryRepository;
+import com.ssg.webpos.repository.PointUseHistoryRepository;
+import com.ssg.webpos.repository.UserRepository;
 import com.ssg.webpos.repository.cart.CartRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
 import com.ssg.webpos.repository.pos.PosRepository;
@@ -16,8 +19,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Rollback;
 
 import javax.transaction.Transactional;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +45,14 @@ public class CartServiceTest {
   StoreRepository storeRepository;
   @Autowired
   PosRepository posRepository;
+  @Autowired
+  UserRepository userRepository;
+  @Autowired
+  PointUseHistoryRepository pointUseHistoryRepository;
+  @Autowired
+  PointSaveHistoryRepository pointSaveHistoryRepository;
+  @Autowired
+  CouponRepository couponRepository;
 
   @Test
   @DisplayName("장바구니 삭제 후 주문테이블에서 totalPrice 반영테스트")
@@ -146,6 +159,7 @@ public class CartServiceTest {
   @DisplayName("[주문 취소] 재고량 증가 테스트")
   void cancelOrderTest() {
     Long orderId = addOrder();
+    Long userId = 1L;
     Order findOrder = orderRepository.findById(orderId).get();
     System.out.println("findOrder = " + findOrder);
     // 재고 수량 저장을 위한 리스트
@@ -169,7 +183,7 @@ public class CartServiceTest {
       Product findProduct = allProductList.get(index);
       int beforeStock = findProduct.getStock();
       System.out.println("beforeStock = " + beforeStock);
-      cartService.cancelOrder(orderId);
+      cartService.cancelOrder(orderId, userId);
       int canceledQty = (int) findOrder.getCartList().stream()
           .filter(cart -> cart.getProduct().equals(cartProduct))
           .mapToLong(Cart::getQty)
@@ -184,6 +198,83 @@ public class CartServiceTest {
       assertEquals(OrderStatus.CANCEL, cancelOrder.getOrderStatus());
       assertEquals(expectedStock, actualStock);
     }
+  }
+
+  @Test
+  @DisplayName("[주문 취소] 포인트 사용 및 적립 취소, 쿠폰 반환, 재고량 증가 테스트")
+  void cancelOrder() {
+    Long productId1 = 1L;
+    Long userId = 1L;
+
+    Order order = Order.builder()
+        .orderStatus(OrderStatus.SUCCESS)
+        .payMethod(PayMethod.CREDIT_CARD)
+        .totalQuantity(3)
+        .build();
+    orderRepository.save(order);
+    System.out.println("orderTest = " + order);
+
+    PointUseHistory pointUseHistory = new PointUseHistory();
+    pointUseHistory.setAmount(10);
+    pointUseHistory.setOrder(order);
+    pointUseHistoryRepository.save(pointUseHistory);
+    System.out.println("pointUseHistoryTest = " + pointUseHistory);
+
+    PointSaveHistory pointSaveHistory = new PointSaveHistory();
+    pointSaveHistory.setAmount(20);
+    pointSaveHistory.setOrder(order);
+    pointSaveHistoryRepository.save(pointSaveHistory);
+    System.out.println("pointSaveHistoryTest = " + pointSaveHistory);
+
+    User user = userRepository.findById(userId).get();
+    System.out.println("userTest = " + user);
+
+    Product product1 = productRepository.findById(productId1).get();
+    System.out.println("product1 = " + product1);
+
+    List<Cart> cartList = new ArrayList<>();
+//    List<Cart> cartList = order.getCartList();
+
+    Cart cart = new Cart(product1, order);
+    cart.setQty(1);
+    cartRepository.save(cart);
+    cartList.add(cart);
+    System.out.println("cartTest = " + cart);
+    System.out.println("cartListTest = " + cartList);
+    order.setCartList(cartList);
+    List<Cart> cartList1 = order.getCartList();
+    System.out.println("cartList1 = " + cartList1);
+
+    Coupon coupon = new Coupon();
+    coupon.setCouponStatus(CouponStatus.USED);
+    coupon.setName("500원");
+    coupon.setSerialNumber("ValidTestSerialNumber4");
+    coupon.setDeductedPrice(500);
+    coupon.setExpiredDate(LocalDate.now().plusDays(7));
+    System.out.println("couponTest = " + coupon);
+    couponRepository.save(coupon);
+
+
+    PointUseHistory findUsePoint = pointUseHistoryRepository.findByOrderId(order.getId()).get();
+    System.out.println("findUsePointTest = " + findUsePoint);
+    PointSaveHistory findSavePoint = pointSaveHistoryRepository.findByOrderId(order.getId()).get();
+    System.out.println("findSavePointTest = " + findSavePoint);
+
+    // 포인트 테스트
+    int beforePoint = user.getPoint();
+    System.out.println("beforePointTest = " + beforePoint);
+    int usePointAmount = findUsePoint.getAmount();
+    System.out.println("usePointAmountTest = " + usePointAmount);
+    int savePointAmount = findSavePoint.getAmount();
+    System.out.println("savePointAmountTest = " + savePointAmount);
+    int expectedResult = beforePoint + usePointAmount - savePointAmount;
+    System.out.println("expectedResult = " + expectedResult);
+
+    cartService.cancelOrder(order.getId(), userId);
+    int actualResult = user.getPoint();
+    System.out.println("actualResult = " + actualResult);
+
+    assertEquals(expectedResult, actualResult);
   }
 
   Long addOrder() {
@@ -258,15 +349,6 @@ public class CartServiceTest {
     assertEquals(9, savedOrder.getTotalQuantity());
     assertEquals(3, savedCarts.size());
 
-    // 이미 존재하는 상품이 있을 경우
-//    Cart savedCart1 = savedCarts.get(0);
-//    System.out.println("savedCart1 = " + savedCart1);
-//    assertEquals(6, savedCart1.getQty());
-
-//    int expectedStock1 = beforeStock1 - savedCart1.getQty();
-//    System.out.println("expectedStock1 = " + expectedStock1);
-//    assertEquals(expectedStock1, afterStock1);
-
     // 기존에 존재하지 않는 상품의 경우
     Cart savedCart2 = savedCarts.get(2);
     System.out.println("savedCart2 = " + savedCart2);
@@ -278,6 +360,5 @@ public class CartServiceTest {
     assertEquals(expectedStock2, actualStock2);
     return savedOrder.getId();
   }
-
 
 }
