@@ -1,7 +1,5 @@
 package com.ssg.webpos.dto.delivery;
 
-import com.ssg.webpos.domain.DeliveryAddress;
-import com.ssg.webpos.domain.PosStoreCompositeId;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
