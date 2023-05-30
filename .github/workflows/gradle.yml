@@ -57,10 +57,10 @@ jobs:
           SECRET_SMS_DIR_FILE_NAME: application-sms.yml
       run: echo $SECRET_SMS | base64 --decode > $SECRET_SMS_DIR/$SECRET_SMS_DIR_FILE_NAME
 
- #빌드 시작
-    - name: Build with Gradle
-      run: ./gradlew build
-      shell: bash 
+#  #빌드 시작
+#     - name: Build with Gradle
+#       run: ./gradlew build
+#       shell: bash 
       #프로젝트 zip파일로 압축
     - name: Make Zip File
       run: zip -qq -r ./$GITHUB_SHA.zip .
