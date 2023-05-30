@@ -1,0 +1,78 @@
+name: Java CI with Gradle
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+  # 해당 코드에서 사용될 변수 설정
+env:
+  PROJECT_NAME: webpos
+  BUCKET_NAME: webpos-bucket
+  CODE_DEPLOY_APP_NAME: github-action-deploy
+  DEPLOYMENT_GROUP_NAME: github-action-deploy-group
+  
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    - name: Build with Gradle
+      # uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
+      # with:
+      #  arguments: build
+      run : ./gradlew clean build --exclude-task test
+        
+      # jwt 정보 로딩
+    - name: Copy Secret DB
+      env:
+          SECRET_DB: ${{ secrets.SECRET_DB }}
+          SECRET_DB_DIR: src/main/resources
+          SECRET_DB_DIR_FILE_NAME: application-db.yml
+      run: echo $SECRET_DB | base64 --decode > $SECRET_DB_DIR/$SECRET_DB_DIR_FILE_NAME
+  
+    - name: Copy Secret Iamport
+      env:
+          SECRET_IAMPORT: ${{ secrets.SECRET_IAMPORT }}
+          SECRET_IAMPORT_DIR: src/main/resources
+          SECRET_IAMPORT_DIR_FILE_NAME: application-import.yml
+      run: echo $SECRET_IAMPORT | base64 --decode > $SECRET_IAMPORT_DIR/$SECRET_IAMPORT_DIR_FILE_NAME
+      
+    - name: Copy Secret Sms
+      env:
+          SECRET_SMS: ${{ secrets.SECRET_SMS }}
+          SECRET_SMS_DIR: src/main/resources
+          SECRET_SMS_DIR_FILE_NAME: application-sms.yml
+      run: echo $SECRET_SMS | base64 --decode > $SECRET_SMS_DIR/$SECRET_SMS_DIR_FILE_NAME
+
+#  #빌드 시작
+#     - name: Build with Gradle
+#       run: ./gradlew build
+#       shell: bash 
+      #프로젝트 zip파일로 압축
+    - name: Make Zip File
+      run: zip -qq -r ./$GITHUB_SHA.zip .
+      shell: bash
+      #aws 접근 id, key
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-northeast-2
+    - name: Upload to S3
+      run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.zip s3://$BUCKET_NAME/$PROJECT_NAME/$GITHUB_SHA.zip
+    - name: Code Deploy
+      run: aws deploy create-deployment --application-name $CODE_DEPLOY_APP_NAME --deployment-config-name CodeDeployDefault.OneAtATime --deployment-group-name $DEPLOYMENT_GROUP_NAME --s3-location bucket=$BUCKET_NAME,bundleType=zip,key=$PROJECT_NAME/$GITHUB_SHA.zip
