@@ -62,7 +62,7 @@ jobs:
       run: ./gradlew build
       shell: bash
         
-        #프로젝트 zip파일로 압축
+      #프로젝트 zip파일로 압축
     - name: Make Zip File
       run: zip -qq -r ./$GITHUB_SHA.zip .
       shell: bash
@@ -75,7 +75,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
       	
-     # s3에 압축한 zip파일 업로드
+        # s3에 압축한 zip파일 업로드
     - name: Upload to S3
       run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.zip s3://$BUCKET_NAME/$PROJECT_NAME/$GITHUB_SHA.zip
 		
