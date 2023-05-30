@@ -14,5 +14,7 @@ import java.util.List;
 public class GiftRequestDTO {
   private Long posId;
   private Long storeId;
-  private List<GiftDTO> giftRecipientInfo;
+  private String receiver;
+  private String phoneNumber;
+  private String sender;
 }

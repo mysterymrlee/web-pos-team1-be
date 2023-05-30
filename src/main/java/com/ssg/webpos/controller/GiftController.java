@@ -3,7 +3,6 @@ package com.ssg.webpos.controller;
 import com.ssg.webpos.domain.Delivery;
 import com.ssg.webpos.domain.enums.DeliveryStatus;
 import com.ssg.webpos.domain.enums.DeliveryType;
-import com.ssg.webpos.dto.gift.GiftDTO;
 import com.ssg.webpos.dto.gift.GiftRequestDTO;
 import com.ssg.webpos.repository.delivery.DeliveryRedisImplRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRepository;
@@ -28,13 +27,7 @@ public class GiftController {
 
   @PostMapping("/add")
   public ResponseEntity saveRedisGiftInfo(@RequestBody GiftRequestDTO giftRequestDTO) {
-    List<GiftDTO> giftInfoList = giftRequestDTO.getGiftRecipientInfo();
-    System.out.println("giftInfoList = " + giftInfoList);
-
-    for (GiftDTO giftDTO : giftInfoList) {
-      deliveryRedisImplRepository.saveGiftRecipientInfo(giftRequestDTO);
-      System.out.println("giftDTO = " + giftDTO);
-    }
+    deliveryRedisImplRepository.saveGiftRecipientInfo(giftRequestDTO);
     return new ResponseEntity(HttpStatus.CREATED);
   }
 
@@ -48,24 +41,27 @@ public class GiftController {
     }
   }
 
-  @PostMapping("/save")
+  // redis에서 가져와서 db에 저장
+  @PostMapping("/save-info")
   public ResponseEntity saveGiftInfo(@RequestBody GiftRequestDTO giftRequestDTO) {
-    GiftDTO giftRecipientInfo = giftRequestDTO.getGiftRecipientInfo().get(0);
-    Delivery delivery = new Delivery();
-    String receiver = giftRecipientInfo.getReceiver();
-    String phoneNumber = giftRecipientInfo.getPhoneNumber();
-    String sender = giftRecipientInfo.getSender();
+    Long storeId = giftRequestDTO.getStoreId();
+    Long posId = giftRequestDTO.getPosId();
+    String compositeId = storeId + "-" + posId;
+    List<Map<String, Object>> giftRecipientInfoList = deliveryRedisImplRepository.findGiftRecipientInfo(compositeId);
 
-    delivery.setUserName(receiver);
-    delivery.setPhoneNumber(phoneNumber);
-    delivery.setSender(sender);
-    delivery.setDeliveryType(DeliveryType.GIFT);
-    delivery.setDeliveryStatus(DeliveryStatus.COMPLETE_PAYMENT);
+    for(Map<String, Object>giftRecipient : giftRecipientInfoList) {
+      Delivery delivery = Delivery.builder()
+        .userName((String) giftRecipient.get("receiver"))
+        .phoneNumber((String) giftRecipient.get("phoneNumber"))
+        .sender((String) giftRecipient.get("sender"))
+        .deliveryType(DeliveryType.GIFT)
+        .deliveryStatus(DeliveryStatus.COMPLETE_PAYMENT)
+        .build();
+      System.out.println("delivery = " + delivery);
+      deliveryRepository.save(delivery);
+    }
 
-    System.out.println("delivery = " + delivery);
-    deliveryRepository.save(delivery);
-
-    return new ResponseEntity(HttpStatus.OK);
+    return new ResponseEntity(giftRecipientInfoList, HttpStatus.OK);
   }
 
 //  @PostMapping("/")
