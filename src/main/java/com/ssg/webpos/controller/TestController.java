@@ -2,11 +2,14 @@ package com.ssg.webpos.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.Mapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/api/v1/ping")
@@ -14,8 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class TestController {
   @GetMapping("")
-  public String test() {
+  public ResponseEntity test() {
     String pong = "pong";
-    return pong;
+    return new ResponseEntity(pong, HttpStatus.OK);
   }
 }
