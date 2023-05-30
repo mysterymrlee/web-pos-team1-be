@@ -18,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -112,6 +114,34 @@ public class BranchAdminStaffController {
                 stockReport.setSubmit(true);
             }
             return new ResponseEntity(HttpStatus.NO_CONTENT);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 기간별 재고 조회
+    @GetMapping("/stock-report-view/{storeId}/{startDate}/{endDate}")
+    @Transactional
+    public ResponseEntity stockReportAllByCreatedDateBetween(@PathVariable("storeId") String storeId, @PathVariable("startDate") String startDate, @PathVariable("endDate") String endDate) {
+        try {
+            Long id = Long.parseLong(storeId);
+            LocalDateTime end = LocalDateTime.parse(endDate);
+            LocalDateTime start = LocalDateTime.parse(startDate);
+            List<StockReport> stockReports = stockReportRepository.findByStoreIdAndCreatedDateBetween(id,start,end);
+            List<StoreIdStockReportResponseDTO> lists = new ArrayList<>();
+            // storeId로 받은 여러개의 stockReport
+            for (StockReport stockReport : stockReports) {
+                StoreIdStockReportResponseDTO DTO = new StoreIdStockReportResponseDTO();
+                DTO.setCurrentStock(stockReport.getCurrentStock());
+                DTO.setSubmit(stockReport.isSubmit()); // boolean은 get이 아닌 is 그대로 가져간다.
+                Product product = stockReport.getProduct();
+                DTO.setProductName(product.getName());
+                DTO.setProductSalePrice(product.getSalePrice());
+                DTO.setCategory(product.getCategory());
+                lists.add(DTO);
+            }
+            return new ResponseEntity<>(lists,HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
