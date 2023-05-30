@@ -12,8 +12,8 @@ permissions:
 env:
   PROJECT_NAME: webpos
   BUCKET_NAME: webpos-bucket
-  CODE_DEPLOY_APP_NAME: github-action-deploy
-  DEPLOYMENT_GROUP_NAME: github-action-deploy-group
+  CODE_DEPLOY_APP_NAME: webpos-code-deploy
+  DEPLOYMENT_GROUP_NAME: webpos-group
   
 jobs:
   build:
