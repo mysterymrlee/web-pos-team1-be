@@ -35,7 +35,7 @@ public class SettlementDay extends BaseTime {
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdDate;
-    private boolean isSubmited;
     private int totalOriginPrice;
     private int profit;
+    private int charge; // 수수료
 }

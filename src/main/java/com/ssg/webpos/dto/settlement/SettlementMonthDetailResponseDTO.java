@@ -17,7 +17,6 @@ public class SettlementMonthDetailResponseDTO {
     private int totalPrice;
     private int finalTotalPrice;
 
-
     //배송 상태
     private DeliveryType deliveryType;
     private DeliveryStatus deliveryStatus;
