@@ -27,7 +27,7 @@ public class DeliveryAddress extends BaseTime {
     private String name;
     private String requestInfo;
     private String postCode;
-    private boolean isDefault;
+    private byte isDefault; // 0: default 배송지 X, 1: default 배송지 O
     private String deliveryName;
 
     @ManyToOne(fetch = FetchType.LAZY)
