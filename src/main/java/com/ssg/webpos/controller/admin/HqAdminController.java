@@ -5,6 +5,7 @@ import com.ssg.webpos.dto.StockReportDTO;
 import com.ssg.webpos.dto.StoreListDTO;
 import com.ssg.webpos.dto.settlement.*;
 import com.ssg.webpos.dto.stock.AllStockReportResponseDTO;
+import com.ssg.webpos.dto.stock.StoreIdStockReportResponseDTO;
 import com.ssg.webpos.repository.StockReportRepository;
 import com.ssg.webpos.repository.store.StoreRepository;
 import com.ssg.webpos.service.SettlementDayService;
@@ -13,8 +14,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -319,6 +322,84 @@ public class HqAdminController {
                 storeListDTOs.add(storeListDTO);
             }
             return new ResponseEntity<>(storeListDTOs, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 전체 store_id 재고내역 조회(store_report 테이블 조회)
+    @GetMapping("/stock-report-view")
+    @Transactional
+    public ResponseEntity stockReportAll() {
+        try {
+            List<StockReport> stockReports = stockReportRepository.findAll();
+            List<StoreIdStockReportResponseDTO> lists = new ArrayList<>();
+            // storeId로 받은 여러개의 stockReport
+            for (StockReport stockReport : stockReports) {
+                StoreIdStockReportResponseDTO DTO = new StoreIdStockReportResponseDTO();
+                DTO.setCurrentStock(stockReport.getCurrentStock());
+                DTO.setSubmit(stockReport.isSubmit()); // boolean은 get이 아닌 is 그대로 가져간다.
+                Product product = stockReport.getProduct();
+                DTO.setProductName(product.getName());
+                DTO.setProductSalePrice(product.getSalePrice());
+                DTO.setCategory(product.getCategory());
+                lists.add(DTO);
+            }
+            return new ResponseEntity<>(lists,HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 재고 생성날짜별 전체 조회
+    @GetMapping("/stock-report-view/{createdDate}")
+    @Transactional
+    public ResponseEntity stockReportAllByCreatedDate(@PathVariable("createdDate") String createdDate) {
+        try {
+            LocalDateTime date = LocalDateTime.parse(createdDate);
+            List<StockReport> stockReports = stockReportRepository.findByCreatedDate(date);
+            List<StoreIdStockReportResponseDTO> lists = new ArrayList<>();
+            // storeId로 받은 여러개의 stockReport
+            for (StockReport stockReport : stockReports) {
+                StoreIdStockReportResponseDTO DTO = new StoreIdStockReportResponseDTO();
+                DTO.setCurrentStock(stockReport.getCurrentStock());
+                DTO.setSubmit(stockReport.isSubmit()); // boolean은 get이 아닌 is 그대로 가져간다.
+                Product product = stockReport.getProduct();
+                DTO.setProductName(product.getName());
+                DTO.setProductSalePrice(product.getSalePrice());
+                DTO.setCategory(product.getCategory());
+                lists.add(DTO);
+            }
+            return new ResponseEntity<>(lists,HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 재고 생성날짜 기간별 전체 조회
+    @GetMapping("/stock-report-view/{startDate}/{endDate}")
+    @Transactional
+    public ResponseEntity stockReportAllByCreatedDateBetween(@PathVariable("startDate") String startDate, @PathVariable("endDate") String endDate) {
+        try {
+            LocalDateTime end = LocalDateTime.parse(endDate);
+            LocalDateTime start = LocalDateTime.parse(startDate);
+            List<StockReport> stockReports = stockReportRepository.findByCreatedDateBetween(start,end);
+            List<StoreIdStockReportResponseDTO> lists = new ArrayList<>();
+            // storeId로 받은 여러개의 stockReport
+            for (StockReport stockReport : stockReports) {
+                StoreIdStockReportResponseDTO DTO = new StoreIdStockReportResponseDTO();
+                DTO.setCurrentStock(stockReport.getCurrentStock());
+                DTO.setSubmit(stockReport.isSubmit()); // boolean은 get이 아닌 is 그대로 가져간다.
+                Product product = stockReport.getProduct();
+                DTO.setProductName(product.getName());
+                DTO.setProductSalePrice(product.getSalePrice());
+                DTO.setCategory(product.getCategory());
+                lists.add(DTO);
+            }
+            return new ResponseEntity<>(lists,HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
