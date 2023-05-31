@@ -1,6 +1,5 @@
 package com.ssg.webpos.dto.delivery;
 
-import com.ssg.webpos.domain.PosStoreCompositeId;
 import lombok.*;
 
 import java.io.Serializable;

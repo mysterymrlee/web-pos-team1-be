@@ -15,4 +15,7 @@ public interface DeliveryRedisRepository {
   void delete(String id);
   void deleteAll();
   List<String> findByUserId();
+  List<Map<String, Object>> findGiftRecipientInfo(String compositeId);
+  List<Map<String, Object>> findAddedDelivery(String compositeId);
+  List<Map<String, Object>> findSelectedDelivery(String compositeId);
 }

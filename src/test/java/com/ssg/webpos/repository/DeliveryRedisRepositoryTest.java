@@ -4,6 +4,8 @@ import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.dto.delivery.*;
 import com.ssg.webpos.dto.gift.GiftDTO;
 import com.ssg.webpos.dto.gift.GiftRequestDTO;
+import com.ssg.webpos.dto.point.PointDTO;
+import com.ssg.webpos.repository.cart.CartRedisImplRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRedisImplRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +21,8 @@ import java.util.Map;
 public class DeliveryRedisRepositoryTest {
   @Autowired
   DeliveryRedisImplRepository deliveryRedisImplRepository;
+  @Autowired
+  CartRedisImplRepository cartRedisImplRepository;
   @Test
   @DisplayName("redis에 저장된 배송지 목록 전체 조회")
   public void read() throws Exception {
@@ -33,23 +37,23 @@ public class DeliveryRedisRepositoryTest {
     posStoreCompositeId.setPos_id(1L);
     posStoreCompositeId.setStore_id(1L);
 
-    DeliveryRedisAddRequestDTO deliveryAddRequestDTO = new DeliveryRedisAddRequestDTO();
-    deliveryAddRequestDTO.setPosId(posStoreCompositeId.getPos_id());
-    deliveryAddRequestDTO.setStoreId(posStoreCompositeId.getStore_id());
-
-    List<DeliveryRedisAddDTO> deliveryAddList = new ArrayList<>();
-    DeliveryRedisAddDTO deliveryAddDTO = DeliveryRedisAddDTO.builder()
+    List<DeliveryRedisAddRequestDTO> deliveryAddList = new ArrayList<>();
+    DeliveryRedisAddRequestDTO deliveryRedisAddRequestDTO = DeliveryRedisAddRequestDTO.builder()
+        .posId(posStoreCompositeId.getPos_id())
+        .storeId(posStoreCompositeId.getStore_id())
         .deliveryName("집")
         .userName("김진아")
         .address("부산광역시 부산진구")
         .phoneNumber("01087654321")
         .requestDeliveryTime("14:00~16:00")
         .postCode("48060")
+        .isConfirmed((byte) 1)
         .build();
-    deliveryAddList.add(deliveryAddDTO);
-//    deliveryAddRequestDTO.setDeliveryAddList(deliveryAddList);
+    deliveryAddList.add(deliveryRedisAddRequestDTO);
+    System.out.println("deliveryAddDTO = " + deliveryRedisAddRequestDTO);
+    System.out.println("deliveryAddList = " + deliveryAddList);
 
-    deliveryRedisImplRepository.saveDelivery(deliveryAddRequestDTO);
+    deliveryRedisImplRepository.saveDelivery(deliveryRedisAddRequestDTO);
     Map<String, Map<String, List<Object>>> findDelivery = deliveryRedisImplRepository.findAll();
     System.out.println("findDelivery = " + findDelivery);
   }
@@ -61,22 +65,22 @@ public class DeliveryRedisRepositoryTest {
     posStoreCompositeId.setPos_id(1L);
     posStoreCompositeId.setStore_id(1L);
 
-    DeliveryListRedisSelectRequestDTO deliveryListRedisSelectRequestDTO = new DeliveryListRedisSelectRequestDTO();
-    deliveryListRedisSelectRequestDTO.setPosId(posStoreCompositeId.getPos_id());
-    deliveryListRedisSelectRequestDTO.setStoreId(posStoreCompositeId.getStore_id());
     //given
-    List<DeliveryListRedisSelectDTO> selectedDeliveryAddress = new ArrayList<>();
-    DeliveryListRedisSelectDTO deliveryListRedisSelectDTO = DeliveryListRedisSelectDTO.builder()
+    List<DeliveryListRedisSelectRequestDTO> selectedDeliveryAddress = new ArrayList<>();
+    DeliveryListRedisSelectRequestDTO deliveryListRedisSelectRequestDTO = DeliveryListRedisSelectRequestDTO.builder()
+        .posId(posStoreCompositeId.getPos_id())
+        .storeId(posStoreCompositeId.getStore_id())
         .deliveryName("집")
         .userName("김진아")
         .address("부산광역시 부산진구")
         .postCode("48119")
-        .isDefault(true)
+        .isDefault((byte) 1)
         .requestDeliveryTime("12:00~15:00")
         .requestInfo("문 앞에 놔두고 가세요.")
         .build();
-    selectedDeliveryAddress.add(deliveryListRedisSelectDTO);
-    deliveryListRedisSelectRequestDTO.setSelectedDeliveryAddress(selectedDeliveryAddress);
+    selectedDeliveryAddress.add(deliveryListRedisSelectRequestDTO);
+    System.out.println("deliveryListRedisSelectRequestDTO = " + deliveryListRedisSelectRequestDTO);
+    System.out.println("selectedDeliveryAddress = " + selectedDeliveryAddress);
     // when
     deliveryRedisImplRepository.saveSelectedDelivery(deliveryListRedisSelectRequestDTO);
 
@@ -91,22 +95,58 @@ public class DeliveryRedisRepositoryTest {
     posStoreCompositeId.setPos_id(1L);
     posStoreCompositeId.setStore_id(1L);
 
-    GiftRequestDTO giftRequestDTO = new GiftRequestDTO();
-    giftRequestDTO.setPosId(posStoreCompositeId.getPos_id());
-    giftRequestDTO.setStoreId(posStoreCompositeId.getStore_id());
-
-    List<GiftDTO> giftInfoList = new ArrayList<>();
-    GiftDTO giftDTO = new GiftDTO();
-    giftDTO.setReceiver("홍길순");
-    giftDTO.setPhoneNumber("01011112222");
-    giftDTO.setSender("김진아");
-    giftInfoList.add(giftDTO);
-
-    giftRequestDTO.setGiftRecipientInfo(giftInfoList);
-
+    List<GiftRequestDTO> giftInfoList = new ArrayList<>();
+    GiftRequestDTO giftRequestDTO = GiftRequestDTO.builder()
+        .posId(posStoreCompositeId.getPos_id())
+        .storeId(posStoreCompositeId.getStore_id())
+        .receiver("김진아")
+        .sender("홍길순")
+        .phoneNumber("01011113333")
+        .build();
+    System.out.println("giftRequestDTO = " + giftRequestDTO);
     deliveryRedisImplRepository.saveGiftRecipientInfo(giftRequestDTO);
     Map<String, Map<String, List<Object>>> findGiftInfo = deliveryRedisImplRepository.findAll();
     System.out.println("findGiftInfo = " + findGiftInfo);
+  }
+
+  @Test
+  @DisplayName("캐싱된 선물 받는 정보 가져오기")
+  void findGiftRecipientInfo() throws Exception {
+    GiftRequestDTO giftRequestDTO = GiftRequestDTO.builder()
+        .storeId(1L)
+        .posId(1L)
+        .phoneNumber("01011113333")
+        .receiver("김진아")
+        .sender("홍길동")
+        .build();
+    deliveryRedisImplRepository.saveGiftRecipientInfo(giftRequestDTO);
+    String compositeId = giftRequestDTO.getStoreId() + "-" + giftRequestDTO.getPosId();
+
+    Map<String, Map<String, List<Object>>> all = deliveryRedisImplRepository.findAll();
+    List<Map<String, Object>> giftRecipientInfo = deliveryRedisImplRepository.findGiftRecipientInfo(compositeId);
+    System.out.println("findGiftRecipientInfo = " + giftRecipientInfo.get(0));
+
+    System.out.println("all = " + all);
+  }
+
+  @Test
+  @DisplayName("캐싱된 추가된 배송지 정보 가져오기")
+  void findAddedDeliveryAddress() throws Exception {
+    DeliveryRedisAddRequestDTO deliveryRedisAddRequestDTO = DeliveryRedisAddRequestDTO.builder()
+        .storeId(1L)
+        .posId(1L)
+        .deliveryName("우리집")
+        .userName("김진아")
+        .phoneNumber("01011113333")
+        .address("부산광역시 남구")
+        .requestDeliveryTime("12:00~15:00")
+        .postCode("052508")
+        .build();
+    deliveryRedisImplRepository.saveDelivery(deliveryRedisAddRequestDTO);
+
+
+    List<Map<String, Object>> addedDeliveryAddress = deliveryRedisImplRepository.findAddedDelivery(deliveryRedisAddRequestDTO.getStoreId() + "-" + deliveryRedisAddRequestDTO.getPosId());
+    System.out.println("addedDeliveryAddress = " + addedDeliveryAddress.get(0));
   }
 
   @Test

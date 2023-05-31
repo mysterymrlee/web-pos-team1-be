@@ -5,7 +5,6 @@ import com.ssg.webpos.domain.enums.DeliveryType;
 import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.domain.enums.PayMethod;
 import com.ssg.webpos.dto.delivery.DeliveryAddDTO;
-import com.ssg.webpos.dto.delivery.DeliveryRedisAddDTO;
 import com.ssg.webpos.dto.delivery.DeliveryAddressDTO;
 import com.ssg.webpos.repository.UserRepository;
 import com.ssg.webpos.repository.delivery.DeliveryAddressRepository;
