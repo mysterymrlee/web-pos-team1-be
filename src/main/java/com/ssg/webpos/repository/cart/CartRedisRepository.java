@@ -20,7 +20,7 @@ public interface CartRedisRepository {
   Map<String, Map<String, List<Object>>>  findAll() throws Exception;
   Map<String, List<Object>> findById(String id);
 
-  List<String> findPhoneNumbersByCompositeId(String compositeId);
+  String findPhoneNumber(String compositeId);
   List<Map<String, Object>> findCartItems(String compositeId);
   Long findUserId(String compositeId);
   Long findCouponId(String compositeId);
