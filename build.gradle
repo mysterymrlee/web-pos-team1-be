@@ -6,7 +6,7 @@ plugins {
 
 }
 jacoco {
-	toolVersion = '0.8.4'
+	toolVersion = '0.8.5'
 }
 
 test {
@@ -20,7 +20,18 @@ jacocoTestReport {
 		csv.enabled true // csv 설정
 		xml.enabled false // xml 미설정
 	}
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: [
+					"com/ssg/webpos/dto/*",
+					"com/ssg/webpos/domain/*",
+					"com/ssg/webpos/exception/*",
+					"com/ssg/webpos/config/*"
+			])
+		}))
+	}
 	finalizedBy 'jacocoTestCoverageVerification'
+
 }
 jacocoTestCoverageVerification {
 	violationRules {
@@ -37,7 +48,7 @@ jacocoTestCoverageVerification {
 	}
 }
 group = 'com.ssg'
-version = '0.0.6-SNAPSHOT'
+version = '0.1.1-SNAPSHOT'
 sourceCompatibility = '11'
 
 configurations {

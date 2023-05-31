@@ -43,3 +43,18 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# Jacoco
+/jacoco
+
+# Jacoco report
+/build/reports/jacoco
+
+# Jacoco coverage files
+**/jacoco.exec
+**/*.exec
+**/*.ec
+**/*.exec.ser
+
+# Jacoco test resources
+**/jacocoTestResources
