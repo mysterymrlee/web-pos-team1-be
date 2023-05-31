@@ -1,9 +1,13 @@
 package com.ssg.webpos.domain;
 
 import lombok.*;
+import org.bouncycastle.asn1.cms.TimeStampAndCRL;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +32,8 @@ public class Product extends BaseTime {
   private String imageUrl;
   private String description;
   private String category;
+  private LocalDateTime sales_start_date;
+  private LocalDateTime sales_end_date;
   @NotNull
   @Column(columnDefinition = "integer default 0")
   private int stock;
