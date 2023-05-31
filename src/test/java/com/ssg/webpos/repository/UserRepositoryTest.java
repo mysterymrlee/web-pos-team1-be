@@ -1,6 +1,7 @@
 package com.ssg.webpos.repository;
 
 import com.ssg.webpos.domain.User;
+import com.ssg.webpos.domain.enums.RoleUser;
 import com.ssg.webpos.dto.point.PointDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,14 +19,23 @@ class UserRepositoryTest {
   @Autowired
   UserRepository userRepository;
 
-  @Transactional
   @Test
   void 전화번호일치() {
-    PointDTO phoneNumberDto = new PointDTO();
-    phoneNumberDto.setPhoneNumber("01022223333");
+    User user = new User();
+    user.setName("고경환");
+    user.setEmail("1111@naver.com");
+    user.setPhoneNumber("01033334444");
+    user.setPassword("1234");
+    user.setRole(RoleUser.NORMAL);
+    int currentPoint = 500;
+    user.setPoint(currentPoint);
+    userRepository.save(user);
+
+    PointDTO pointDTO = new PointDTO();
+    pointDTO.setPhoneNumber("01033334444");
 
     // when
-    Optional<User> findUser = userRepository.findByPhoneNumber(phoneNumberDto.getPhoneNumber());
+    Optional<User> findUser = userRepository.findByPhoneNumber(pointDTO.getPhoneNumber());
     System.out.println("findUser = " + findUser);
 
     // then
@@ -36,11 +46,21 @@ class UserRepositoryTest {
   @Test
   void 전화번호불일치() {
     //given
-    PointDTO phoneNumberDto = new PointDTO();
-    phoneNumberDto.setPhoneNumber("01011112226");
+    User user = new User();
+    user.setName("홍길동1");
+    user.setEmail("1111@naver.com");
+    user.setPhoneNumber("01033334444");
+    user.setPassword("1234");
+    user.setRole(RoleUser.NORMAL);
+    int currentPoint = 500;
+    user.setPoint(currentPoint);
+    userRepository.save(user);
+
+    PointDTO pointDTO = new PointDTO();
+    pointDTO.setPhoneNumber("01011112226");
 
     // when
-    Optional<User> findUser = userRepository.findByPhoneNumber(phoneNumberDto.getPhoneNumber());
+    Optional<User> findUser = userRepository.findByPhoneNumber(pointDTO.getPhoneNumber());
     System.out.println("findUser = " + findUser);
 
     // then

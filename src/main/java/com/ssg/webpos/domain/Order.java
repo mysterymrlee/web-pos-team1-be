@@ -113,6 +113,7 @@ public Order(OrderStatus orderStatus, PayMethod payMethod, int totalPrice) {
         this.profit = calculateProfit;
     }
     private int profit;
+    private int charge;
 
 }
 //Order order = new Order();

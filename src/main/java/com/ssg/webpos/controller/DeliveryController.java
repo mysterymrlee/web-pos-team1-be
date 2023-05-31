@@ -1,9 +1,14 @@
 package com.ssg.webpos.controller;
 
 import com.ssg.webpos.domain.Delivery;
+import com.ssg.webpos.domain.DeliveryAddress;
+import com.ssg.webpos.domain.User;
 import com.ssg.webpos.domain.enums.DeliveryStatus;
 import com.ssg.webpos.dto.delivery.DeliveryCheckResponseDTO;
 import com.ssg.webpos.dto.delivery.*;
+import com.ssg.webpos.repository.UserRepository;
+import com.ssg.webpos.repository.cart.CartRedisImplRepository;
+import com.ssg.webpos.repository.delivery.DeliveryAddressRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRedisRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRepository;
 import com.ssg.webpos.service.DeliveryService;
@@ -24,7 +29,13 @@ public class DeliveryController {
   @Autowired
   DeliveryRepository deliveryRepository;
   @Autowired
+  DeliveryAddressRepository deliveryAddressRepository;
+  @Autowired
   DeliveryRedisRepository deliveryRedisRepository;
+  @Autowired
+  CartRedisImplRepository cartRedisImplRepository;
+  @Autowired
+  UserRepository userRepository;
 
   @GetMapping("")
   public ResponseEntity getDeliveryInfo() {
@@ -39,12 +50,26 @@ public class DeliveryController {
 
   @PostMapping("/add")
   public ResponseEntity addDeliveryInfo(@RequestBody DeliveryRedisAddRequestDTO deliveryRedisAddRequestDTO) {
-    List<DeliveryRedisAddDTO> deliveryAddList = deliveryRedisAddRequestDTO.getDeliveryAddList();
-    System.out.println("deliveryAddList = " + deliveryAddList);
-
-    for (DeliveryRedisAddDTO deliveryRedisAddDTO : deliveryAddList) {
-      deliveryRedisRepository.saveDelivery(deliveryRedisAddRequestDTO);
-      System.out.println("deliveryRedisAddDTO = " + deliveryRedisAddDTO);
+    // 추가된 배송지 정보 redis 캐싱
+    deliveryRedisRepository.saveDelivery(deliveryRedisAddRequestDTO);
+    Long storeId = deliveryRedisAddRequestDTO.getStoreId();
+    Long posId = deliveryRedisAddRequestDTO.getPosId();
+    String compositeId = storeId + "-" + posId;
+    // userId 찾기
+    Long userId = cartRedisImplRepository.findUserId(compositeId);
+    User user = userRepository.findById(userId).get();
+    // 회원이면 추가한 배송지 정보 DB에 저장
+    if(userId != null && deliveryRedisAddRequestDTO.getIsConfirmed() == 1) {
+      DeliveryAddress deliveryAddress = DeliveryAddress.builder()
+          .deliveryName(deliveryRedisAddRequestDTO.getDeliveryName())
+          .phoneNumber(deliveryRedisAddRequestDTO.getPhoneNumber())
+          .name(deliveryRedisAddRequestDTO.getUserName())
+          .postCode(deliveryRedisAddRequestDTO.getPostCode())
+          .address(deliveryRedisAddRequestDTO.getAddress())
+          .user(user)
+          .build();
+      System.out.println("deliveryAddress = " + deliveryAddress);
+      deliveryAddressRepository.save(deliveryAddress);
     }
     return new ResponseEntity(HttpStatus.CREATED);
   }
@@ -62,13 +87,7 @@ public class DeliveryController {
 
   @PostMapping("/select-delivery")
   public ResponseEntity getSelectedDeliveryAddress(@RequestBody DeliveryListRedisSelectRequestDTO deliveryListRedisSelectRequestDTO) {
-    List<DeliveryListRedisSelectDTO> selectedDeliveryAddress = deliveryListRedisSelectRequestDTO.getSelectedDeliveryAddress();
-    System.out.println("selectedDeliveryAddress = " + selectedDeliveryAddress);
-
-    for (DeliveryListRedisSelectDTO deliveryListRedisSelectDTO : selectedDeliveryAddress) {
-      deliveryRedisRepository.saveSelectedDelivery(deliveryListRedisSelectRequestDTO);
-      System.out.println("deliveryListRedisSelectDTO = " + deliveryListRedisSelectDTO);
-    }
+    deliveryRedisRepository.saveSelectedDelivery(deliveryListRedisSelectRequestDTO);
     return new ResponseEntity(HttpStatus.CREATED);
   }
 

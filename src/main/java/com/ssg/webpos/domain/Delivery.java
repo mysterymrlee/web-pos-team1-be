@@ -48,6 +48,7 @@ public class Delivery extends BaseTime {
     private String userName;
     private String requestInfo;
     private String postCode;
+    private byte isConfirmed; // 배송정보 수집 이용 동의 체크 여부, 0: 체크 안함, 1: 체크함
 
     @OneToOne(mappedBy = "delivery")
     @JsonManagedReference
