@@ -123,7 +123,7 @@ public class PaymentsServiceTest {
     Long productId2 = 2L;
     int cartQty1 = 3;
     int cartQty2 = 5;
-    String phoneNumber = "010555555555";
+    String phoneNumber = "01012341234";
     User user = new User();
     user.setName("홍길동1");
     user.setEmail("1111@naver.com");
@@ -158,7 +158,7 @@ public class PaymentsServiceTest {
     Long productId2 = 2L;
     int cartQty1 = 3;
     int cartQty2 = 5;
-    String phoneNumber = "010555555555";
+    String phoneNumber = "01012341234";
 
     // 사용자 생성 및 포인트 초기화
     User user = new User();
@@ -170,12 +170,17 @@ public class PaymentsServiceTest {
     int currentPoint = 500;
     user.setPoint(currentPoint);
     userRepository.save(user);
+    int beforePoint = userRepository.findByPhoneNumber(phoneNumber).get().getPoint();
+    System.out.println("beforePoint = " + beforePoint);
 
     // 장바구니에 상품 추가
     saveRedisCart(productId1, productId2, cartQty1, cartQty2);
+    saveRedisPoint();
 
-    // 포인트 사용 요청
-    int useAmount = saveRedisPointUse(); // 20
+
+    // 포인트 사용
+    int useAmount = saveRedisPointUse();// 20
+    System.out.println("useAmount = " + useAmount);
 
     // 포인트 사용 후 포인트 적립
     processPayment();
@@ -228,7 +233,7 @@ public class PaymentsServiceTest {
     Coupon coupon = new Coupon();
     coupon.setCouponStatus(CouponStatus.NOT_USED);
     coupon.setName("500원");
-    coupon.setSerialNumber("ValidTestSerialNumber3");
+    coupon.setSerialNumber("ValidTestSerialNumber4");
     coupon.setDeductedPrice(500);
     coupon.setExpiredDate(LocalDate.now().plusDays(7));
     Coupon saveCoupon = couponRepository.save(coupon);
@@ -248,7 +253,7 @@ public class PaymentsServiceTest {
 
   private  void saveRedisPoint() {
     PointDTO pointDTO = new PointDTO();
-    pointDTO.setPhoneNumber("010555555555");
+    pointDTO.setPhoneNumber("01012341234");
     pointDTO.setPointMethod("phoneNumber");
     pointDTO.setStoreId(2L);
     pointDTO.setPosId(2L);

@@ -163,21 +163,17 @@ public class CartRedisImplRepository implements CartRedisRepository {
   }
 
   @Override
-  public List<String> findPhoneNumbersByCompositeId(String compositeId) {
-    List<String> phoneNumbers = new ArrayList<>();
+  public String findPhoneNumber(String compositeId) {
     Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
     if (posData != null) {
       List<Object> phoneNumberList = posData.get("phoneNumber");
       if (phoneNumberList != null && !phoneNumberList.isEmpty()) {
-        for (Object obj : phoneNumberList) {
-          String phoneNumber = (String) obj;
-          phoneNumbers.add(phoneNumber);
-        }
+        return (String) phoneNumberList.get(0);
       }
     }
-
-    return phoneNumbers;
+    return null;
   }
+
   @Override
   public List<Map<String, Object>> findCartItems(String compositeId) {
     Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
