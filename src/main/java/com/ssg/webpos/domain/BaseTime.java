@@ -19,4 +19,7 @@ public class BaseTime {
     private LocalDateTime createdDate;
     @LastModifiedDate
     private LocalDateTime lastModifiedDate;
+    public BaseTime() {
+        this.createdDate = LocalDateTime.now();
+    }
 }

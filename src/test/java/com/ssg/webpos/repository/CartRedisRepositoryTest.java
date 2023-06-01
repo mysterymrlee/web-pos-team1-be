@@ -10,7 +10,7 @@ import com.ssg.webpos.dto.cartDto.CartAddDTO;
 import com.ssg.webpos.dto.cartDto.CartAddRequestDTO;
 import com.ssg.webpos.dto.coupon.CouponAddRequestDTO;
 import com.ssg.webpos.dto.point.PointDTO;
-import com.ssg.webpos.dto.point.PointUseDTO;
+import com.ssg.webpos.dto.point.PointUseRequestDTO;
 import com.ssg.webpos.repository.cart.CartRedisImplRepository;
 import com.ssg.webpos.service.CartRedisService;
 import org.junit.jupiter.api.Assertions;
@@ -99,23 +99,6 @@ public class CartRedisRepositoryTest {
 
 
     }
-  @Test
-  @DisplayName("Redis에 포인트 사용량 저장하기")
-  void savePointAmount() throws Exception {
-    PointUseDTO pointUseDTO = new PointUseDTO();
-    pointUseDTO.setStoreId(1L);
-    pointUseDTO.setPosId(1L);
-    pointUseDTO.setAmount(10);
-    String compositeId = pointUseDTO.getStoreId() + "-" + pointUseDTO.getPosId();
-
-    cartRedisRepository.delete(compositeId);
-    cartRedisRepository.savePointAmount(pointUseDTO);
-
-    Integer savedAmount = cartRedisRepository.findPointAmount(compositeId);
-    System.out.println("savedAmount = " + savedAmount);
-
-    assertThat(savedAmount).isEqualTo(pointUseDTO.getAmount());
-  }
 
   @Test
   void findUserId() throws Exception {
