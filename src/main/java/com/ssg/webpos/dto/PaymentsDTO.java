@@ -22,5 +22,7 @@ public class PaymentsDTO {
   private String imp_uid;
   private String merchant_uid;
   private String pg;
+  private int charge;
+  private int pointAmount;
 
 }

@@ -7,8 +7,6 @@ import lombok.ToString;
 @Data
 @NoArgsConstructor
 @ToString
-public class PointUseDTO {
-  private Long posId;
-  private Long storeId;
-  private int amount;
+public class PointUseRequestDTO {
+  private Long userId;
 }

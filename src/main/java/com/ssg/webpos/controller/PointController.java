@@ -2,7 +2,8 @@ package com.ssg.webpos.controller;
 
 import com.ssg.webpos.dto.point.PointDTO;
 import com.ssg.webpos.dto.point.PointRequestDTO;
-import com.ssg.webpos.dto.point.PointUseDTO;
+import com.ssg.webpos.dto.point.PointUseRequestDTO;
+import com.ssg.webpos.dto.point.PointUseResponseDTO;
 import com.ssg.webpos.repository.cart.CartRedisRepository;
 import com.ssg.webpos.service.PointService;
 import com.ssg.webpos.service.UserService;
@@ -70,20 +71,13 @@ public class PointController {
   }
 
   @PostMapping("/use")
-  public ResponseEntity usePoint(@RequestBody @Valid PointUseDTO requestDTO, BindingResult bindingResult) throws Exception {
+  public ResponseEntity usePoint(@RequestBody @Valid PointUseRequestDTO requestDTO, BindingResult bindingResult) throws Exception {
     if (bindingResult.hasErrors()) {
       return new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
-    int amount = requestDTO.getAmount();
-    Long storeId = requestDTO.getStoreId();
-    Long posId = requestDTO.getPosId();
-    String compositeId = storeId + "-" + posId;
-    Long userId = cartRedisRepository.findUserId(compositeId);
-    if (userId != null) {
-      cartRedisRepository.savePointAmount(requestDTO);
-      return new ResponseEntity(HttpStatus.NO_CONTENT);
-    } else {
-      return new ResponseEntity("등록된 회원 없음",HttpStatus.NOT_FOUND);
+    Long userId = requestDTO.getUserId();
+    int pointAmount = pointService.getPointAmount(userId);
+    PointUseResponseDTO responseDTO = new PointUseResponseDTO(pointAmount);
+    return new ResponseEntity(responseDTO, HttpStatus.OK);
     }
   }
-}
