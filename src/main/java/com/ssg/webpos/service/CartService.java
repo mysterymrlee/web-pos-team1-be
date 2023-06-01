@@ -76,7 +76,6 @@ public class CartService {
     System.out.println("order = " + order);
     order.setOrderStatus(OrderStatus.SUCCESS);
     order.setPayMethod(PayMethod.CREDIT_CARD);
-    order.setTotalQuantity(orderDTO.getTotalQuantity());
     order.setPos(pos);
     List<Cart> cartList = order.getCartList();
     System.out.println("cartList = " + cartList);
@@ -123,18 +122,18 @@ public class CartService {
     User findUser = userRepository.findById(userId).get();
 
     // 사용한 포인트 반환
-    int currentPoint = findUser.getPoint();
+    int currentPoint = findUser.getPoint().getPointAmount();
     System.out.println("currentPoint = " + currentPoint);
 
     PointUseHistory findUsePoint = pointUseHistoryRepository.findByOrderId(orderId).orElseThrow(
         () -> new RuntimeException("주문 시 사용한 포인트 내역이 없습니다."));
-    int usePointAmount = findUsePoint.getAmount();
+    int usePointAmount = findUsePoint.getPointUseAmount();
     System.out.println("usePointAmount = " + usePointAmount);
 
     currentPoint += usePointAmount;
     System.out.println("currentPoint = " + currentPoint);
 
-    findUser.setPoint(currentPoint);
+//    findUser.setPoint();
     userRepository.save(findUser);
     findUsePoint.setPointStatus((byte) 1);
     pointUseHistoryRepository.save(findUsePoint);
@@ -145,13 +144,13 @@ public class CartService {
     // 적립 포인트 취소
     PointSaveHistory findSavePoint = pointSaveHistoryRepository.findByOrderId(orderId).orElseThrow(
         () -> new RuntimeException("주문 시 적립한 포인트 내역이 없습니다."));
-    int savePointAmount = findSavePoint.getAmount();
+    int savePointAmount = findSavePoint.getPointSaveAmount();
     System.out.println("savePointAmount = " + savePointAmount);
 
     currentPoint -= savePointAmount;
     System.out.println("currentPoint = " + currentPoint);
 
-    findUser.setPoint(currentPoint);
+//    findUser.setPoint(currentPoint);
     userRepository.save(findUser);
     findSavePoint.setPointStatus((byte) 1);
     pointSaveHistoryRepository.save(findSavePoint);

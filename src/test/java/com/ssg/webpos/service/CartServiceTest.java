@@ -141,7 +141,6 @@ public class CartServiceTest {
       System.out.println("cart = " + cart);
     }
     System.out.println("savedCarts = " + savedCarts);
-    assertEquals(9, savedOrder.getTotalQuantity());
     assertEquals(3, savedCarts.size());
 
     // 기존에 존재하지 않는 상품의 경우
@@ -209,19 +208,18 @@ public class CartServiceTest {
     Order order = Order.builder()
         .orderStatus(OrderStatus.SUCCESS)
         .payMethod(PayMethod.CREDIT_CARD)
-        .totalQuantity(3)
         .build();
     orderRepository.save(order);
     System.out.println("orderTest = " + order);
 
     PointUseHistory pointUseHistory = new PointUseHistory();
-    pointUseHistory.setAmount(10);
+    pointUseHistory.setPointUseAmount(10);
     pointUseHistory.setOrder(order);
     pointUseHistoryRepository.save(pointUseHistory);
     System.out.println("pointUseHistoryTest = " + pointUseHistory);
 
     PointSaveHistory pointSaveHistory = new PointSaveHistory();
-    pointSaveHistory.setAmount(20);
+    pointSaveHistory.setPointSaveAmount(20);
     pointSaveHistory.setOrder(order);
     pointSaveHistoryRepository.save(pointSaveHistory);
     System.out.println("pointSaveHistoryTest = " + pointSaveHistory);
@@ -261,17 +259,17 @@ public class CartServiceTest {
     System.out.println("findSavePointTest = " + findSavePoint);
 
     // 포인트 테스트
-    int beforePoint = user.getPoint();
+    int beforePoint = user.getPoint().getPointAmount();
     System.out.println("beforePointTest = " + beforePoint);
-    int usePointAmount = findUsePoint.getAmount();
+    int usePointAmount = findUsePoint.getPointUseAmount();
     System.out.println("usePointAmountTest = " + usePointAmount);
-    int savePointAmount = findSavePoint.getAmount();
+    int savePointAmount = findSavePoint.getPointSaveAmount();
     System.out.println("savePointAmountTest = " + savePointAmount);
     int expectedResult = beforePoint + usePointAmount - savePointAmount;
     System.out.println("expectedResult = " + expectedResult);
 
     cartService.cancelOrder(order.getId(), userId);
-    int actualResult = user.getPoint();
+    int actualResult = user.getPoint().getPointAmount();
     System.out.println("actualResult = " + actualResult);
 
     assertEquals(expectedResult, actualResult);
@@ -346,7 +344,6 @@ public class CartServiceTest {
       System.out.println("cart = " + cart);
     }
     System.out.println("savedCarts = " + savedCarts);
-    assertEquals(9, savedOrder.getTotalQuantity());
     assertEquals(3, savedCarts.size());
 
     // 기존에 존재하지 않는 상품의 경우

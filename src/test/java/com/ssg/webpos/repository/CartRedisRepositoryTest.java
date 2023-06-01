@@ -1,6 +1,7 @@
 package com.ssg.webpos.repository;
 
 import com.ssg.webpos.domain.Coupon;
+import com.ssg.webpos.domain.Point;
 import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.domain.User;
 import com.ssg.webpos.domain.enums.CouponStatus;
@@ -79,8 +80,10 @@ public class CartRedisRepositoryTest {
       user.setPhoneNumber("01011113333");
       user.setPassword("1234");
       user.setRole(RoleUser.NORMAL);
-      int currentPoint = 500;
-      user.setPoint(currentPoint);
+
+      Point point = new Point();
+      point.setPointAmount(500);
+      user.setPoint(point);
       userRepository.save(user);
 
       PointDTO pointDTO = new PointDTO();
@@ -122,8 +125,9 @@ public class CartRedisRepositoryTest {
     user.setPhoneNumber("01011113333");
     user.setPassword("1234");
     user.setRole(RoleUser.NORMAL);
-    int currentPoint = 500;
-    user.setPoint(currentPoint);
+    Point point = new Point();
+    point.setPointAmount(500);
+    user.setPoint(point);
     userRepository.save(user);
 
     PointDTO pointDTO = new PointDTO();
