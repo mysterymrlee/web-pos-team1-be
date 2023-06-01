@@ -3,12 +3,14 @@ package com.ssg.webpos.service;
 import com.ssg.webpos.domain.*;
 import com.ssg.webpos.domain.enums.RoleUser;
 import com.ssg.webpos.dto.point.PointUseDTO;
+import com.ssg.webpos.repository.PointRepository;
 import com.ssg.webpos.repository.PointUseHistoryRepository;
 import com.ssg.webpos.repository.UserRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Rollback;
 
 import javax.transaction.Transactional;
 
@@ -24,32 +26,36 @@ class PointUseHistoryServiceTest {
   OrderRepository orderRepository;
   @Autowired
   UserRepository userRepository;
+  @Autowired
+  PointRepository pointRepository;
 
   @Test
-  void savePointHistory() {
+  void savePointUseHistory() {
     // Given
     User user = new User();
-    user.setPoint(2000);
     user.setName("하경");
     user.setRole(RoleUser.NORMAL);
     user.setPassword("1111");
     user.setEmail("yhk@naver.com");
     user.setPhoneNumber("01011111111");
-    userRepository.save(user);
 
     PointUseDTO pointUseDTO = new PointUseDTO();
     pointUseDTO.setAmount(100);
 
+    Point point = new Point();
+    point.setPointAmount(pointUseDTO.getAmount());
+    user.setPoint(point);
+    userRepository.save(user);
     // When
-    PointUseHistory pointHistory = new PointUseHistory();
-    pointHistory.setAmount(pointUseDTO.getAmount());
-    pointHistory.setUser(user);
-    pointUseHistoryService.savePointUseHistory(pointHistory);
+    PointUseHistory pointUseHistory = new PointUseHistory();
+    pointUseHistory.setPointUseAmount(pointUseDTO.getAmount());
+    pointUseHistory.setPoint(point);
+    pointUseHistoryService.savePointUseHistory(pointUseHistory);
 
     // Then
-    PointUseHistory savedPointHistory = pointUseHistoryRepository.findById(pointHistory.getId()).orElse(null);
+    PointUseHistory savedPointHistory = pointUseHistoryRepository.findById(pointUseHistory.getId()).orElse(null);
+    System.out.println("savedPointHistory = " + savedPointHistory);
     assertNotNull(savedPointHistory);
-    assertEquals(pointHistory.getAmount(), savedPointHistory.getAmount());
-    assertEquals(user.getId(), savedPointHistory.getUser().getId());
+    assertEquals(pointUseHistory.getPointUseAmount(), savedPointHistory.getPointUseAmount());
   }
 }

@@ -4,6 +4,8 @@ import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
+
 @Entity
 @Getter
 @Setter
@@ -17,22 +19,19 @@ public class PointSaveHistory extends BaseTime {
   @Column(name = "point_save_history_id")
   private Long id;
 
-  public PointSaveHistory(int amount, User user, Order order) {
-    this.amount = amount;
-    this.user = user;
-    this.order = order;
-  }
-
-  @NotNull
-  private int amount;
-
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id")
-  private User user;
-
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "order_id")
   private Order order;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "point_id")
+  private Point point;
   private byte pointStatus; // 0: 적립, 1: 취소
+  private int pointSaveAmount;
+  private LocalDate expiredDate;
+
+  public PointSaveHistory(int pointSaveAmount, Order order) {
+    this.pointSaveAmount = pointSaveAmount;
+    this.order = order;
+  }
 }

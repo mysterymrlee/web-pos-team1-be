@@ -46,7 +46,6 @@ class DeliveryServiceTest {
     Order order = Order.builder()
         .orderStatus(OrderStatus.SUCCESS)
         .payMethod(PayMethod.CREDIT_CARD)
-        .totalQuantity(4)
         .orderDate(LocalDateTime.now())
         .build();
     Order savedOrder = orderRepository.save(order);
