@@ -1,5 +1,6 @@
 package com.ssg.webpos.service;
 
+import com.ssg.webpos.domain.Point;
 import com.ssg.webpos.domain.User;
 import com.ssg.webpos.domain.enums.RoleUser;
 import com.ssg.webpos.dto.point.PointDTO;
@@ -34,7 +35,9 @@ class PointServiceTest {
     user.setPhoneNumber(phoneNumber);
     user.setPassword("1234");
     user.setRole(RoleUser.NORMAL);
-    user.setPoint(100);
+    Point point = new Point();
+    point.setPointAmount(500);
+    user.setPoint(point);
     userRepository.save(user);
 
 
@@ -54,12 +57,14 @@ class PointServiceTest {
     // Given
     User user = new User();
     user.setId(1L);
-    user.setPoint(2000);
     user.setName("하경");
     user.setRole(RoleUser.NORMAL);
     user.setPassword("1111");
     user.setEmail("yhk@naver.com");
     user.setPhoneNumber("01011111111");
+    Point point = new Point();
+    point.setPointAmount(500);
+    user.setPoint(point);
     userRepository.save(user);
 
     PointDTO pointDTO = new PointDTO();
@@ -77,7 +82,7 @@ class PointServiceTest {
 
     // Then
     User updatedUser = userRepository.findById(userId).get();
-    assertEquals(user.getPoint() - deductedAmount, updatedUser.getPoint());
+    assertEquals(user.getPoint().getPointAmount() - deductedAmount, updatedUser.getPoint());
   }
   @Test
   @DisplayName("포인트 차감 실패: 포인트 부족")
@@ -88,7 +93,9 @@ class PointServiceTest {
 
     User user = new User();
     user.setId(userId);
-    user.setPoint(50);
+    Point point = new Point();
+    point.setPointAmount(500);
+    user.setPoint(point);
     userRepository.save(user);
 
     try {

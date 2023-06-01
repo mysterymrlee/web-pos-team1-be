@@ -33,13 +33,10 @@ public class User extends BaseTime {
     @NotNull
     @Enumerated(EnumType.STRING)
     private RoleUser role;
-    @Column(columnDefinition = "integer default 0")
-    private int point;
 
-    @OneToMany(mappedBy = "user")
-    private List<PointUseHistory> pointUseHistoryList = new ArrayList<>();
-    @OneToMany(mappedBy = "user")
-    private List<PointSaveHistory> pointSaveHistoryList = new ArrayList<>();
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "point_id")
+    private Point point;
 
     @OneToMany(mappedBy = "user")
     private List<DeliveryAddress> deliveryAddressList = new ArrayList<>();

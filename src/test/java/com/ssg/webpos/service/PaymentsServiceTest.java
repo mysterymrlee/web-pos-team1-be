@@ -130,9 +130,13 @@ public class PaymentsServiceTest {
     user.setPhoneNumber(phoneNumber);
     user.setPassword("1234");
     user.setRole(RoleUser.NORMAL);
-    user.setPoint(100);
+
+    Point point = new Point();
+    point.setPointAmount(500);
+    user.setPoint(point);
     userRepository.save(user);
-    int beforePoint = userRepository.findByPhoneNumber(phoneNumber).get().getPoint();
+
+    int beforePoint = userRepository.findByPhoneNumber(phoneNumber).get().getPoint().getPointAmount();
     System.out.println("beforePoint = " + beforePoint);
 
     saveRedisCart(productId1, productId2, cartQty1, cartQty2);
@@ -142,7 +146,7 @@ public class PaymentsServiceTest {
 
     processPayment();
 
-    int afterPoint = userRepository.findByPhoneNumber(phoneNumber).get().getPoint();
+    int afterPoint = userRepository.findByPhoneNumber(phoneNumber).get().getPoint().getPointAmount();
     System.out.println("afterPoint = " + afterPoint);
 
     // 포인트 적립 여부 확인
@@ -167,10 +171,12 @@ public class PaymentsServiceTest {
     user.setPhoneNumber(phoneNumber);
     user.setPassword("1234");
     user.setRole(RoleUser.NORMAL);
-    int currentPoint = 500;
-    user.setPoint(currentPoint);
+    Point point = new Point();
+    point.setPointAmount(500);
+    user.setPoint(point);
     userRepository.save(user);
-    int beforePoint = userRepository.findByPhoneNumber(phoneNumber).get().getPoint();
+
+    int beforePoint = userRepository.findByPhoneNumber(phoneNumber).get().getPoint().getPointAmount();
     System.out.println("beforePoint = " + beforePoint);
 
     // 장바구니에 상품 추가
@@ -187,10 +193,10 @@ public class PaymentsServiceTest {
     System.out.println("user.getId() = " + user.getId());
 
     // 사용자 포인트 확인
-    int afterPoint = userRepository.findByPhoneNumber(phoneNumber).get().getPoint();
+    int afterPoint = userRepository.findByPhoneNumber(phoneNumber).get().getPoint().getPointAmount();
     System.out.println("afterPoint = " + afterPoint);
 
-    int expectedPoint = currentPoint - useAmount + 10; // 초기 포인트 - 사용 포인트 + 적립 포인트 = 500 - 20 + 10
+    int expectedPoint = 500 - useAmount + 10; // 초기 포인트 - 사용 포인트 + 적립 포인트 = 500 - 20 + 10
     System.out.println("expectedPoint = " + expectedPoint);
     assertEquals(expectedPoint, afterPoint);
   }

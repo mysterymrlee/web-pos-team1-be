@@ -43,10 +43,10 @@ public class Order extends BaseTime {
     private PayMethod payMethod;
     private int totalPrice;
     private String orderName;
-    @NotNull
-    private int totalQuantity; // 총 주문 수량
     private int couponUsePrice; // 쿠폰 사용 금액
+    private int pointUsePrice; // 포인트 사용 금액
     private int finalTotalPrice;
+    private int charge;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -113,7 +113,6 @@ public Order(OrderStatus orderStatus, PayMethod payMethod, int totalPrice) {
         this.profit = calculateProfit;
     }
     private int profit;
-    private int charge;
 
 }
 //Order order = new Order();

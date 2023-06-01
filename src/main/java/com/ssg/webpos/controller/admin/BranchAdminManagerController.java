@@ -325,7 +325,7 @@ public class BranchAdminManagerController {
         orderDetailResponseDTO.setCouponUsePrice(order.getCouponUsePrice());
         // 포인트 정보 가져오기 시작
         Optional<PointUseHistory> pointUseHistory = pointUseHistoryRepository.findByOrderId(orderId);
-        orderDetailResponseDTO.setPointUsePrice(pointUseHistory.get().getAmount());
+        orderDetailResponseDTO.setPointUsePrice(pointUseHistory.get().getPointUseAmount());
         // 포인트 정보 가져오기 종료
         orderDetailResponseDTO.setFinalTotalPrice(order.getFinalTotalPrice());
         List<OrderDetailProductResponseDTOList> orderDetailProductResponseDTOLists = new ArrayList<>();

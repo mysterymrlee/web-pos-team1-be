@@ -50,7 +50,7 @@ public class SmsController {
   public Order makeGiftOrder() {
     Order order = Order.builder()
         .orderStatus(OrderStatus.SUCCESS)
-        .totalQuantity(1)
+//        .totalQuantity(1)
         .orderName("제스프리 골드키위/봉 (200g내외)")
         .orderDate(LocalDateTime.now())
         .build();

@@ -16,7 +16,7 @@ public class PointUseHistoryRepositoryTest {
     @Test
     void contextVoid() {
         Optional<PointUseHistory> p =pointUseHistoryRepository.findByOrderId(89L);
-        int t = p.get().getAmount();
+        int t = p.get().getPointUseAmount();
         System.out.println(t);
     }
 
