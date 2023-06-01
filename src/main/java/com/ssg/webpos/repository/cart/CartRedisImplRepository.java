@@ -1,11 +1,9 @@
 package com.ssg.webpos.repository.cart;
 
-import com.ssg.webpos.dto.*;
 import com.ssg.webpos.dto.cartDto.CartAddDTO;
 import com.ssg.webpos.dto.cartDto.CartAddRequestDTO;
 import com.ssg.webpos.dto.coupon.CouponAddRequestDTO;
 import com.ssg.webpos.dto.point.PointDTO;
-import com.ssg.webpos.dto.point.PointUseDTO;
 import com.ssg.webpos.repository.CouponRepository;
 import com.ssg.webpos.repository.UserRepository;
 import com.ssg.webpos.repository.product.ProductRepository;
@@ -101,21 +99,6 @@ public class CartRedisImplRepository implements CartRedisRepository {
   }
 
 
-  @Override
-  public void savePointAmount(PointUseDTO pointUseDTO) {
-    String posId = String.valueOf(pointUseDTO.getPosId());
-    String storeId = String.valueOf(pointUseDTO.getStoreId());
-    int amount = pointUseDTO.getAmount();
-    String compositeId = storeId + "-" + posId;
-
-    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
-    if (posData == null) {
-      posData = new HashMap<>();
-      hashOperations.put("CART", compositeId, posData);
-    }
-    posData.put("amount", Collections.singletonList(amount));
-    hashOperations.put("CART", compositeId, posData);
-  }
 
   @Override
   public void saveCoupon(CouponAddRequestDTO couponAddRequestDTO) {
@@ -259,17 +242,6 @@ public class CartRedisImplRepository implements CartRedisRepository {
       List<Object> couponIdList = posData.get("couponId");
       if (couponIdList != null && !couponIdList.isEmpty()) {
         return (Long) couponIdList.get(0);
-      }
-    }
-    return null;
-  }
-  @Override
-  public Integer findPointAmount(String compositeId) {
-    Map<String, List<Object>> posData = (Map<String, List<Object>>) hashOperations.get("CART", compositeId);
-    if (posData != null) {
-      List<Object> amountList = posData.get("amount");
-      if (amountList != null && !amountList.isEmpty()) {
-        return (Integer) amountList.get(0);
       }
     }
     return null;

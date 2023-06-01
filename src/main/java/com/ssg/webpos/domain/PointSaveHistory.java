@@ -5,6 +5,7 @@ import lombok.*;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -28,10 +29,22 @@ public class PointSaveHistory extends BaseTime {
   private Point point;
   private byte pointStatus; // 0: 적립, 1: 취소
   private int pointSaveAmount;
-  private LocalDate expiredDate;
+  private LocalDateTime expiredDate;
 
-  public PointSaveHistory(int pointSaveAmount, Order order) {
+  public PointSaveHistory(int pointSaveAmount, Order order, Point point) {
+    super(); // BaseTime의 생성자 호출
     this.pointSaveAmount = pointSaveAmount;
     this.order = order;
+    this.point = point;
+    this.expiredDate = calculateExpirationDate();
+  }
+  // createDate + 24개월
+  private LocalDateTime calculateExpirationDate() {
+    return getCreatedDate().plusMonths(24);
+  }
+
+  public boolean isExpired() {
+    LocalDateTime currentDate = LocalDateTime.now();
+    return currentDate.isAfter(expiredDate);
   }
 }

@@ -1,6 +1,7 @@
 package com.ssg.webpos.domain;
 
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -18,8 +19,9 @@ public class Point extends BaseTime {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "point_id")
   private Long id;
+  @ColumnDefault("0")
   private int pointAmount;
-  @OneToOne
+  @OneToOne(mappedBy = "point")
   private User user;
   @OneToMany(mappedBy = "point")
   private List<PointUseHistory> pointUseHistoryList = new ArrayList<>();

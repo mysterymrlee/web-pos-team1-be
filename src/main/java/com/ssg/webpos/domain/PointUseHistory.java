@@ -1,5 +1,6 @@
 package com.ssg.webpos.domain;
 
+import com.ssg.webpos.repository.PointRepository;
 import lombok.*;
 
 import javax.persistence.*;
@@ -28,9 +29,11 @@ public class PointUseHistory extends BaseTime {
     private byte pointStatus; // 0: 적립, 1: 취소
     private int pointUseAmount;
 
-    public PointUseHistory(int pointUseAmount, Order order) {
+    public PointUseHistory(int pointUseAmount, Order order, Point point) {
         this.pointUseAmount = pointUseAmount;
         this.order = order;
         this.point = point;
     }
+
+
 }

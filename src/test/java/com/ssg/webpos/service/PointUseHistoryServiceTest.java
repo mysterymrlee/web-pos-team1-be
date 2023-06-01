@@ -2,7 +2,7 @@ package com.ssg.webpos.service;
 
 import com.ssg.webpos.domain.*;
 import com.ssg.webpos.domain.enums.RoleUser;
-import com.ssg.webpos.dto.point.PointUseDTO;
+import com.ssg.webpos.dto.point.PointUseRequestDTO;
 import com.ssg.webpos.repository.PointRepository;
 import com.ssg.webpos.repository.PointUseHistoryRepository;
 import com.ssg.webpos.repository.UserRepository;
@@ -10,7 +10,6 @@ import com.ssg.webpos.repository.order.OrderRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 
 import javax.transaction.Transactional;
 
@@ -39,16 +38,13 @@ class PointUseHistoryServiceTest {
     user.setEmail("yhk@naver.com");
     user.setPhoneNumber("01011111111");
 
-    PointUseDTO pointUseDTO = new PointUseDTO();
-    pointUseDTO.setAmount(100);
-
     Point point = new Point();
-    point.setPointAmount(pointUseDTO.getAmount());
+    point.setPointAmount(1000);
     user.setPoint(point);
     userRepository.save(user);
     // When
     PointUseHistory pointUseHistory = new PointUseHistory();
-    pointUseHistory.setPointUseAmount(pointUseDTO.getAmount());
+    pointUseHistory.setPointUseAmount(point.getPointAmount());
     pointUseHistory.setPoint(point);
     pointUseHistoryService.savePointUseHistory(pointUseHistory);
 
