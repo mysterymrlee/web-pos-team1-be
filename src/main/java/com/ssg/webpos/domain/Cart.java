@@ -10,7 +10,7 @@ import javax.persistence.*;
 @Table(name = "cart")
 @AllArgsConstructor
 @NoArgsConstructor
-public class Cart extends BaseTime {
+    public class Cart extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "cart_id")

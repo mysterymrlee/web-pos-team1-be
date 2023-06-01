@@ -1,5 +1,6 @@
 package com.ssg.webpos.repository;
 
+import com.ssg.webpos.domain.Point;
 import com.ssg.webpos.domain.User;
 import com.ssg.webpos.domain.enums.RoleUser;
 import com.ssg.webpos.dto.point.PointDTO;
@@ -27,8 +28,9 @@ class UserRepositoryTest {
     user.setPhoneNumber("01033334444");
     user.setPassword("1234");
     user.setRole(RoleUser.NORMAL);
-    int currentPoint = 500;
-    user.setPoint(currentPoint);
+    Point point = new Point();
+    point.setPointAmount(500);
+    user.setPoint(point);
     userRepository.save(user);
 
     PointDTO pointDTO = new PointDTO();
@@ -52,8 +54,9 @@ class UserRepositoryTest {
     user.setPhoneNumber("01033334444");
     user.setPassword("1234");
     user.setRole(RoleUser.NORMAL);
-    int currentPoint = 500;
-    user.setPoint(currentPoint);
+    Point point = new Point();
+    point.setPointAmount(500);
+    user.setPoint(point);
     userRepository.save(user);
 
     PointDTO pointDTO = new PointDTO();
