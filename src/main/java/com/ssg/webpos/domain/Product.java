@@ -65,4 +65,6 @@ public class Product extends BaseTime {
   }
   private int originPrice;
 
+  private byte saleState; // 0은 판매중지 1은 판매중
+
 }

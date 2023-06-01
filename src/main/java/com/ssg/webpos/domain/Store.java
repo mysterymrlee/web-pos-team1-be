@@ -27,7 +27,7 @@ public class Store extends BaseTime {
     private String description;
     private String telNumber;
     @NotNull
-    private int postCode;
+    private String postCode;
     @NotNull
     private String address;
 

@@ -60,6 +60,7 @@ public class PaymentsService {
       String impUid = paymentsDTO.getImp_uid();
       String merchantUid = paymentsDTO.getMerchant_uid();
       BigDecimal finalTotalPrice = paymentsDTO.getPaid_amount();
+      int charge = paymentsDTO.getCharge();
       System.out.println("finalTotalPrice = " + finalTotalPrice);
       System.out.println("name = " + name);
       System.out.println("merchantUid = " + merchantUid);
@@ -85,7 +86,7 @@ public class PaymentsService {
       Integer totalOriginPrice = cartRedisRepository.findTotalOriginPrice(compositeId);
       String orderName = cartRedisRepository.findOrderName(compositeId);
       // createOrder
-      order = createOrder(paymentsDTO, compositeId, user, pos, finalTotalPrice, totalPrice, totalOriginPrice, orderName);
+      order = createOrder(paymentsDTO, compositeId, user, pos, finalTotalPrice, totalPrice, totalOriginPrice, orderName, charge);
       System.out.println("orderName = " + orderName);
       System.out.println("totalOriginPrice = " + totalOriginPrice);
 
@@ -110,39 +111,40 @@ public class PaymentsService {
       Long findUserId = cartRedisRepository.findUserId(compositeId);
       if (findUserId != null) {
         // Deduct points
-        Integer pointUseAmount = cartRedisRepository.findPointAmount(compositeId);
+        Integer pointUseAmount = paymentsDTO.getPointAmount();
+        // Save PointSaveHistory
+
+        int pointSaveAmount = pointService.updatePoint(findUserId, finalTotalPrice.intValue()); // 100
+        Point point = pointRepository.findByUserId(userId).get();
+        PointSaveHistory pointSaveHistory = new PointSaveHistory(pointSaveAmount, order, point);
+        pointSaveHistoryService.savePointSaveHistory(pointSaveHistory);
+        pointSaveHistoryService.deleteExpiredPoints();
+
 
         if (pointUseAmount != null) {
-          pointService.deductPoints(userId, pointUseAmount);
-          PointUseHistory pointUseHistory = new PointUseHistory(pointUseAmount, order);
+          pointService.deductPoints(userId, pointUseAmount); // 포인트 사용 시 point 테이블 pointAmount 업데이트
+          PointUseHistory pointUseHistory = new PointUseHistory(pointUseAmount, order, point);
           pointUseHistoryService.savePointUseHistory(pointUseHistory);
+          order.setPointUsePrice(pointUseAmount);
 
         }
 
-        // Save PointSaveHistory
-        int pointSaveAmount = pointService.updatePoint(findUserId, finalTotalPrice.intValue());
-        PointSaveHistory pointSaveHistory = new PointSaveHistory(pointSaveAmount, order);
-        pointSaveHistoryService.savePointSaveHistory(pointSaveHistory);
 
-        int pointAmount = pointRepository.findByUserId(findUserId).get().getPointAmount();
-        int updatePointAmount = pointAmount - pointUseAmount + pointSaveAmount;
-        Point point = new Point();
-        point.setPointAmount(updatePointAmount);
-        pointRepository.save(point);
+
       }
 
-      cartRedisRepository.delete(compositeId);
+//      cartRedisRepository.delete(compositeId);
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
 
   private Order createOrder(PaymentsDTO paymentsDTO, String compositeId, User user, Pos pos,
-                            BigDecimal finalTotalPrice, Integer totalPrice, Integer totalOriginPrice, String OrderName) {
+                            BigDecimal finalTotalPrice, Integer totalPrice, Integer totalOriginPrice, String OrderName, Integer charge) {
     Order order = new Order();
     order.setOrderDate(LocalDateTime.now());
     List<Order> orderList = orderRepository.findAll();
-    String serialNumber = generateSerialNumber(orderList);
+    String serialNumber = generateSerialNumber(orderList, paymentsDTO.getStoreId(),paymentsDTO.getPosId());
     order.setSerialNumber(serialNumber);
     order.setPos(pos);
     order.setUser(user);
@@ -151,6 +153,7 @@ public class PaymentsService {
     order.calcProfit(finalTotalPrice.intValue(), totalOriginPrice);
     order.setTotalOriginPrice(totalOriginPrice);
     order.setOrderName(OrderName);
+    order.setCharge(charge);
     pos.getOrderList().add(order);
     System.out.println("pos.getOrderList() = " + pos.getOrderList());
 
@@ -170,7 +173,6 @@ public class PaymentsService {
       System.out.println("paymentdeductedPrice = " + deductedPrice);
       if (deductedPrice != null) {
         order.setCouponUsePrice(deductedPrice);
-        ;
         Long couponId = cartRedisRepository.findCouponId(compositeId);
         Coupon coupon = couponService.updateCouponStatusToUsed(couponId);
         coupon.setOrder(order);
@@ -183,12 +185,12 @@ public class PaymentsService {
       return order;
     }
 
-
-    private String generateSerialNumber (List < Order > orderList) {
+    // 20230530+ 01 + 01 + 0001
+    private String generateSerialNumber (List < Order > orderList, Long storeId, Long posId) {
       Long newOrderId = orderList.size() + 1L;
-      String serialNumber = String.format("%03d", newOrderId);
+      String serialNumber = String.format("%04d", newOrderId);
       String orderDateStr = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-      String combinedStr = orderDateStr + serialNumber;
+      String combinedStr = orderDateStr + String.format("%02d", storeId) + String.format("%02d", posId) + serialNumber;
       return combinedStr;
     }
 
