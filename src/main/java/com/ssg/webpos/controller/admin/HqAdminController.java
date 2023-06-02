@@ -3,23 +3,33 @@ package com.ssg.webpos.controller.admin;
 import com.ssg.webpos.domain.*;
 import com.ssg.webpos.dto.StockReportDTO;
 import com.ssg.webpos.dto.StoreListDTO;
+import com.ssg.webpos.dto.hqMain.AllAndStoreDTO;
+import com.ssg.webpos.dto.hqMain.SettlementByTermDTO;
+import com.ssg.webpos.dto.hqMain.SettlementByTermListDTO;
+import com.ssg.webpos.dto.hqMain.StoreDTO;
 import com.ssg.webpos.dto.settlement.*;
 import com.ssg.webpos.dto.stock.AllStockReportResponseDTO;
 import com.ssg.webpos.dto.stock.StoreIdStockReportResponseDTO;
 import com.ssg.webpos.repository.StockReportRepository;
+import com.ssg.webpos.repository.order.OrderRepository;
+import com.ssg.webpos.repository.settlement.SettlementDayRepository;
 import com.ssg.webpos.repository.store.StoreRepository;
 import com.ssg.webpos.service.SettlementDayService;
 import com.ssg.webpos.service.SettlementMonthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.cfg.annotations.Nullability;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.Null;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/hq")
@@ -32,6 +42,137 @@ public class HqAdminController {
     private final SettlementMonthService settlementMonthService;
     private final StockReportRepository stockReportRepository;
     private final StoreRepository storeRepository;
+    private final SettlementDayRepository settlementDayRepository;
+    private final OrderRepository orderRepository;
+    // 스크린 첫 화면에 보이는 데이터 내역
+    // 전체, 백화점 이름 + 해당 백화점의 어제 settlement_price
+    // 디폴트 화면은
+    @GetMapping("/main")
+    public ResponseEntity main() {
+        LocalDate today = LocalDate.now(); // 오늘
+        LocalDate yesterday = today.minusDays(1); // 어제
+        System.out.println(yesterday);
+        try {
+            List<SettlementDay> settlementDays = settlementDayRepository.findBySettlementDate(yesterday);
+            List<StoreDTO> storeDTOs = new ArrayList<>();
+            AllAndStoreDTO allAndStoreDTO = new AllAndStoreDTO();
+            int totalPrice = 0;
+            for (SettlementDay settlementDay : settlementDays) {
+                StoreDTO storeDTO = new StoreDTO();
+                totalPrice += settlementDay.getSettlementPrice(); // 시간 입력 확인, 네트워크 속도, 일정 내 기능 구현 우선이라서
+                Store store = settlementDay.getStore();
+                String storeName = store.getName();
+                storeDTO.setStoreName(storeName);
+                storeDTO.setStoreSettlementDayPrice(settlementDay.getSettlementPrice());
+                storeDTOs.add(storeDTO);
+            }
+            allAndStoreDTO.setAllYesterdaySettlementDayPrice(totalPrice);
+            allAndStoreDTO.setStoreDTO(storeDTOs);
+            return new ResponseEntity(allAndStoreDTO,HttpStatus.OK);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
+    }
+    @GetMapping("/term/storeId={storeId}")
+    public ResponseEntity settlement4Term(@PathVariable(name = "storeId") int storeId ) {
+        SettlementByTermListDTO settlementByTermListDTO = new SettlementByTermListDTO();
+        SettlementByTermListDTO settlementByTermListDTOByStoreId = new SettlementByTermListDTO();
+        LocalDate today = LocalDate.now(); // 오늘
+        LocalDate yesterday = today.minusDays(1); // 어제
+        LocalDate oneWeekAgo = today.minusWeeks(1); // 어제의 일주일 전
+        LocalDate firstDayOfPreviousMonth = yesterday.withDayOfMonth(1); // 어제가 해당된 월의 1일
+        LocalDate firstDayOfThisYear = yesterday.withDayOfYear(1); // 어제가 해당된 연도의 1일
+
+        try {
+            if(storeId == 0) {
+                // 어제
+                // 주문수, 매출액, 수수료, 영업이익, 시작날짜, 종료 날짜
+                SettlementByTermDTO yesterdayDTO = new SettlementByTermDTO();
+                yesterdayDTO.setOrderCount(orderRepository.countOrdersByYesterday());
+                yesterdayDTO.setSettlementPrice(settlementDayRepository.sumOfAllSettlementPrice());
+                yesterdayDTO.setCharge(settlementDayRepository.sumOfAllCharge());
+                yesterdayDTO.setProfit(settlementDayRepository.sumOfAllProfit());
+                yesterdayDTO.setStartDate(yesterday);
+                LocalDate endDate = null;
+                yesterdayDTO.setEndDate(endDate);
+                settlementByTermListDTO.setYesterdayDTO(yesterdayDTO);
+                // 이번주
+                SettlementByTermDTO thisWeekDTO = new SettlementByTermDTO();
+                thisWeekDTO.setOrderCount(orderRepository.countOrderByThisWeek());
+                thisWeekDTO.setSettlementPrice(settlementDayRepository.sumOfThisWeekAllSettlementPrice());
+                thisWeekDTO.setCharge(settlementDayRepository.sumOfThisWeekAllSettlemetCharge());
+                thisWeekDTO.setProfit(settlementDayRepository.sumOfThisWeekAllSettlemetProfit());
+                thisWeekDTO.setStartDate(oneWeekAgo);
+                thisWeekDTO.setEndDate(yesterday);
+                settlementByTermListDTO.setThisWeekDTO(thisWeekDTO);
+                // 이번달
+                SettlementByTermDTO thisMonthDTO = new SettlementByTermDTO();
+                thisMonthDTO.setOrderCount(orderRepository.countOrderByThisMonth());
+                thisMonthDTO.setSettlementPrice(settlementDayRepository.sumOfThisMonthSettlementPrice());
+                thisMonthDTO.setCharge(settlementDayRepository.sumOfThisMonthCharge());
+                thisMonthDTO.setProfit(settlementDayRepository.sumOfThisMonthProfit());
+                thisMonthDTO.setStartDate(firstDayOfPreviousMonth);
+                thisMonthDTO.setEndDate(yesterday);
+                settlementByTermListDTO.setThisMonthDTO(thisMonthDTO);
+                // 올해
+                SettlementByTermDTO thisYearDTO = new SettlementByTermDTO();
+                thisYearDTO.setOrderCount(orderRepository.countOrderByThisYear());
+                thisYearDTO.setSettlementPrice(orderRepository.sumOfAllSettlementPrice());
+                thisYearDTO.setCharge(orderRepository.sumOfAllCharge());
+                thisYearDTO.setProfit(orderRepository.sumOfAllProfit());
+                thisYearDTO.setStartDate(firstDayOfThisYear);
+                thisYearDTO.setEndDate(yesterday);
+                settlementByTermListDTO.setThisYearDTO(thisYearDTO);
+                return new ResponseEntity<>(settlementByTermListDTO, HttpStatus.OK);
+            } else {
+                // 어제
+                // 주문수, 매출액, 수수료, 영업이익, 시작날짜, 종료 날짜
+                SettlementByTermDTO yesterdayDTOByStoreId = new SettlementByTermDTO();
+                yesterdayDTOByStoreId.setOrderCount(orderRepository.countOrdersByYesterdayAndStoreID(storeId));
+                yesterdayDTOByStoreId.setSettlementPrice(settlementDayRepository.settlementDaySettlementPrice(storeId));
+                yesterdayDTOByStoreId.setCharge(settlementDayRepository.settlementDayCharge(storeId));
+                yesterdayDTOByStoreId.setProfit(settlementDayRepository.settlementDayProfit(storeId));
+                yesterdayDTOByStoreId.setStartDate(yesterday);
+                LocalDate endDate = null;
+                yesterdayDTOByStoreId.setEndDate(endDate);
+                settlementByTermListDTOByStoreId.setYesterdayDTO(yesterdayDTOByStoreId);
+                // 이번주
+                SettlementByTermDTO thisWeekDTOByStoreId = new SettlementByTermDTO();
+                thisWeekDTOByStoreId.setOrderCount(orderRepository.countOrderByThisWeekAndStoreId(storeId));
+                thisWeekDTOByStoreId.setSettlementPrice(settlementDayRepository.sumOfThisWeekAllSettlementPriceByStoreId(storeId));
+                thisWeekDTOByStoreId.setCharge(settlementDayRepository.sumOfThisWeekAllSettlemetChargeByStoreId(storeId));
+                thisWeekDTOByStoreId.setProfit(settlementDayRepository.sumOfThisWeekAllSettlemetProfitByStoreId(storeId));
+                thisWeekDTOByStoreId.setStartDate(oneWeekAgo);
+                thisWeekDTOByStoreId.setEndDate(yesterday);
+                settlementByTermListDTOByStoreId.setThisWeekDTO(thisWeekDTOByStoreId);
+                // 이번달
+                SettlementByTermDTO thisMonthDTOByStoreId = new SettlementByTermDTO();
+                thisMonthDTOByStoreId.setOrderCount(orderRepository.countOrderByThisMonthByStoreId(storeId));
+                thisMonthDTOByStoreId.setSettlementPrice(settlementDayRepository.sumOfThisMonthSettlementPriceAndStoreId(storeId));
+                thisMonthDTOByStoreId.setCharge(settlementDayRepository.sumOfThisMonthChargeAndStoreId(storeId));
+                thisMonthDTOByStoreId.setProfit(settlementDayRepository.sumOfThisMonthProfitAndStoreId(storeId));
+                thisMonthDTOByStoreId.setStartDate(firstDayOfPreviousMonth);
+                thisMonthDTOByStoreId.setEndDate(yesterday);
+                settlementByTermListDTOByStoreId.setThisMonthDTO(thisMonthDTOByStoreId);
+                // 올해
+                SettlementByTermDTO thisYearDTOByStoreId = new SettlementByTermDTO();
+                thisYearDTOByStoreId.setOrderCount(orderRepository.countOrderByThisYearAndStoreId(storeId));
+                thisYearDTOByStoreId.setSettlementPrice(orderRepository.sumOfAllSettlementPriceByStoreId(storeId));
+                thisYearDTOByStoreId.setCharge(orderRepository.sumOfAllChargeByStoreId(storeId));
+                thisYearDTOByStoreId.setProfit(orderRepository.sumOfAllProfitByStoreId(storeId));
+                thisYearDTOByStoreId.setStartDate(firstDayOfThisYear);
+                thisYearDTOByStoreId.setEndDate(yesterday);
+                settlementByTermListDTOByStoreId.setThisYearDTO(thisYearDTOByStoreId);
+                return new ResponseEntity<>(settlementByTermListDTOByStoreId, HttpStatus.OK);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
+    }
 
     // 전체 월별정산내역 조회
     // "2023"을 받으면 2023년에 생성된 전체 월별정산내역 조회
