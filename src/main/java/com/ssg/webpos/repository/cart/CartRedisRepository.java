@@ -3,10 +3,11 @@ package com.ssg.webpos.repository.cart;
 import com.ssg.webpos.dto.cartDto.CartAddRequestDTO;
 import com.ssg.webpos.dto.coupon.CouponAddRequestDTO;
 import com.ssg.webpos.dto.point.PointDTO;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Map;
-
+@Repository
 public interface CartRedisRepository {
 
   void saveCart(CartAddRequestDTO cartAddRequestDTO);

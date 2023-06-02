@@ -61,10 +61,6 @@ public class PaymentsService {
       String merchantUid = paymentsDTO.getMerchant_uid();
       BigDecimal finalTotalPrice = paymentsDTO.getPaid_amount();
       int charge = paymentsDTO.getCharge();
-      System.out.println("finalTotalPrice = " + finalTotalPrice);
-      System.out.println("name = " + name);
-      System.out.println("merchantUid = " + merchantUid);
-      System.out.println("impUid1 = " + impUid);
 
       String posId = String.valueOf(paymentsDTO.getPosId());
       String storeId = String.valueOf(paymentsDTO.getStoreId());
@@ -81,7 +77,7 @@ public class PaymentsService {
 
       Pos pos = posRepository.findById(new PosStoreCompositeId(paymentsDTO.getPosId(), paymentsDTO.getStoreId()))
           .orElseThrow(() -> new RuntimeException("Pos not found"));
-
+      // redis 에 저장된 데이터 가져오기
       Integer totalPrice = cartRedisRepository.findTotalPrice(compositeId);
       Integer totalOriginPrice = cartRedisRepository.findTotalOriginPrice(compositeId);
       String orderName = cartRedisRepository.findOrderName(compositeId);
@@ -110,30 +106,25 @@ public class PaymentsService {
 
       Long findUserId = cartRedisRepository.findUserId(compositeId);
       if (findUserId != null) {
-        // Deduct points
-        Integer pointUseAmount = paymentsDTO.getPointAmount();
-        // Save PointSaveHistory
-
-        int pointSaveAmount = pointService.updatePoint(findUserId, finalTotalPrice.intValue()); // 100
+        // 포인트 적립. point 테이블 업데이트
+        int pointSaveAmount = pointService.updatePoint(findUserId, finalTotalPrice.intValue());
         Point point = pointRepository.findByUserId(userId).get();
+        // pointSaveHistory 테이블에 저장
         PointSaveHistory pointSaveHistory = new PointSaveHistory(pointSaveAmount, order, point);
         pointSaveHistoryService.savePointSaveHistory(pointSaveHistory);
-        pointSaveHistoryService.deleteExpiredPoints();
-
-
+        // 포인트 사용
+        Integer pointUseAmount = paymentsDTO.getPointAmount();
         if (pointUseAmount != null) {
           pointService.deductPoints(userId, pointUseAmount); // 포인트 사용 시 point 테이블 pointAmount 업데이트
+          // pointUseHistory 테이블에 저장
           PointUseHistory pointUseHistory = new PointUseHistory(pointUseAmount, order, point);
           pointUseHistoryService.savePointUseHistory(pointUseHistory);
           order.setPointUsePrice(pointUseAmount);
 
         }
-
-
-
       }
-
-//      cartRedisRepository.delete(compositeId);
+      // redis 초기화
+      cartRedisRepository.delete(compositeId);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -185,7 +176,7 @@ public class PaymentsService {
       return order;
     }
 
-    // 20230530+ 01 + 01 + 0001
+
     private String generateSerialNumber (List < Order > orderList, Long storeId, Long posId) {
       Long newOrderId = orderList.size() + 1L;
       String serialNumber = String.format("%04d", newOrderId);
