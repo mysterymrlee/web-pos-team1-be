@@ -15,7 +15,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.*;
 
-@Repository
+
 public class CartRedisImplRepository implements CartRedisRepository {
   @Autowired
   UserRepository userRepository;

@@ -5,14 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
-    List<Product> findByCategory(String category);
-    @Query("select p from Product p join fetch p.event as e" +
-            " where e.eventStatus = 1 and p.category =:category")
-    List<Product> findByCategoryWithEvent(
-            @Param(value = "category") String category
-    );
+//    @Query("SELECT p FROM Product p WHERE :currentDate BETWEEN p.salesStartDate AND p.salesEndDate")
+//    List<Product> findProductsBySalesDate(@Param("currentDate") LocalDate currentDate);
 }

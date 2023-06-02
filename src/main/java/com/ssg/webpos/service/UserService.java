@@ -12,7 +12,7 @@ public class UserService {
   @Autowired
   private UserRepository userRepository;
 
-  public boolean checkMemberExist(String phoneNumber) {
+  public boolean checkMemberExistByPhoneNumber(String phoneNumber) {
     Optional<User> userOptional = userRepository.findByPhoneNumber(phoneNumber);
     if (userOptional.isPresent()) {
       return true;
@@ -20,4 +20,13 @@ public class UserService {
 
     return false;
   }
+
+//  public boolean checkMemberExistByUserId(Long userId) {
+//    Optional<User> userOptional = userRepository.findByUserId(userId);
+//    if (userOptional.isPresent()) {
+//      return true;
+//    }
+//
+//    return false;
+//  }
 }
