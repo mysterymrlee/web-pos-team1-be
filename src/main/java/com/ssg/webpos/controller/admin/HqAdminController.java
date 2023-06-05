@@ -7,6 +7,7 @@ import com.ssg.webpos.dto.hqMain.AllAndStoreDTO;
 import com.ssg.webpos.dto.hqMain.SettlementByTermDTO;
 import com.ssg.webpos.dto.hqMain.SettlementByTermListDTO;
 import com.ssg.webpos.dto.hqMain.StoreDTO;
+import com.ssg.webpos.dto.hqStock.StockReportResponseDTO;
 import com.ssg.webpos.dto.settlement.*;
 import com.ssg.webpos.dto.stock.AllStockReportResponseDTO;
 import com.ssg.webpos.dto.stock.StoreIdStockReportResponseDTO;
@@ -16,20 +17,18 @@ import com.ssg.webpos.repository.settlement.SettlementDayRepository;
 import com.ssg.webpos.repository.store.StoreRepository;
 import com.ssg.webpos.service.SettlementDayService;
 import com.ssg.webpos.service.SettlementMonthService;
+import com.ssg.webpos.service.hqController.method.HqControllerStockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.cfg.annotations.Nullability;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-
-import javax.validation.constraints.Null;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/hq")
@@ -44,6 +43,7 @@ public class HqAdminController {
     private final StoreRepository storeRepository;
     private final SettlementDayRepository settlementDayRepository;
     private final OrderRepository orderRepository;
+    private final HqControllerStockService hqControllerStockService;
     // 스크린 첫 화면에 보이는 데이터 내역
     // 전체, 백화점 이름 + 해당 백화점의 어제 settlement_price
     // 디폴트 화면은
@@ -81,7 +81,14 @@ public class HqAdminController {
         SettlementByTermListDTO settlementByTermListDTOByStoreId = new SettlementByTermListDTO();
         LocalDate today = LocalDate.now(); // 오늘
         LocalDate yesterday = today.minusDays(1); // 어제
-        LocalDate oneWeekAgo = today.minusWeeks(1); // 어제의 일주일 전
+
+        LocalDate todayOneWeekago = today.minusWeeks(1); // 오늘의 일주일 전 날짜
+
+        DayOfWeek firstDayOfWeek = DayOfWeek.MONDAY; // 주의 처음 날짜를 원하는 요일로 설정 (예: 월요일)
+        LocalDate firstDayOfLastWeek = yesterday.with(DayOfWeek.MONDAY); // 어제의 날짜에서 해당하는 주의 월요일 계산
+        // 어제의 일주일 전 날짜 계산
+        LocalDate yesterdayOnneWeekAgo = yesterday.minusWeeks(1);
+
         LocalDate firstDayOfPreviousMonth = yesterday.withDayOfMonth(1); // 어제가 해당된 월의 1일
         LocalDate firstDayOfThisYear = yesterday.withDayOfYear(1); // 어제가 해당된 연도의 1일
 
@@ -90,22 +97,22 @@ public class HqAdminController {
                 // 어제
                 // 주문수, 매출액, 수수료, 영업이익, 시작날짜, 종료 날짜
                 SettlementByTermDTO yesterdayDTO = new SettlementByTermDTO();
-                yesterdayDTO.setOrderCount(orderRepository.countOrdersByYesterday());
-                yesterdayDTO.setSettlementPrice(settlementDayRepository.sumOfAllSettlementPrice());
-                yesterdayDTO.setCharge(settlementDayRepository.sumOfAllCharge());
-                yesterdayDTO.setProfit(settlementDayRepository.sumOfAllProfit());
-                yesterdayDTO.setStartDate(yesterday);
+                yesterdayDTO.setOrderCount(orderRepository.countOrdersByYesterday()); // 어제의 주문수
+                yesterdayDTO.setSettlementPrice(settlementDayRepository.sumOfAllSettlementPrice()); // 어제의 매출액합
+                yesterdayDTO.setCharge(settlementDayRepository.sumOfAllCharge()); // 어제의 수수료합
+                yesterdayDTO.setProfit(settlementDayRepository.sumOfAllProfit()); // 어제의 영업이익합
+                yesterdayDTO.setStartDate(yesterday); // 어제
                 LocalDate endDate = null;
                 yesterdayDTO.setEndDate(endDate);
                 settlementByTermListDTO.setYesterdayDTO(yesterdayDTO);
                 // 이번주
                 SettlementByTermDTO thisWeekDTO = new SettlementByTermDTO();
-                thisWeekDTO.setOrderCount(orderRepository.countOrderByThisWeek());
-                thisWeekDTO.setSettlementPrice(settlementDayRepository.sumOfThisWeekAllSettlementPrice());
-                thisWeekDTO.setCharge(settlementDayRepository.sumOfThisWeekAllSettlemetCharge());
-                thisWeekDTO.setProfit(settlementDayRepository.sumOfThisWeekAllSettlemetProfit());
-                thisWeekDTO.setStartDate(oneWeekAgo);
-                thisWeekDTO.setEndDate(yesterday);
+                thisWeekDTO.setOrderCount(orderRepository.countOrderByThisWeekBeweenYesterdayAndYesterday1WeekAgo()); // 어제의 일주일 전부터 어제의 주문수
+                thisWeekDTO.setSettlementPrice(orderRepository.sumOfFinalOrderPriceBetweenYesterday1WeekAgoAndYesterday()); // 어제의 일주일 전부터 어제의 매출액 합
+                thisWeekDTO.setCharge(orderRepository.sumOfChargeBetweenYesterday1WeekAgoAndYesterday()); // 어제의 일주일 전부터 어제의 수수료 합
+                thisWeekDTO.setProfit(orderRepository.sumOfProfitBetweenYesterday1WeekAgoAndYesterday()); // 어제의 일주일 전부터 어제의 영업이익합
+                thisWeekDTO.setStartDate(yesterdayOnneWeekAgo); // 어제의 일주일 전
+                thisWeekDTO.setEndDate(yesterday); //어제
                 settlementByTermListDTO.setThisWeekDTO(thisWeekDTO);
                 // 이번달
                 SettlementByTermDTO thisMonthDTO = new SettlementByTermDTO();
@@ -113,8 +120,8 @@ public class HqAdminController {
                 thisMonthDTO.setSettlementPrice(settlementDayRepository.sumOfThisMonthSettlementPrice());
                 thisMonthDTO.setCharge(settlementDayRepository.sumOfThisMonthCharge());
                 thisMonthDTO.setProfit(settlementDayRepository.sumOfThisMonthProfit());
-                thisMonthDTO.setStartDate(firstDayOfPreviousMonth);
-                thisMonthDTO.setEndDate(yesterday);
+                thisMonthDTO.setStartDate(firstDayOfPreviousMonth); // 어제가 해당하는 월의 1일
+                thisMonthDTO.setEndDate(yesterday); // 어제
                 settlementByTermListDTO.setThisMonthDTO(thisMonthDTO);
                 // 올해
                 SettlementByTermDTO thisYearDTO = new SettlementByTermDTO();
@@ -122,8 +129,8 @@ public class HqAdminController {
                 thisYearDTO.setSettlementPrice(orderRepository.sumOfAllSettlementPrice());
                 thisYearDTO.setCharge(orderRepository.sumOfAllCharge());
                 thisYearDTO.setProfit(orderRepository.sumOfAllProfit());
-                thisYearDTO.setStartDate(firstDayOfThisYear);
-                thisYearDTO.setEndDate(yesterday);
+                thisYearDTO.setStartDate(firstDayOfThisYear); // 어제가 해당하는 연도의 1월 1일
+                thisYearDTO.setEndDate(yesterday); // 어제
                 settlementByTermListDTO.setThisYearDTO(thisYearDTO);
                 return new ResponseEntity<>(settlementByTermListDTO, HttpStatus.OK);
             } else {
@@ -134,18 +141,18 @@ public class HqAdminController {
                 yesterdayDTOByStoreId.setSettlementPrice(settlementDayRepository.settlementDaySettlementPrice(storeId));
                 yesterdayDTOByStoreId.setCharge(settlementDayRepository.settlementDayCharge(storeId));
                 yesterdayDTOByStoreId.setProfit(settlementDayRepository.settlementDayProfit(storeId));
-                yesterdayDTOByStoreId.setStartDate(yesterday);
+                yesterdayDTOByStoreId.setStartDate(yesterday); // 어제
                 LocalDate endDate = null;
                 yesterdayDTOByStoreId.setEndDate(endDate);
                 settlementByTermListDTOByStoreId.setYesterdayDTO(yesterdayDTOByStoreId);
                 // 이번주
                 SettlementByTermDTO thisWeekDTOByStoreId = new SettlementByTermDTO();
-                thisWeekDTOByStoreId.setOrderCount(orderRepository.countOrderByThisWeekAndStoreId(storeId));
-                thisWeekDTOByStoreId.setSettlementPrice(settlementDayRepository.sumOfThisWeekAllSettlementPriceByStoreId(storeId));
-                thisWeekDTOByStoreId.setCharge(settlementDayRepository.sumOfThisWeekAllSettlemetChargeByStoreId(storeId));
-                thisWeekDTOByStoreId.setProfit(settlementDayRepository.sumOfThisWeekAllSettlemetProfitByStoreId(storeId));
-                thisWeekDTOByStoreId.setStartDate(oneWeekAgo);
-                thisWeekDTOByStoreId.setEndDate(yesterday);
+                thisWeekDTOByStoreId.setOrderCount(orderRepository.countOrderByThisWeekBeweenYesterdayAndYesterday1WeekAgoBystoreId(storeId));
+                thisWeekDTOByStoreId.setSettlementPrice(orderRepository.sumOfFinalOrderPriceBetweenYesterday1WeekAgoAndYesterdayByStoreId(storeId));
+                thisWeekDTOByStoreId.setCharge(orderRepository.sumOfChargeBetweenYesterday1WeekAgoAndYesterdayByStoreId(storeId));
+                thisWeekDTOByStoreId.setProfit(orderRepository.sumOfProfitBetweenYesterday1WeekAgoAndYesterdayByStoreId(storeId));
+                thisWeekDTOByStoreId.setStartDate(yesterdayOnneWeekAgo); // 어제의 일주일 전
+                thisWeekDTOByStoreId.setEndDate(yesterday); // 어제
                 settlementByTermListDTOByStoreId.setThisWeekDTO(thisWeekDTOByStoreId);
                 // 이번달
                 SettlementByTermDTO thisMonthDTOByStoreId = new SettlementByTermDTO();
@@ -153,8 +160,8 @@ public class HqAdminController {
                 thisMonthDTOByStoreId.setSettlementPrice(settlementDayRepository.sumOfThisMonthSettlementPriceAndStoreId(storeId));
                 thisMonthDTOByStoreId.setCharge(settlementDayRepository.sumOfThisMonthChargeAndStoreId(storeId));
                 thisMonthDTOByStoreId.setProfit(settlementDayRepository.sumOfThisMonthProfitAndStoreId(storeId));
-                thisMonthDTOByStoreId.setStartDate(firstDayOfPreviousMonth);
-                thisMonthDTOByStoreId.setEndDate(yesterday);
+                thisMonthDTOByStoreId.setStartDate(firstDayOfPreviousMonth); // 어제가 해당하는 월의 1일
+                thisMonthDTOByStoreId.setEndDate(yesterday); // 어제
                 settlementByTermListDTOByStoreId.setThisMonthDTO(thisMonthDTOByStoreId);
                 // 올해
                 SettlementByTermDTO thisYearDTOByStoreId = new SettlementByTermDTO();
@@ -162,8 +169,8 @@ public class HqAdminController {
                 thisYearDTOByStoreId.setSettlementPrice(orderRepository.sumOfAllSettlementPriceByStoreId(storeId));
                 thisYearDTOByStoreId.setCharge(orderRepository.sumOfAllChargeByStoreId(storeId));
                 thisYearDTOByStoreId.setProfit(orderRepository.sumOfAllProfitByStoreId(storeId));
-                thisYearDTOByStoreId.setStartDate(firstDayOfThisYear);
-                thisYearDTOByStoreId.setEndDate(yesterday);
+                thisYearDTOByStoreId.setStartDate(firstDayOfThisYear); // 어제가 해당하는 연도의 1월 1일
+                thisYearDTOByStoreId.setEndDate(yesterday); // 어제
                 settlementByTermListDTOByStoreId.setThisYearDTO(thisYearDTOByStoreId);
                 return new ResponseEntity<>(settlementByTermListDTOByStoreId, HttpStatus.OK);
             }
@@ -171,6 +178,98 @@ public class HqAdminController {
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 재고 관리
+    // 재고 수량이 30미만인 재고들이 조회됨
+    // 어제,이번주,이번달,3개월,기간별 조회, default : 전체  // 1. 전체 매출,store_id별 매출 2. 판매 여부 조회 3. 재고 목록 4. 검색 조회
+    @GetMapping("/stock/storeId={storeId}/saleState={saleState}") // 조회용 // ElasticSearch 활용하는 건 어떨까 // 0은 판매중지, 1인 판매 //
+    public ResponseEntity stock(@PathVariable(name = "storeId") int storeId, @PathVariable(name = "saleState") int saleState) {
+        try {
+            if (storeId == 0) {
+                if (saleState == 0 ){
+                    // 판매 중지 상품 조회
+                    List<StockReport> stockReportList = stockReportRepository.findByProductSaleState((byte) 0);
+                    List<StockReportResponseDTO> stockReportResponseDTOList = hqControllerStockService.getStockReportResponseDTOList(stockReportList);
+                    return new ResponseEntity<>(stockReportResponseDTOList, HttpStatus.OK);
+                } else if (saleState == 1){
+                    // 판매 상품 조회
+                    List<StockReport> stockReportList = stockReportRepository.findByProductSaleState((byte) 1);
+                    List<StockReportResponseDTO> stockReportResponseDTOList = hqControllerStockService.getStockReportResponseDTOList(stockReportList);
+                    return new ResponseEntity<>(stockReportResponseDTOList, HttpStatus.OK);
+                } else if (saleState == 2){
+                    //  모든 상품 조회
+                    List<StockReport> stockReportList = stockReportRepository.findAll();
+                    List<StockReportResponseDTO> stockReportResponseDTOList = hqControllerStockService.getStockReportResponseDTOList(stockReportList);
+                    return new ResponseEntity<>(stockReportResponseDTOList, HttpStatus.OK);
+                }
+
+            } else if(storeId != 0) {
+                // store_id 값을 가진 경우
+                if (saleState == 0) {
+                    List<StockReport> stockReportByStoreIdList = stockReportRepository.findByStoreIdAndProductSaleState((long) storeId,(byte) 0);
+                    List<StockReportResponseDTO> stockReportResponseDTOList = hqControllerStockService.getStockReportResponseDTOList(stockReportByStoreIdList);
+                    return new ResponseEntity<>(stockReportResponseDTOList, HttpStatus.OK);
+                } else if (saleState == 1) {
+                    List<StockReport> stockReportByStoreIdList = stockReportRepository.findByStoreIdAndProductSaleState((long) storeId,(byte) 1);
+                    List<StockReportResponseDTO> stockReportResponseDTOList = hqControllerStockService.getStockReportResponseDTOList(stockReportByStoreIdList);
+                    return new ResponseEntity<>(stockReportResponseDTOList, HttpStatus.OK);
+                } else if (saleState == 2) {
+                    List<StockReport> stockReportByStoreIdList = stockReportRepository.findByStoreId((long) storeId);
+                    List<StockReportResponseDTO> stockReportResponseDTOList = hqControllerStockService.getStockReportResponseDTOList(stockReportByStoreIdList);
+                    return new ResponseEntity<>(stockReportResponseDTOList, HttpStatus.OK);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    // 매출관리
+    // 전체, 가게별 / 기간 : 전체, 1주일, 1달, 3달, 기간별
+    // 1. 매출 추이(매출 기간별) 2. 점포별(매출 기간별로 @PathVariable) 3. 매출목록(storeId, term)
+    // 1. 매출 추이(매출 기간별)
+    @GetMapping("/sale-management/storeId={storeId}/date={date}")
+    public ResponseEntity saleManagement(@PathVariable(name = "storeId") int storeId, @PathVariable(name = "date") String date) {
+        // 기간별 조회시 String 타입으로 "yyyymmddyyyymmdd" 입력값 받는다. ex. "2023010120230401"
+        try {
+            if (storeId == 0) {
+                // storeId == 0 전체 조회
+                if(date == "1week") {
+                    // 1주일
+
+                }
+                if (date == "1month") {
+                    // 1달
+                }
+                if (date == "3month") {
+                    // 3달
+                } else {
+                    // 기간별 조회
+                }
+                // 기간별 조회
+            } else {
+                // storeId 값을 지닌 경우
+                // storeId == 0 전체 조회
+                if(date == "1week") {
+                    // 1주일
+                }
+                if (date == "1month") {
+                    // 1달
+                }
+                if (date == "3month") {
+                    // 3달
+                } else {
+                    // 기간별 조회
+                }
+            }
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
