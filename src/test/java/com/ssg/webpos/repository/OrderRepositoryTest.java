@@ -120,4 +120,50 @@ public class OrderRepositoryTest {
         System.out.println(count);
     }
 
+    @Test
+    void countOrderByThisWeekBeweenYesterdayAndYesterday1WeekAgo() {
+        int count = orderRepository.countOrderByThisWeekBeweenYesterdayAndYesterday1WeekAgo();
+        System.out.println(count);
+    }
+
+    @Test
+    void sumOfFinalOrderPriceBetweenYesterday1WeekAgoAndYesterday() {
+        int count = orderRepository.sumOfFinalOrderPriceBetweenYesterday1WeekAgoAndYesterday();
+        System.out.println(count);
+    }
+
+    @Test
+    void sumOfChargeBetweenYesterday1WeekAgoAndYesterday() {
+        int count = orderRepository.sumOfChargeBetweenYesterday1WeekAgoAndYesterday();
+        System.out.println(count);
+    }
+
+    @Test
+    void sumOfProfitBetweenYesterday1WeekAgoAndYesterday() {
+        int count = orderRepository.sumOfProfitBetweenYesterday1WeekAgoAndYesterday();
+        System.out.println(count);
+    }
+
+    // store_id별 어제 일주일전부터 어제까지의 주문수, 매출합, 수수료합, 영업이익합
+    @Test
+    void countOrderByThisWeekBeweenYesterdayAndYesterday1WeekAgoBystoreId() {
+        int count = orderRepository.countOrderByThisWeekBeweenYesterdayAndYesterday1WeekAgoBystoreId(1);
+        System.out.println(count);
+    }
+    @Test
+    void sumOfFinalOrderPriceBetweenYesterday1WeekAgoAndYesterdayByStoreId() {
+        int count = orderRepository.sumOfFinalOrderPriceBetweenYesterday1WeekAgoAndYesterdayByStoreId(1);
+        System.out.println(count);
+    }
+    @Test
+    void sumOfChargeBetweenYesterday1WeekAgoAndYesterdayByStoreId() {
+        int count = orderRepository.sumOfChargeBetweenYesterday1WeekAgoAndYesterdayByStoreId(1);
+        System.out.println(count);
+    }@Test
+    void sumOfProfitBetweenYesterday1WeekAgoAndYesterdayByStoreId() {
+        int count = orderRepository.sumOfProfitBetweenYesterday1WeekAgoAndYesterdayByStoreId(1);
+        System.out.println(count);
+    }
+
+
 }
