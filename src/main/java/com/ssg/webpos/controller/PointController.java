@@ -71,19 +71,16 @@ public class PointController {
   }
 
   @PostMapping("/use")
-  public ResponseEntity usePoint(@RequestBody @Valid PointUseRequestDTO requestDTO, BindingResult bindingResult) throws Exception {
-    if (bindingResult.hasErrors()) {
-      return new ResponseEntity(HttpStatus.BAD_REQUEST);
-    }
+  public ResponseEntity usePoint(@RequestBody @Valid PointUseRequestDTO requestDTO) throws Exception {
     Long userId = requestDTO.getUserId();
-//    boolean isMemberExist = userService.checkMemberExistByUserId(userId);
-//    if (isMemberExist) {
+    boolean isMemberExist = userService.checkMemberExistByUserId(userId);
+    if (isMemberExist) {
       int pointAmount = pointService.getPointAmount(userId);
       PointUseResponseDTO responseDTO = new PointUseResponseDTO(pointAmount);
       return new ResponseEntity(responseDTO, HttpStatus.OK);
-//    } else {
-//      return new ResponseEntity(HttpStatus.BAD_REQUEST);
-//    }
+    } else {
+      return new ResponseEntity(HttpStatus.BAD_REQUEST);
+    }
 
     }
   }

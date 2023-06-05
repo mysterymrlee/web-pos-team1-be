@@ -22,7 +22,7 @@ public class PointService {
 
   public int getPointAmount(Long userId) {
     Optional<Point> findPoint = pointRepository.findByUserId(userId);
-    if(findPoint.isPresent()) {
+    if (findPoint.isPresent()) {
       Point point = findPoint.get();
       int pointAmount = point.getPointAmount();
       return pointAmount;
@@ -30,6 +30,7 @@ public class PointService {
       throw new RuntimeException("사용자를 찾을 수 없습니다.");
     }
   }
+
   public int updatePoint(Long userId, int totalPrice) {
     try {
       Optional<User> findUser = userRepository.findById(userId);
@@ -42,14 +43,9 @@ public class PointService {
           point.setUser(user);
         }
 
-        int currentPointAmount = point.getPointAmount();
         int earnedPoint = (int) (totalPrice * 0.001);
-        int updatedPointAmount = currentPointAmount + earnedPoint;
-        System.out.println("updatedPointAmount = " + updatedPointAmount);
 
-        // pointAmount 값을 업데이트
-        point.setPointAmount(updatedPointAmount);
-        pointRepository.save(point);
+        userRepository.save(user);
         return earnedPoint;
       } else {
         System.out.println("사용자를 찾을 수 없습니다.");
@@ -73,10 +69,6 @@ public class PointService {
     int updatedPoint = currentPoint - deductedAmount;
     System.out.println("updatedPoint = " + updatedPoint);
 
-    point.setPointAmount(updatedPoint);
-    pointRepository.save(point);
-
     userRepository.save(user);
-
   }
 }

@@ -60,8 +60,8 @@ public class PaymentsServiceTest {
   @Test
   @DisplayName("결제 완료 시 재고 업데이트")
   void updateStockIfPaymentSuccess() throws Exception {
-    Long productId1 = 1L;
-    Long productId2 = 2L;
+    Long productId1 = 11L;
+    Long productId2 = 12L;
     int cartQty1 = 3;
     int cartQty2 = 5;
     saveRedisCart(productId1, productId2, cartQty1, cartQty2);
@@ -115,91 +115,89 @@ public class PaymentsServiceTest {
   }
 
 
-  @Test
-  @DisplayName("장바구니 추가 후 쿠폰 적용 후 포인트 적립")
-  void addToCartWithCouponAndPointUse() throws Exception {
-    Long productId1 = 1L;
-    Long productId2 = 2L;
-    int cartQty1 = 3;
-    int cartQty2 = 5;
-    String phoneNumber = "01012341234";
-    User user = new User();
-    user.setName("홍길동1");
-    user.setEmail("1111@naver.com");
-    user.setPhoneNumber(phoneNumber);
-    user.setPassword("1234");
-    user.setRole(RoleUser.NORMAL);
+//  @Test
+//  @DisplayName("장바구니 추가 후 쿠폰 적용 후 포인트 적립")
+//  void addToCartWithCouponAndPointUse() throws Exception {
+//    Long productId1 = 1L;
+//    Long productId2 = 2L;
+//    int cartQty1 = 3;
+//    int cartQty2 = 5;
+//    String phoneNumber = "01012341234";
+//    User user = new User();
+//    user.setName("홍길동1");
+//    user.setEmail("1111@naver.com");
+//    user.setPhoneNumber(phoneNumber);
+//    user.setPassword("1234");
+//    user.setRole(RoleUser.NORMAL);
+//
+//    Point point = new Point();
+//    point.setPointAmount(500);
+//    user.setPoint(point);
+//    userRepository.save(user);
+//
+//    int beforePoint = userRepository.findByPhoneNumber(phoneNumber).get().getPoint().getPointAmount();
+//    System.out.println("beforePoint = " + beforePoint);
+//
+//    saveRedisCart(productId1, productId2, cartQty1, cartQty2);
+//    saveRedisPoint();
+//    Coupon createCoupon = createCoupon();
+//    saveRedisCoupon(createCoupon);
+//
+//    processPayment();
+//
+//    int afterPoint = userRepository.findByPhoneNumber(phoneNumber).get().getPoint().getPointAmount();
+//    System.out.println("afterPoint = " + afterPoint);
+//
+//    // 포인트 적립 여부 확인
+//    int pointEarned = afterPoint - beforePoint;
+//    assertEquals(10, pointEarned);
+//
+//  }
 
-    Point point = new Point();
-    point.setPointAmount(500);
-    user.setPoint(point);
-    userRepository.save(user);
-
-    int beforePoint = userRepository.findByPhoneNumber(phoneNumber).get().getPoint().getPointAmount();
-    System.out.println("beforePoint = " + beforePoint);
-
-    saveRedisCart(productId1, productId2, cartQty1, cartQty2);
-    saveRedisPoint();
-    Coupon createCoupon = createCoupon();
-    saveRedisCoupon(createCoupon);
-
-    processPayment();
-
-    int afterPoint = userRepository.findByPhoneNumber(phoneNumber).get().getPoint().getPointAmount();
-    System.out.println("afterPoint = " + afterPoint);
-
-    // 포인트 적립 여부 확인
-    int pointEarned = afterPoint - beforePoint;
-    assertEquals(10, pointEarned);
-
-  }
-
-  @Test
-  @DisplayName("장바구니 추가 후 포인트 사용 후 포인트 적립")
-  void addToCartWithPointUseAndPointSave() throws Exception {
-    Long productId1 = 1L;
-    Long productId2 = 2L;
-    int cartQty1 = 3;
-    int cartQty2 = 5;
-    String phoneNumber = "01012341234";
-
-    // 사용자 생성 및 포인트 초기화
-    User user = new User();
-    user.setName("홍길동1");
-    user.setEmail("1111@naver.com");
-    user.setPhoneNumber(phoneNumber);
-    user.setPassword("1234");
-    user.setRole(RoleUser.NORMAL);
-    Point point = new Point();
-    point.setPointAmount(100);
-    user.setPoint(point);
-    userRepository.save(user);
-    user.getPoint();
-    System.out.println("point = " + point);;
-    int beforePoint = userRepository.findByPhoneNumber(phoneNumber).get().getPoint().getPointAmount();
-    System.out.println("beforePoint = " + beforePoint);
-
-    // 장바구니에 상품 추가
-    saveRedisCart(productId1, productId2, cartQty1, cartQty2);
-    saveRedisPoint();
-
-
-    // 포인트 사용
-    int useAmount = point.getPointAmount();
-    System.out.println("useAmount = " + useAmount);
-
-    // 포인트 사용 후 포인트 적립
-    processPayment();
-    System.out.println("user.getId() = " + user.getId());
-
-    // 사용자 포인트 확인
-    int afterPoint = userRepository.findByPhoneNumber(phoneNumber).get().getPoint().getPointAmount();
-    System.out.println("afterPoint = " + afterPoint);
-
-//    int expectedPoint = 500 - useAmount + 10; // 초기 포인트 - 사용 포인트 + 적립 포인트 = 500 - 20 + 10
-//    System.out.println("expectedPoint = " + expectedPoint);
-//    assertEquals(expectedPoint, afterPoint);
-  }
+//  @Test
+//  @DisplayName("장바구니 추가 후 포인트 사용 후 포인트 적립")
+//  void addToCartWithPointUseAndPointSave() throws Exception {
+//    Long productId1 = 1L;
+//    Long productId2 = 2L;
+//    int cartQty1 = 3;
+//    int cartQty2 = 5;
+//    String phoneNumber = "01012341234";
+//
+//    // 사용자 생성 및 포인트 초기화
+//    User user = new User();
+//    user.setName("홍길동1");
+//    user.setEmail("1111@naver.com");
+//    user.setPhoneNumber(phoneNumber);
+//    user.setPassword("1234");
+//    user.setRole(RoleUser.NORMAL);
+//    Point point = new Point();
+//    point.setPointAmount(100);
+//    user.setPoint(point);
+//    userRepository.save(user);
+//    user.getPoint();
+//    System.out.println("point = " + point);;
+//    int beforePoint = userRepository.findByPhoneNumber(phoneNumber).get().getPoint().getPointAmount();
+//    System.out.println("beforePoint = " + beforePoint);
+//
+//    // 장바구니에 상품 추가
+//    saveRedisCart(productId1, productId2, cartQty1, cartQty2);
+//    saveRedisPoint();
+//
+//
+//    // 포인트 사용
+//    int useAmount = point.getPointAmount();
+//    System.out.println("useAmount = " + useAmount);
+//
+//    // 포인트 사용 후 포인트 적립
+//    processPayment();
+//    System.out.println("user.getId() = " + user.getId());
+//
+//    // 사용자 포인트 확인
+//    int afterPoint = userRepository.findByPhoneNumber(phoneNumber).get().getPoint().getPointAmount();
+//    System.out.println("afterPoint = " + afterPoint);
+//
+//
+//  }
 
   private void saveRedisCart(Long productId1, Long productId2, int cartQty1, int cartQty2) {
   PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();

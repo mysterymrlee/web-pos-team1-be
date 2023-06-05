@@ -1,5 +1,6 @@
 package com.ssg.webpos.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.bouncycastle.asn1.cms.TimeStampAndCRL;
 
@@ -32,8 +33,8 @@ public class Product extends BaseTime {
   private String imageUrl;
   private String description;
   private String category;
-  private LocalDateTime sales_start_date;
-  private LocalDateTime sales_end_date;
+  private LocalDateTime salesStartDate;
+  private LocalDateTime salesEndDate;
   @NotNull
   @Column(columnDefinition = "integer default 0")
   private int stock;
@@ -43,16 +44,20 @@ public class Product extends BaseTime {
   private Store store;
 
   @OneToMany(mappedBy = "product")
+  @JsonIgnore
   private List<StockReport> stockReportList = new ArrayList<>();
 
   @OneToMany(mappedBy = "product")
+  @JsonIgnore
   private List<ProductRequest> productRequestList = new ArrayList<>();
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "event_id")
+  @JsonIgnore
   private Event event;
 
   @OneToMany(mappedBy = "product")
+  @JsonIgnore
   private List<Cart> cartList = new ArrayList<>();
 
   public void plusStockQuantity(int qty) {

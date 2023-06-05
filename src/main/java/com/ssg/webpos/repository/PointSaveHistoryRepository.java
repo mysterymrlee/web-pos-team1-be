@@ -10,4 +10,9 @@ import java.util.Optional;
 public interface PointSaveHistoryRepository extends JpaRepository<PointSaveHistory, Long> {
   Optional<PointSaveHistory> findByOrderId(Long orderId);
   List<PointSaveHistory> findByExpiredDateBefore(LocalDateTime currentDate);
+
+  /**
+   * save()될 때마다 point테이블에 update 쿼리 나가는 trigger 실행됨
+   * */
+  PointSaveHistory save(PointSaveHistory pointSaveHistory);
 }

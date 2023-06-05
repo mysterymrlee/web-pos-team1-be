@@ -24,5 +24,7 @@ public class PaymentsDTO {
   private String pg;
   private int charge;
   private int pointAmount;
+  private int giftCardAmount;
+  private int couponUsePrice;
 
 }

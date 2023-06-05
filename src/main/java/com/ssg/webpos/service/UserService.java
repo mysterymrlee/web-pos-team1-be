@@ -21,12 +21,12 @@ public class UserService {
     return false;
   }
 
-//  public boolean checkMemberExistByUserId(Long userId) {
-//    Optional<User> userOptional = userRepository.findByUserId(userId);
-//    if (userOptional.isPresent()) {
-//      return true;
-//    }
-//
-//    return false;
-//  }
+  public boolean checkMemberExistByUserId(Long userId) {
+    Optional<User> byId = userRepository.findById(userId);
+    if (byId.isPresent()) {
+      return true;
+    }
+
+    return false;
+  }
 }

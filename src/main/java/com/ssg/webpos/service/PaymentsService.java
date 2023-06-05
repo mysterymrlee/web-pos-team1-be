@@ -5,6 +5,7 @@ import com.ssg.webpos.domain.enums.PayMethod;
 import com.ssg.webpos.dto.cartDto.CartAddDTO;
 import com.ssg.webpos.dto.PaymentsDTO;
 import com.ssg.webpos.repository.PointRepository;
+import com.ssg.webpos.repository.PointSaveHistoryRepository;
 import com.ssg.webpos.repository.PointUseHistoryRepository;
 import com.ssg.webpos.repository.cart.CartRedisRepository;
 import com.ssg.webpos.repository.UserRepository;
@@ -42,6 +43,8 @@ public class PaymentsService {
   private final PosRepository posRepository;
   private final PointUseHistoryService pointUseHistoryService;
   private final PointUseHistoryRepository pointUseHistoryRepository;
+  private final PointSaveHistoryRepository pointSaveHistoryRepository;
+
   private final PointSaveHistoryService pointSaveHistoryService;
   private final PointRepository pointRepository;
 
@@ -55,11 +58,9 @@ public class PaymentsService {
   @Transactional
   public void processPaymentCallback(PaymentsDTO paymentsDTO) {
     try {
-      String error_msg = paymentsDTO.getError_msg();
-      String name = paymentsDTO.getName();
-      String impUid = paymentsDTO.getImp_uid();
-      String merchantUid = paymentsDTO.getMerchant_uid();
       BigDecimal finalTotalPrice = paymentsDTO.getPaid_amount();
+      int couponUsePrice = paymentsDTO.getCouponUsePrice();
+
       int charge = paymentsDTO.getCharge();
 
       String posId = String.valueOf(paymentsDTO.getPosId());
@@ -105,26 +106,28 @@ public class PaymentsService {
 
 
       Long findUserId = cartRedisRepository.findUserId(compositeId);
+
+
+
       if (findUserId != null) {
-        // 포인트 적립. point 테이블 업데이트
-        int pointSaveAmount = pointService.updatePoint(findUserId, finalTotalPrice.intValue());
-        Point point = pointRepository.findByUserId(userId).get();
-        // pointSaveHistory 테이블에 저장
-        PointSaveHistory pointSaveHistory = new PointSaveHistory(pointSaveAmount, order, point);
-        pointSaveHistoryService.savePointSaveHistory(pointSaveHistory);
-        // 포인트 사용
+        // 포인트 사용. pointUseHistory 테이블에 저장 (트리거를 통해 point 테이블의 point_amount 업데이트)
         Integer pointUseAmount = paymentsDTO.getPointAmount();
+        Point point = pointRepository.findByUserId(userId).get();
         if (pointUseAmount != null) {
-          pointService.deductPoints(userId, pointUseAmount); // 포인트 사용 시 point 테이블 pointAmount 업데이트
-          // pointUseHistory 테이블에 저장
+          pointService.deductPoints(findUserId, pointUseAmount);
           PointUseHistory pointUseHistory = new PointUseHistory(pointUseAmount, order, point);
           pointUseHistoryService.savePointUseHistory(pointUseHistory);
           order.setPointUsePrice(pointUseAmount);
-
         }
+        // 포인트 적립. pointSaveHistory 테이블에 저장 (트리거를 통해 point 테이블의 point_amount 업데이트)
+        int pointSaveAmount = pointService.updatePoint(findUserId, finalTotalPrice.intValue());
+        System.out.println("paymentsService pointSaveAmount = " + pointSaveAmount);
+        PointSaveHistory pointSaveHistory = new PointSaveHistory(pointSaveAmount, order, point);
+        pointSaveHistoryRepository.save(pointSaveHistory);
+        System.out.println("pointSaveHistory = " + pointSaveHistory);
       }
       // redis 초기화
-      cartRedisRepository.delete(compositeId);
+//      cartRedisRepository.delete(compositeId);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -160,10 +163,11 @@ public class PaymentsService {
       order.setPayMethod(PayMethod.SAMSUNG_PAY);
     }
       // 쿠폰 deductedPrice
-      Integer deductedPrice = cartRedisRepository.findDeductedPrice(compositeId);
-      System.out.println("paymentdeductedPrice = " + deductedPrice);
-      if (deductedPrice != null) {
-        order.setCouponUsePrice(deductedPrice);
+
+    int couponUsePrice = paymentsDTO.getCouponUsePrice();
+    System.out.println("couponUsePrice = " + couponUsePrice);
+    order.setCouponUsePrice(couponUsePrice);
+
         Long couponId = cartRedisRepository.findCouponId(compositeId);
         Coupon coupon = couponService.updateCouponStatusToUsed(couponId);
         coupon.setOrder(order);
@@ -172,7 +176,6 @@ public class PaymentsService {
           coupon.setUser(user);
         }
 
-      }
       return order;
     }
 

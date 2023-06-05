@@ -15,16 +15,11 @@ import org.springframework.stereotype.Repository;
 
 import java.util.*;
 
-
+@Repository
 public class CartRedisImplRepository implements CartRedisRepository {
   @Autowired
   UserRepository userRepository;
 
-  @Autowired
-  ProductRepository productRepository;
-
-  @Autowired
-  CartRepository cartRepository;
   @Autowired
   CouponService couponService;
   @Autowired
