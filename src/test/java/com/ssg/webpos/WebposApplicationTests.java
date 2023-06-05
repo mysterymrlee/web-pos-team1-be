@@ -22,7 +22,7 @@ class WebposApplicationTests {
 				.branchName("센텀점")
 				.address("부산 해운대")
 				.name("신세계 백화점")
-				.postCode(1234)
+				.postCode("12345")
 				.build();
 		storeRepository.save(newStore);
 	}

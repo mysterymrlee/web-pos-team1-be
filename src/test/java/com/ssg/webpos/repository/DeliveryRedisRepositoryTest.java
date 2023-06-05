@@ -48,6 +48,7 @@ public class DeliveryRedisRepositoryTest {
         .requestDeliveryTime("14:00~16:00")
         .postCode("48060")
         .isConfirmed((byte) 1)
+        .requestInfo("부재 시, 경비실에 맡겨주세요.")
         .build();
     deliveryAddList.add(deliveryRedisAddRequestDTO);
     System.out.println("deliveryAddDTO = " + deliveryRedisAddRequestDTO);
@@ -141,6 +142,7 @@ public class DeliveryRedisRepositoryTest {
         .address("부산광역시 남구")
         .requestDeliveryTime("12:00~15:00")
         .postCode("052508")
+        .requestInfo("부재 시, 경비실에 맡겨주세요.")
         .build();
     deliveryRedisImplRepository.saveDelivery(deliveryRedisAddRequestDTO);
 

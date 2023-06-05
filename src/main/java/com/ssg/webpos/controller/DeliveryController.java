@@ -2,16 +2,20 @@ package com.ssg.webpos.controller;
 
 import com.ssg.webpos.domain.Delivery;
 import com.ssg.webpos.domain.DeliveryAddress;
+import com.ssg.webpos.domain.Order;
 import com.ssg.webpos.domain.User;
 import com.ssg.webpos.domain.enums.DeliveryStatus;
 import com.ssg.webpos.dto.delivery.DeliveryCheckResponseDTO;
 import com.ssg.webpos.dto.delivery.*;
+import com.ssg.webpos.dto.msg.MessageDTO;
 import com.ssg.webpos.repository.UserRepository;
 import com.ssg.webpos.repository.cart.CartRedisImplRepository;
 import com.ssg.webpos.repository.delivery.DeliveryAddressRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRedisRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRepository;
+import com.ssg.webpos.repository.order.OrderRepository;
 import com.ssg.webpos.service.DeliveryService;
+import com.ssg.webpos.service.SmsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +40,10 @@ public class DeliveryController {
   CartRedisImplRepository cartRedisImplRepository;
   @Autowired
   UserRepository userRepository;
+  @Autowired
+  OrderRepository orderRepository;
+  @Autowired
+  SmsService smsService;
 
   @GetMapping("")
   public ResponseEntity getDeliveryInfo() {
@@ -142,14 +150,17 @@ public class DeliveryController {
 
   // 배송 중
   @GetMapping("/process-delivery/{serialNumber}")
-  public ResponseEntity setStatusProcessDelivery(@PathVariable String serialNumber) {
+  public ResponseEntity setStatusProcessDelivery(@PathVariable String serialNumber, MessageDTO messageDTO) {
     try {
       Delivery findDelivery = deliveryRepository.findBySerialNumber(serialNumber);
+      String phoneNumber = findDelivery.getPhoneNumber();
+      messageDTO.setTo(phoneNumber);
+      Order findOrder = orderRepository.findBySerialNumber(serialNumber);
       System.out.println("findDelivery = " + findDelivery);
       findDelivery.setDeliveryStatus(DeliveryStatus.PROCESS_DELIVERY);
       findDelivery.setStartedDate(LocalDateTime.now());
       deliveryRepository.save(findDelivery);
-
+//      smsService.sendSms()
       return new ResponseEntity(HttpStatus.OK);
     } catch (Exception e) {
       e.printStackTrace();
