@@ -1,6 +1,7 @@
 package com.ssg.webpos.controller;
 
 import com.ssg.webpos.domain.Delivery;
+import com.ssg.webpos.domain.Order;
 import com.ssg.webpos.domain.enums.DeliveryStatus;
 import com.ssg.webpos.domain.enums.DeliveryType;
 import com.ssg.webpos.dto.gift.GiftRequestDTO;
@@ -43,20 +44,22 @@ public class GiftController {
 
   // redis에서 가져와서 db에 저장
   @PostMapping("/save-info")
-  public ResponseEntity saveGiftInfo(@RequestBody GiftRequestDTO giftRequestDTO) {
+  public ResponseEntity saveGiftInfo(@RequestBody GiftRequestDTO giftRequestDTO, Order savedOrder) {
     Long storeId = giftRequestDTO.getStoreId();
     Long posId = giftRequestDTO.getPosId();
     String compositeId = storeId + "-" + posId;
     List<Map<String, Object>> giftRecipientInfoList = deliveryRedisImplRepository.findGiftRecipientInfo(compositeId);
 
-    for(Map<String, Object>giftRecipient : giftRecipientInfoList) {
+    String serialNumber = deliveryService.makeSerialNumber(savedOrder.getId());
+    for (Map<String, Object> giftRecipient : giftRecipientInfoList) {
       Delivery delivery = Delivery.builder()
-        .userName((String) giftRecipient.get("receiver"))
-        .phoneNumber((String) giftRecipient.get("phoneNumber"))
-        .sender((String) giftRecipient.get("sender"))
-        .deliveryType(DeliveryType.GIFT)
-        .deliveryStatus(DeliveryStatus.COMPLETE_PAYMENT)
-        .build();
+          .userName((String) giftRecipient.get("receiver"))
+          .phoneNumber((String) giftRecipient.get("phoneNumber"))
+          .sender((String) giftRecipient.get("sender"))
+          .deliveryType(DeliveryType.GIFT)
+          .serialNumber(serialNumber)
+          .deliveryStatus(DeliveryStatus.COMPLETE_PAYMENT)
+          .build();
       System.out.println("delivery = " + delivery);
       deliveryRepository.save(delivery);
     }

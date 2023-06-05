@@ -45,7 +45,7 @@ public class DeliveryRedisImplRepository implements DeliveryRedisRepository {
     deliveryData.put("requestDeliveryTime", deliveryRedisAddRequestDTO.getRequestDeliveryTime());
     deliveryData.put("postCode", deliveryRedisAddRequestDTO.getPostCode());
     deliveryData.put("isConfirmed", deliveryRedisAddRequestDTO.getIsConfirmed());
-
+    deliveryData.put("requestInfo", deliveryRedisAddRequestDTO.getRequestInfo());
 
     System.out.println("deliveryData = " + deliveryData);
 

@@ -6,10 +6,7 @@ import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.domain.enums.PayMethod;
 import com.ssg.webpos.dto.cartDto.CartAddDTO;
 import com.ssg.webpos.dto.OrderDTO;
-import com.ssg.webpos.repository.CouponRepository;
-import com.ssg.webpos.repository.PointSaveHistoryRepository;
-import com.ssg.webpos.repository.PointUseHistoryRepository;
-import com.ssg.webpos.repository.UserRepository;
+import com.ssg.webpos.repository.*;
 import com.ssg.webpos.repository.cart.CartRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
 import com.ssg.webpos.repository.pos.PosRepository;
@@ -53,6 +50,8 @@ public class CartServiceTest {
   PointSaveHistoryRepository pointSaveHistoryRepository;
   @Autowired
   CouponRepository couponRepository;
+  @Autowired
+  PointRepository pointRepository;
 
   @Test
   @DisplayName("장바구니 삭제 후 주문테이블에서 totalPrice 반영테스트")
@@ -202,15 +201,26 @@ public class CartServiceTest {
   @Test
   @DisplayName("[주문 취소] 포인트 사용 및 적립 취소, 쿠폰 반환, 재고량 증가 테스트")
   void cancelOrder() {
-    Long productId1 = 1L;
+    Long productId1 = 11L;
     Long userId = 1L;
+    User findUser = userRepository.findById(userId).get();
+    System.out.println("findUser = " + findUser);
 
     Order order = Order.builder()
         .orderStatus(OrderStatus.SUCCESS)
         .payMethod(PayMethod.CREDIT_CARD)
+        .orderName("키위 외 2건")
+        .user(findUser)
         .build();
     orderRepository.save(order);
     System.out.println("orderTest = " + order);
+
+    Point point = Point.builder()
+        .pointAmount(500)
+        .user(findUser)
+        .build();
+    pointRepository.save(point);
+    System.out.println("point = " + point);
 
     PointUseHistory pointUseHistory = new PointUseHistory();
     pointUseHistory.setPointUseAmount(10);
@@ -224,15 +234,10 @@ public class CartServiceTest {
     pointSaveHistoryRepository.save(pointSaveHistory);
     System.out.println("pointSaveHistoryTest = " + pointSaveHistory);
 
-    User user = userRepository.findById(userId).get();
-    System.out.println("userTest = " + user);
-
     Product product1 = productRepository.findById(productId1).get();
     System.out.println("product1 = " + product1);
 
     List<Cart> cartList = new ArrayList<>();
-//    List<Cart> cartList = order.getCartList();
-
     Cart cart = new Cart(product1, order);
     cart.setQty(1);
     cartRepository.save(cart);
@@ -259,7 +264,9 @@ public class CartServiceTest {
     System.out.println("findSavePointTest = " + findSavePoint);
 
     // 포인트 테스트
-    int beforePoint = user.getPoint().getPointAmount();
+    Long pointId = findUser.getPoint().getId();
+    Point findPoint = pointRepository.findById(pointId).get();
+    int beforePoint = findPoint.getPointAmount();
     System.out.println("beforePointTest = " + beforePoint);
     int usePointAmount = findUsePoint.getPointUseAmount();
     System.out.println("usePointAmountTest = " + usePointAmount);
@@ -269,7 +276,7 @@ public class CartServiceTest {
     System.out.println("expectedResult = " + expectedResult);
 
     cartService.cancelOrder(order.getId(), userId);
-    int actualResult = user.getPoint().getPointAmount();
+    int actualResult = findPoint.getPointAmount();
     System.out.println("actualResult = " + actualResult);
 
     assertEquals(expectedResult, actualResult);

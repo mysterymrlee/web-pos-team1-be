@@ -6,10 +6,7 @@ import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.domain.enums.PayMethod;
 import com.ssg.webpos.dto.cartDto.CartAddDTO;
 import com.ssg.webpos.dto.OrderDTO;
-import com.ssg.webpos.repository.CouponRepository;
-import com.ssg.webpos.repository.PointSaveHistoryRepository;
-import com.ssg.webpos.repository.PointUseHistoryRepository;
-import com.ssg.webpos.repository.UserRepository;
+import com.ssg.webpos.repository.*;
 import com.ssg.webpos.repository.cart.CartRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
 import com.ssg.webpos.repository.pos.PosRepository;
@@ -32,6 +29,7 @@ public class CartService {
   private final PointUseHistoryRepository pointUseHistoryRepository;
   private final PointSaveHistoryRepository pointSaveHistoryRepository;
   private final CouponRepository couponRepository;
+  private final PointRepository pointRepository;
 
   // 장바구니 상품 개별 삭제
   @Transactional
@@ -119,10 +117,14 @@ public class CartService {
     Order order = orderRepository.findById(orderId).orElseThrow(
         () -> new RuntimeException("주문 내역을 찾을 수 없습니다."));
     order.setOrderStatus(OrderStatus.CANCEL);
+    orderRepository.save(order);
+
     User findUser = userRepository.findById(userId).get();
+    Long pointId = findUser.getPoint().getId();
+    Point findPoint = pointRepository.findById(pointId).get();
 
     // 사용한 포인트 반환
-    int currentPoint = findUser.getPoint().getPointAmount();
+    int currentPoint = findPoint.getPointAmount();
     System.out.println("currentPoint = " + currentPoint);
 
     PointUseHistory findUsePoint = pointUseHistoryRepository.findByOrderId(orderId).orElseThrow(
@@ -133,8 +135,7 @@ public class CartService {
     currentPoint += usePointAmount;
     System.out.println("currentPoint = " + currentPoint);
 
-//    findUser.setPoint();
-    userRepository.save(findUser);
+    //pointRepository.save(findPoint);
     findUsePoint.setPointStatus((byte) 1);
     pointUseHistoryRepository.save(findUsePoint);
 
@@ -150,8 +151,8 @@ public class CartService {
     currentPoint -= savePointAmount;
     System.out.println("currentPoint = " + currentPoint);
 
-//    findUser.setPoint(currentPoint);
-    userRepository.save(findUser);
+    findPoint.setPointAmount(currentPoint);
+    pointRepository.save(findPoint);
     findSavePoint.setPointStatus((byte) 1);
     pointSaveHistoryRepository.save(findSavePoint);
 
