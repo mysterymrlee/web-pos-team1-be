@@ -108,13 +108,20 @@ public class SmsService {
   // sms 보낼 내용 작성
   public String makeSmsContent(Delivery savedDelivery, Order savedOrder, String giftUrl) {
     GiftSmsDTO smsInfo = getInfoToUseInGiftSms(savedDelivery, savedOrder);
+
+    String giftProductName = smsInfo.getGiftProductName();
+    if(giftProductName.length() > 10) {
+      giftProductName = giftProductName.substring(0, 10) + "...";
+    }
+
     String content1 = "[선물이 도착했어요!]\n"
         + smsInfo.getSender() + "님이 " + smsInfo.getReceiver() + "님에게 선물을 보냈습니다.\n"
         + "아래 링크를 통해 선물을 확인하시고 배송지를 입력해주세요.\n\n"
-        + "▶ 상품명: " + smsInfo.getGiftProductName() + "\n"
+        + "▶ 상품명: " + giftProductName + "\n"
         + "▶ 선물 보러 가기: " + giftUrl + "\n"
         + "▶ 배송지 입력 기한: " + smsInfo.getEntryDeadline() + " 까지\n\n"
         + "* 기한 내에 배송지 미입력 시, 주문이 자동 취소됩니다.";
+    System.out.println("content1 = " + content1);
     String content = smsInfo.getSender() + ", " + smsInfo.getReceiver() + "\n"
         + smsInfo.getGiftProductName() + "\n"
         + giftUrl + "\n"
@@ -134,6 +141,7 @@ public class SmsService {
 
     String content = makeSmsContent(savedDelivery, savedOrder, messageDTO.getGiftUrl());
     messageDTO.setContent(content);
+    messageDTO.setTo(savedDelivery.getPhoneNumber());
 
     List<MessageDTO> messages = new ArrayList<>();
     messages.add(messageDTO);

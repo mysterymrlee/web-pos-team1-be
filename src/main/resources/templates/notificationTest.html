@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SSE 알림 테스트</title>
+</head>
+<body>
+<h1>SSE 알림 테스트</h1>
+
+<script>
+    const eventSource = new EventSource('/api/v1/noti/send/1'); // hqId를 1로 설정하거나 적절한 hqId를 사용합니다.
+
+    eventSource.addEventListener('notification', function(event) {
+        const notificationData = event.data;
+        console.log(event.data)
+        console.log('받은 알림:', notificationData);
+        alert('새로운 알림이 도착했습니다: ' + notificationData);
+    });
+</script>
+</body>
+</html>
