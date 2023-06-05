@@ -22,7 +22,7 @@ class WebposApplicationTests {
 				.branchName("센텀점")
 				.address("부산 해운대")
 				.name("신세계 백화점")
-				.postCode(1234)
+				.postCode("1234") // java: incompatible types: int cannot be converted to java.lang.String 에러로 수정했습니다.
 				.build();
 		storeRepository.save(newStore);
 	}
