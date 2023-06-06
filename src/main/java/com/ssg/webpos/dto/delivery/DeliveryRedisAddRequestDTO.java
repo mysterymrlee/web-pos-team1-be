@@ -17,5 +17,6 @@ public class DeliveryRedisAddRequestDTO {
   private String phoneNumber;
   private String requestDeliveryTime;
   private String postCode;
+  private String requestInfo;
   private byte isConfirmed;
 }

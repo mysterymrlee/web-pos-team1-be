@@ -15,4 +15,8 @@ public interface StockReportRepository extends JpaRepository<StockReport,Long> {
     List<StockReport> findByCreatedDate(LocalDateTime createdDate);
     List<StockReport> findByCreatedDateBetween(LocalDateTime startDate, LocalDateTime endDate);
     List<StockReport> findByStoreIdAndCreatedDateBetween(Long storeId, LocalDateTime startDate, LocalDateTime endDate);
+
+    // Product의 saleState 여부에 따라 조회
+    List<StockReport> findByProductSaleState(byte saleState);
+    List<StockReport> findByStoreIdAndProductSaleState(Long storeId, byte saleState);
 }

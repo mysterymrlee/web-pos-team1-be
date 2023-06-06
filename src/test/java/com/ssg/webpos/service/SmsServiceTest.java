@@ -30,23 +30,25 @@ class SmsServiceTest {
   @Test
   @DisplayName("문자 메시지 전송 테스트")
   void sendSmsTest() throws UnsupportedEncodingException, URISyntaxException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
-    Long deliveryId = 17L;
-    Long orderId = 171L;
+    Long deliveryId = 62L;
+    Long orderId = 10L;
     Delivery findDelivery = deliveryRepository.findById(deliveryId).get();
+    System.out.println("findDelivery = " + findDelivery);
     Order findOrder = orderRepository.findById(orderId).get();
+    System.out.println("findOrder = " + findOrder);
     String giftUrl = "http://localhost:3000/entry-address";
 
     MessageDTO msgDTO = new MessageDTO();
-    msgDTO.setTo("01012345678");
+//    msgDTO.setTo("01012345678");
     msgDTO.setGiftUrl(giftUrl);
-//    smsService.sendSms(msgDTO,findDelivery, findOrder);
+    smsService.sendSms(msgDTO,findDelivery, findOrder);
   }
 
   @Test
   @DisplayName("문자 메시지 내용 테스트")
   void smsContentTest() {
-    Long deliveryId = 17L;
-    Long orderId = 171L;
+    Long deliveryId = 62L;
+    Long orderId = 10L;
     Delivery findDelivery = deliveryRepository.findById(deliveryId).get();
     Order findOrder = orderRepository.findById(orderId).get();
     String giftUrl = "http://localhost:3000/entry-address";

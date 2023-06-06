@@ -40,10 +40,40 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
   // 이번주의 모든 백화점 구매 주문수
   @Query(value = "SELECT COUNT(*) FROM orders WHERE WEEK(order_date, 1) = WEEK(CURDATE())", nativeQuery = true)
   int countOrderByThisWeek();
+  // 어제의 일주일 전부터 어제까지의 모든 백화점 구매 주문수
+  @Query(value = "SELECT COUNT(*) FROM orders WHERE order_date BETWEEN DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
+  int countOrderByThisWeekBeweenYesterdayAndYesterday1WeekAgo();
 
-  // 이번주의 store_id별 백화점 구매 주문수
+  // 어제의 일주일 전부터 어제까지의 모든 백화점 매출액합
+  @Query(value = "SELECT sum(final_total_price) FROM orders WHERE order_date BETWEEN DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
+  int sumOfFinalOrderPriceBetweenYesterday1WeekAgoAndYesterday();
+
+  // 어제의 일주일 전부터 어제까지의 모든 백화점 수수료합
+  @Query(value = "SELECT sum(charge) FROM orders WHERE order_date BETWEEN DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
+  int sumOfChargeBetweenYesterday1WeekAgoAndYesterday();
+  // 어제의 일주일 전부터 어제까지의 모든 백화점 영업이익합
+  @Query(value = "SELECT sum(profit) FROM orders WHERE order_date BETWEEN DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
+  int sumOfProfitBetweenYesterday1WeekAgoAndYesterday();
+  // 어제의 일주일 전부터 어제까지의 store_id별 구매 주문수
+  @Query(value = "SELECT COUNT(*) FROM orders WHERE store_id = :storeId and order_date BETWEEN DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
+  int countOrderByThisWeekBeweenYesterdayAndYesterday1WeekAgoBystoreId(@Param("storeId") int storeId);
+  // 어제의 일주일 전부터 어제까지의 store_id별 매출액합
+  @Query(value = "SELECT sum(final_total_price) FROM orders WHERE store_id = :storeId and order_date BETWEEN DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
+  int sumOfFinalOrderPriceBetweenYesterday1WeekAgoAndYesterdayByStoreId(@Param("storeId") int storeId);
+  // 어제의 일주일 전부터 어제까지의 store_id별 수수료합
+  @Query(value = "SELECT sum(charge) FROM orders WHERE store_id = :storeId and order_date BETWEEN DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
+  int sumOfChargeBetweenYesterday1WeekAgoAndYesterdayByStoreId(@Param("storeId") int storeId);
+  // 어제의 일주일 전부터 어제까지의 store_id별 영업이익합
+  @Query(value = "SELECT sum(profit) FROM orders WHERE store_id = :storeId and order_date BETWEEN DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
+  int sumOfProfitBetweenYesterday1WeekAgoAndYesterdayByStoreId(@Param("storeId") int storeId);
+
+  // 이번주의 store_id별 백화점 구매 주문수(어제가 해당하는 주의 월요일부터 어제까지의 합)
   @Query(value = "SELECT COUNT(*) FROM orders WHERE WEEK(order_date, 1) = WEEK(CURDATE()) AND store_id = :storeId", nativeQuery = true)
   int countOrderByThisWeekAndStoreId(@Param("storeId") int storeID);
+
+  // 어제의 일주일 전부터 어제까지의 store_id별 백화점 구매 주문수
+  @Query(value = "SELECT COUNT(*) FROM orders WHERE order_date BETWEEN DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND DATE_SUB(CURDATE(), INTERVAL 1 DAY) AND store_id = :storeId", nativeQuery = true)
+  int countOrderByThisWeekAndStoreIDBetweenYesterdayAndYesterday1WeekAgo(@Param("storeId") int storeID);
 
   // 이번달의 모든 백화점 구매 주문수
   @Query(value = "SELECT COUNT(*)  FROM orders WHERE MONTH(order_date) = MONTH(CURDATE())", nativeQuery = true)
