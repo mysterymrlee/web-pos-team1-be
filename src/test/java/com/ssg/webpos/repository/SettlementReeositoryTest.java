@@ -1,8 +1,11 @@
 package com.ssg.webpos.repository;
 
+import com.ssg.webpos.domain.SettlementDay;
 import com.ssg.webpos.domain.SettlementMonth;
+import com.ssg.webpos.dto.hqSale.HqSettlementDayDTO;
 import com.ssg.webpos.repository.settlement.SettlementDayRepository;
 import com.ssg.webpos.repository.settlement.SettlementMonthRepository;
+import com.ssg.webpos.service.hqController.method.SettlementDayByTermService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,6 +21,10 @@ public class SettlementReeositoryTest {
     SettlementMonthRepository settlementMonthRepository;
     @Autowired
     SettlementDayRepository settlementDayRepository;
+
+    @Autowired
+    SettlementDayByTermService settlementDayByTermService;
+
     @Test
     void contextVoid() {
         LocalDate start = LocalDate.parse("2023-02-01");
@@ -171,6 +178,12 @@ public class SettlementReeositoryTest {
         long nanoseconds = duration2.toNanos();
         System.out.println("settlement_day로 구한 모든 주문 부분 가격 + settlement_month로 구한 모든 주문 부분 가격을 합했을 때 걸리는 시간 : " + nanoseconds);
     }
+
+//    @Test
+//    void settlementDayBetweenYesterdayAgoAndYesterday() {
+//        List<SettlementDay> list = settlementDayRepository.selectSettlementDayBetweenYesterday1WeekAgoAndYesterday();
+//        List<HqSettlementDayDTO> list = settlementDayByTermService.HqSaleMethods(settlementDayList);
+//    }
 
 
 }
