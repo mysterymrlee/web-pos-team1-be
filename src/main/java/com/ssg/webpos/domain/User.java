@@ -3,6 +3,7 @@ package com.ssg.webpos.domain;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.ssg.webpos.domain.enums.RoleUser;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -47,17 +48,17 @@ public class User extends BaseTime {
     @OneToMany(mappedBy = "user")
     private List<Coupon> couponList = new ArrayList<>();
 
-    @Override
-    public String toString() {
-        return "User{" +
-            "id=" + id +
-            ", email='" + email + '\'' +
-            ", password='" + password + '\'' +
-            ", name='" + name + '\'' +
-            ", birth=" + birth +
-            ", phoneNumber='" + phoneNumber + '\'' +
-            ", role=" + role +
-            ", point=" + point +
-            '}';
-    }
+//    @Override
+//    public String toString() {
+//        return "User{" +
+//            "id=" + id +
+//            ", email='" + email + '\'' +
+//            ", password='" + password + '\'' +
+//            ", name='" + name + '\'' +
+//            ", birth=" + birth +
+//            ", phoneNumber='" + phoneNumber + '\'' +
+//            ", role=" + role +
+//            ", point=" + point +
+//            '}';
+//    }
 }

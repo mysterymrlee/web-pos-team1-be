@@ -119,49 +119,30 @@ public class CartService {
     order.setOrderStatus(OrderStatus.CANCEL);
     orderRepository.save(order);
 
-    User findUser = userRepository.findById(userId).get();
-    Long pointId = findUser.getPoint().getId();
-    Point findPoint = pointRepository.findById(pointId).get();
-
-    // 사용한 포인트 반환
-    int currentPoint = findPoint.getPointAmount();
-    System.out.println("currentPoint = " + currentPoint);
-
-    PointUseHistory findUsePoint = pointUseHistoryRepository.findByOrderId(orderId).orElseThrow(
-        () -> new RuntimeException("주문 시 사용한 포인트 내역이 없습니다."));
-    int usePointAmount = findUsePoint.getPointUseAmount();
-    System.out.println("usePointAmount = " + usePointAmount);
-
-    currentPoint += usePointAmount;
-    System.out.println("currentPoint = " + currentPoint);
-
-    //pointRepository.save(findPoint);
-    findUsePoint.setPointStatus((byte) 1);
-    pointUseHistoryRepository.save(findUsePoint);
-
-    System.out.println("findUsePoint = " + findUsePoint);
-    System.out.println("findUser = " + findUser);
+    // 포인트 사용 내역 확인
+    PointUseHistory findUsePoint = pointUseHistoryRepository.findByOrderId(orderId).orElse(null);
+    if (findUsePoint != null) {
+      int usePointAmount = findUsePoint.getPointUseAmount();
+      System.out.println("usePointAmount = " + usePointAmount);
+      findUsePoint.setPointStatus((byte) 1);
+      System.out.println("findUsePoint = " + findUsePoint);
+      pointUseHistoryRepository.save(findUsePoint);
+    }
 
     // 적립 포인트 취소
-    PointSaveHistory findSavePoint = pointSaveHistoryRepository.findByOrderId(orderId).orElseThrow(
-        () -> new RuntimeException("주문 시 적립한 포인트 내역이 없습니다."));
-    int savePointAmount = findSavePoint.getPointSaveAmount();
-    System.out.println("savePointAmount = " + savePointAmount);
+    PointSaveHistory findSavePoint = pointSaveHistoryRepository.findByOrderId(orderId).orElse(null);
+    if (findSavePoint != null) {
+      int savePointAmount = findSavePoint.getPointSaveAmount();
+      System.out.println("savePointAmount = " + savePointAmount);
+      findSavePoint.setPointStatus((byte) 1);
+      pointSaveHistoryRepository.save(findSavePoint);
+    }
 
-    currentPoint -= savePointAmount;
-    System.out.println("currentPoint = " + currentPoint);
-
-    findPoint.setPointAmount(currentPoint);
-    pointRepository.save(findPoint);
-    findSavePoint.setPointStatus((byte) 1);
-    pointSaveHistoryRepository.save(findSavePoint);
-
-    System.out.println("findSavePoint = " + findSavePoint);
-    System.out.println("findUser = " + findUser);
 
     // 쿠폰 상태 변경
     Coupon useCoupon = couponRepository.findByOrderId(orderId);
     System.out.println("useCoupon = " + useCoupon);
+
 
     if (useCoupon != null) {
       useCoupon.setCouponStatus(CouponStatus.NOT_USED);

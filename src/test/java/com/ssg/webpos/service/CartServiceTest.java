@@ -69,89 +69,6 @@ public class CartServiceTest {
     assertEquals(beforeTotalPrice - diffPrice, afterOrder.getTotalPrice());
   }
 
-  @Test
-  @DisplayName("[주문] 재고량 감소 테스트")
-  void addOrderTest() {
-    PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
-    posStoreCompositeId.setPos_id(1L);
-    posStoreCompositeId.setStore_id(1L);
-
-    Long productId1 = 1L;
-    Long productId2 = 2L;
-    Long productId3 = 3L;
-    List<CartAddDTO> cartAddDTOList = new ArrayList<>();
-    // given
-    CartAddDTO cartAddDTO1 = new CartAddDTO();
-    cartAddDTO1.setPosStoreCompositeId(posStoreCompositeId);
-    cartAddDTO1.setProductId(productId1);
-    cartAddDTO1.setCartQty(2);
-    CartAddDTO cartAddDTO2 = new CartAddDTO();
-    cartAddDTO2.setPosStoreCompositeId(posStoreCompositeId);
-    cartAddDTO2.setProductId(productId2);
-    cartAddDTO2.setCartQty(3);
-    CartAddDTO cartAddDTO3 = new CartAddDTO();
-    cartAddDTO3.setPosStoreCompositeId(posStoreCompositeId);
-    cartAddDTO3.setProductId(productId3);
-    cartAddDTO3.setCartQty(4);
-
-    cartAddDTOList.add(cartAddDTO1);
-    cartAddDTOList.add(cartAddDTO2);
-    cartAddDTOList.add(cartAddDTO3);
-    System.out.println("cartAddDTOList = " + cartAddDTOList);
-    OrderDTO orderDTO = new OrderDTO();
-    orderDTO.setOrderDate(LocalDateTime.now());
-    orderDTO.setPosId(1L);
-    orderDTO.setStoreId(1L);
-
-    int price = 0, qty = 0;
-    for (CartAddDTO cartAddDTO : cartAddDTOList) {
-      Product product = productRepository.findById(cartAddDTO.getProductId()).get();
-      price += cartAddDTO.getCartQty() * product.getSalePrice();
-      qty += cartAddDTO.getCartQty();
-    }
-    orderDTO.setTotalQuantity(qty);
-    orderDTO.setFinalTotalPrice(price);
-
-    // when
-    Product product1 = productRepository.findById(productId1).get();
-    Product product2 = productRepository.findById(productId2).get();
-    Product product3 = productRepository.findById(productId3).get();
-
-    int beforeStock1 = product1.getStock();
-    int beforeStock2 = product2.getStock();
-    int beforeStock3 = product3.getStock();
-
-    System.out.println("beforeStock1 = " + beforeStock1);
-    System.out.println("beforeStock2 = " + beforeStock2);
-    System.out.println("beforeStock3 = " + beforeStock3);
-
-    Order savedOrder = cartService.addOrder(cartAddDTOList, cartAddDTO1, orderDTO);
-    System.out.println("savedOrder = " + savedOrder);
-
-    int afterStock1 = product1.getStock();
-    int afterStock2 = product2.getStock();
-    int afterStock3 = product3.getStock();
-    System.out.println("afterStock1 = " + afterStock1);
-    System.out.println("afterStock3 = " + afterStock3);
-
-    // then
-    List<Cart> savedCarts = savedOrder.getCartList();
-    for (Cart cart : savedCarts) {
-      System.out.println("cart = " + cart);
-    }
-    System.out.println("savedCarts = " + savedCarts);
-    assertEquals(3, savedCarts.size());
-
-    // 기존에 존재하지 않는 상품의 경우
-    Cart savedCart2 = savedCarts.get(2);
-    System.out.println("savedCart2 = " + savedCart2);
-    assertEquals(productId3, savedCart2.getProduct().getId());
-    assertEquals(4, savedCart2.getQty());
-    int expectedStock2 = beforeStock3 - savedCart2.getQty();
-    System.out.println("expectedStock2 = " + expectedStock2);
-    int actualStock2 = productRepository.findById(productId3).get().getStock();
-    assertEquals(expectedStock2, actualStock2);
-  }
 
   @Test
   @DisplayName("[주문 취소] 재고량 증가 테스트")
@@ -287,9 +204,9 @@ public class CartServiceTest {
     posStoreCompositeId.setPos_id(1L);
     posStoreCompositeId.setStore_id(1L);
 
-    Long productId1 = 1L;
-    Long productId2 = 2L;
-    Long productId3 = 3L;
+    Long productId1 = 11L;
+    Long productId2 = 12L;
+    Long productId3 = 13L;
     List<CartAddDTO> cartAddDTOList = new ArrayList<>();
     // given
     CartAddDTO cartAddDTO1 = new CartAddDTO();

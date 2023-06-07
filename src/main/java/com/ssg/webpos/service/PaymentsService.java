@@ -59,6 +59,7 @@ public class PaymentsService {
   public void processPaymentCallback(PaymentsDTO paymentsDTO) {
     try {
       BigDecimal finalTotalPrice = paymentsDTO.getPaid_amount();
+      System.out.println("processPaymentCallback() 호출");
       int couponUsePrice = paymentsDTO.getCouponUsePrice();
 
       int charge = paymentsDTO.getCharge();
@@ -106,28 +107,30 @@ public class PaymentsService {
 
 
       Long findUserId = cartRedisRepository.findUserId(compositeId);
+      System.out.println("findUserId = " + findUserId);
 
 
 
       if (findUserId != null) {
         // 포인트 사용. pointUseHistory 테이블에 저장 (트리거를 통해 point 테이블의 point_amount 업데이트)
         Integer pointUseAmount = paymentsDTO.getPointAmount();
-        Point point = pointRepository.findByUserId(userId).get();
+        Point point = userRepository.findById(userId).get().getPoint();
+
         if (pointUseAmount != null) {
-          pointService.deductPoints(findUserId, pointUseAmount);
           PointUseHistory pointUseHistory = new PointUseHistory(pointUseAmount, order, point);
-          pointUseHistoryService.savePointUseHistory(pointUseHistory);
+          System.out.println("pointUseHistory = " + pointUseHistory);
+          pointUseHistoryRepository.save(pointUseHistory);
           order.setPointUsePrice(pointUseAmount);
         }
         // 포인트 적립. pointSaveHistory 테이블에 저장 (트리거를 통해 point 테이블의 point_amount 업데이트)
-        int pointSaveAmount = pointService.updatePoint(findUserId, finalTotalPrice.intValue());
+        int pointSaveAmount = pointService.updatePoint(finalTotalPrice.intValue());
         System.out.println("paymentsService pointSaveAmount = " + pointSaveAmount);
         PointSaveHistory pointSaveHistory = new PointSaveHistory(pointSaveAmount, order, point);
         pointSaveHistoryRepository.save(pointSaveHistory);
         System.out.println("pointSaveHistory = " + pointSaveHistory);
       }
-      // redis 초기화
-//      cartRedisRepository.delete(compositeId);
+       // redis 초기화
+      cartRedisRepository.delete(compositeId);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -142,6 +145,7 @@ public class PaymentsService {
     order.setSerialNumber(serialNumber);
     order.setPos(pos);
     order.setUser(user);
+//    order.setDelivery();
     order.setFinalTotalPrice(finalTotalPrice.intValue());
     order.setTotalPrice(totalPrice);
     order.calcProfit(finalTotalPrice.intValue(), totalOriginPrice);
@@ -153,7 +157,6 @@ public class PaymentsService {
 
 
     order.setOrderStatus(OrderStatus.SUCCESS);
-
     String pgProvider = paymentsDTO.getPg();
     if (pgProvider.equals("kakaopay")) {
       order.setPayMethod(PayMethod.KAKAO_PAY);
@@ -162,25 +165,29 @@ public class PaymentsService {
     } else if (pgProvider.equals("kcp")) {
       order.setPayMethod(PayMethod.SAMSUNG_PAY);
     }
-      // 쿠폰 deductedPrice
+
+    // 쿠폰 deductedPrice
 
     int couponUsePrice = paymentsDTO.getCouponUsePrice();
     System.out.println("couponUsePrice = " + couponUsePrice);
     order.setCouponUsePrice(couponUsePrice);
 
         Long couponId = cartRedisRepository.findCouponId(compositeId);
-        Coupon coupon = couponService.updateCouponStatusToUsed(couponId);
-        coupon.setOrder(order);
-        order.getCouponList().add(coupon);
-        if (user != null) {
-          coupon.setUser(user);
+        if (couponId != null) {
+          Coupon coupon = couponService.updateCouponStatusToUsed(couponId);
+          coupon.setOrder(order);
+          order.getCouponList().add(coupon);
+          if (user != null) {
+            coupon.setUser(user);
+          }
         }
+
 
       return order;
     }
 
 
-    private String generateSerialNumber (List < Order > orderList, Long storeId, Long posId) {
+    public String generateSerialNumber (List < Order > orderList, Long storeId, Long posId) {
       Long newOrderId = orderList.size() + 1L;
       String serialNumber = String.format("%04d", newOrderId);
       String orderDateStr = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
@@ -188,7 +195,7 @@ public class PaymentsService {
       return combinedStr;
     }
 
-    private Product updateStockAndAddToCart(CartAddDTO cartAddDTO){
+    public Product updateStockAndAddToCart(CartAddDTO cartAddDTO){
       Product product = productRepository.findById(cartAddDTO.getProductId())
           .orElseThrow(() -> new RuntimeException("Product not found."));
 
