@@ -31,44 +31,13 @@ public class PointService {
     }
   }
 
-  public int updatePoint(Long userId, int totalPrice) {
+  public int updatePoint(int totalPrice) {
     try {
-      Optional<User> findUser = userRepository.findById(userId);
-      if (findUser.isPresent()) {
-        User user = findUser.get();
-        Point point = user.getPoint();
-
-        if (point == null) {
-          point = new Point();
-          point.setUser(user);
-        }
-
         int earnedPoint = (int) (totalPrice * 0.001);
-
-        userRepository.save(user);
         return earnedPoint;
-      } else {
-        System.out.println("사용자를 찾을 수 없습니다.");
-      }
     } catch (Exception e) {
       e.printStackTrace();
     }
     return 0;
-  }
-  @Transactional
-  public void deductPoints(Long userId, int deductedAmount) {
-    User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
-    Point point = user.getPoint();
-    int currentPoint = point.getPointAmount();
-    System.out.println("deductPoints currentPoint = " + currentPoint);
-
-    if (currentPoint < deductedAmount) {
-      throw new RuntimeException("포인트가 부족합니다.");
-    }
-
-    int updatedPoint = currentPoint - deductedAmount;
-    System.out.println("updatedPoint = " + updatedPoint);
-
-    userRepository.save(user);
   }
 }

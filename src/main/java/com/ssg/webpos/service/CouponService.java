@@ -45,6 +45,7 @@ public class CouponService {
   }
   // status NOT_USED -> USED
   public Coupon updateCouponStatusToUsed(Long couponId) {
+
     Optional<Coupon> couponOptional = couponRepository.findById(couponId);
     if (couponOptional.isPresent()) {
       Coupon coupon = couponOptional.get();
