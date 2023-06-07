@@ -7,6 +7,7 @@ import com.ssg.webpos.dto.hqMain.AllAndStoreDTO;
 import com.ssg.webpos.dto.hqMain.SettlementByTermDTO;
 import com.ssg.webpos.dto.hqMain.SettlementByTermListDTO;
 import com.ssg.webpos.dto.hqMain.StoreDTO;
+import com.ssg.webpos.dto.hqSale.HqSettlementDayDTO;
 import com.ssg.webpos.dto.hqStock.StockReportResponseDTO;
 import com.ssg.webpos.dto.hqStock.StockReportUpdateRequestDTO;
 import com.ssg.webpos.dto.settlement.*;
@@ -20,6 +21,7 @@ import com.ssg.webpos.repository.store.StoreRepository;
 import com.ssg.webpos.service.SettlementDayService;
 import com.ssg.webpos.service.SettlementMonthService;
 import com.ssg.webpos.service.hqController.method.HqControllerStockService;
+import com.ssg.webpos.service.hqController.method.SettlementDayByTermService;
 import com.ssg.webpos.service.hqController.method.StockReportUpdateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +52,7 @@ public class HqAdminController {
     private final HqControllerStockService hqControllerStockService;
     private final ProductRepository productRepository;
     private final StockReportUpdateService stockReportUpdateService;
+    private final SettlementDayByTermService settlementDayByTermService;
     // 스크린 첫 화면에 보이는 데이터 내역
     // 전체, 백화점 이름 + 해당 백화점의 어제 settlement_price
     // 디폴트 화면은
@@ -460,10 +463,12 @@ public class HqAdminController {
         // 기간별 조회시 String 타입으로 "yyyymmddyyyymmdd" 입력값 받는다. ex. "2023010120230401"
         try {
             if (storeId == 0) {
-                // storeId == 0 전체 조회
+                // 전체 조회
                 if(date == "1week") {
-                    // 1주일
-
+                    // 어제의 일주일 전부터 어제까지의 일일 매출 내역
+                    List<SettlementDay> settlementDayList = settlementDayRepository.selectSettlementDayBetweenYesterday1WeekAgoAndYesterday();
+                    List<HqSettlementDayDTO> list = settlementDayByTermService.HqSaleMethods(settlementDayList);
+                    return new ResponseEntity<>(list, HttpStatus.OK);
                 }
                 if (date == "1month") {
                     // 1달

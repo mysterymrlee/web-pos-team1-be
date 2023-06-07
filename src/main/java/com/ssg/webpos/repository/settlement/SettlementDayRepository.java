@@ -119,4 +119,17 @@ public interface SettlementDayRepository extends JpaRepository<SettlementDay, Lo
             "  AND settlement_date < DATE_FORMAT(CURDATE(), '%Y-%m-%d')",nativeQuery = true)
     int test3b();
 
+    // 어제의 일주일 전부터 어제까지의 settlement_day 조회
+    @Query(value = "SELECT *\n" +
+            "FROM settlement_day sd \n" +
+            "WHERE settlement_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)\n" +
+            "AND settlement_date <= CURDATE() - INTERVAL 1 DAY",nativeQuery = true)
+    List<SettlementDay> selectSettlementDayBetweenYesterday1WeekAgoAndYesterday();
+    // 어제의 일주일 전부터 어제까지의 settlement_day 조회, store_id별
+    @Query(value = "SELECT *\n" +
+            "FROM settlement_day sd \n" +
+            "WHERE store_id = :storeId AND settlement_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)\n" +
+            "AND settlement_date <= CURDATE() - INTERVAL 1 DAY",nativeQuery = true)
+    List<SettlementDay> selectSettlementDayBetweenYesterday1WeekAgoAndYesterdayByStoreId(@Param("storeId") int storeId);
+
 }
