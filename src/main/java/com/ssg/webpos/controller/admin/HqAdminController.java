@@ -8,16 +8,19 @@ import com.ssg.webpos.dto.hqMain.SettlementByTermDTO;
 import com.ssg.webpos.dto.hqMain.SettlementByTermListDTO;
 import com.ssg.webpos.dto.hqMain.StoreDTO;
 import com.ssg.webpos.dto.hqStock.StockReportResponseDTO;
+import com.ssg.webpos.dto.hqStock.StockReportUpdateRequestDTO;
 import com.ssg.webpos.dto.settlement.*;
 import com.ssg.webpos.dto.stock.AllStockReportResponseDTO;
 import com.ssg.webpos.dto.stock.StoreIdStockReportResponseDTO;
 import com.ssg.webpos.repository.StockReportRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
+import com.ssg.webpos.repository.product.ProductRepository;
 import com.ssg.webpos.repository.settlement.SettlementDayRepository;
 import com.ssg.webpos.repository.store.StoreRepository;
 import com.ssg.webpos.service.SettlementDayService;
 import com.ssg.webpos.service.SettlementMonthService;
 import com.ssg.webpos.service.hqController.method.HqControllerStockService;
+import com.ssg.webpos.service.hqController.method.StockReportUpdateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -29,6 +32,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/hq")
@@ -44,6 +48,8 @@ public class HqAdminController {
     private final SettlementDayRepository settlementDayRepository;
     private final OrderRepository orderRepository;
     private final HqControllerStockService hqControllerStockService;
+    private final ProductRepository productRepository;
+    private final StockReportUpdateService stockReportUpdateService;
     // 스크린 첫 화면에 보이는 데이터 내역
     // 전체, 백화점 이름 + 해당 백화점의 어제 settlement_price
     // 디폴트 화면은
@@ -183,42 +189,245 @@ public class HqAdminController {
 
     // 재고 관리
     // 재고 수량이 30미만인 재고들이 조회됨
-    // 어제,이번주,이번달,3개월,기간별 조회, default : 전체  // 1. 전체 매출,store_id별 매출 2. 판매 여부 조회 3. 재고 목록 4. 검색 조회
-    @GetMapping("/stock/storeId={storeId}/saleState={saleState}") // 조회용 // ElasticSearch 활용하는 건 어떨까 // 0은 판매중지, 1인 판매 //
-    public ResponseEntity stock(@PathVariable(name = "storeId") int storeId, @PathVariable(name = "saleState") int saleState) {
+    //  default : 전체  // 1. 전체 매출,store_id별 매출 2. 판매 여부 조회 3. 재고 목록
+    @GetMapping("/stock") // 조회용 // ElasticSearch 활용하는 건 어떨까 // 0은 판매중지, 1인 판매 //
+    public ResponseEntity stock(@RequestParam(name = "storeId") int storeId, @RequestParam(name = "saleState") int saleState, @RequestParam(name = "order") String order) {
         try {
             if (storeId == 0) {
+                // 모든 store 조회
                 if (saleState == 0 ){
                     // 판매 중지 상품 조회
-                    List<StockReport> stockReportList = stockReportRepository.findByProductSaleState((byte) 0);
-                    List<StockReportResponseDTO> stockReportResponseDTOList = hqControllerStockService.getStockReportResponseDTOList(stockReportList);
-                    return new ResponseEntity<>(stockReportResponseDTOList, HttpStatus.OK);
+                    if(order.equals("salePriceASC")) {
+                        // 판매가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceAscBySaleState(0);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("salePriceDESC")) {
+                        // 판매가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceDescBySaleState(0);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceASC")) {
+                        // 원가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceAscBySaleState(0);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceDESC")) {
+                        // 원가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceDescBySaleState(0);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockASC")) {
+                        // 재고수량 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockAscBySaleState(0);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockDESC")) {
+                        // 재고수량 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockDescBySaleState(0);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("none")){
+                        // 정렬이 없는 경우
+                        List<Product> productList = productRepository.findProductBySalePrice(0);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    }
                 } else if (saleState == 1){
                     // 판매 상품 조회
-                    List<StockReport> stockReportList = stockReportRepository.findByProductSaleState((byte) 1);
-                    List<StockReportResponseDTO> stockReportResponseDTOList = hqControllerStockService.getStockReportResponseDTOList(stockReportList);
-                    return new ResponseEntity<>(stockReportResponseDTOList, HttpStatus.OK);
+                    if(order.equals("salePriceASC")) {
+                        // 판매가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceAscBySaleState(1);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("salePriceDESC")) {
+                        // 판매가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceDescBySaleState(1);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceASC")) {
+                        // 원가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceAscBySaleState(1);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceDESC")) {
+                        // 원가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceDescBySaleState(1);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockASC")) {
+                        // 재고수량 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockAscBySaleState(1);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockDESC")) {
+                        // 재고수량 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockDescBySaleState(1);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("none")){
+                        // 정렬이 없는 경우
+                        List<Product> productList = productRepository.findProductBySalePrice(1);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    }
                 } else if (saleState == 2){
                     //  모든 상품 조회
-                    List<StockReport> stockReportList = stockReportRepository.findAll();
-                    List<StockReportResponseDTO> stockReportResponseDTOList = hqControllerStockService.getStockReportResponseDTOList(stockReportList);
-                    return new ResponseEntity<>(stockReportResponseDTOList, HttpStatus.OK);
+                    if(order.equals("salePriceASC")) {
+                        // 판매가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceAsc();
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("salePriceDESC")) {
+                        // 판매가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceDesc();
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceASC")) {
+                        // 원가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceAsc();
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceDESC")) {
+                        // 원가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceDesc();
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockASC")) {
+                        // 재고수량 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockAsc();
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockDESC")) {
+                        // 재고수량 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockDesc();
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("none")){
+                        // 정렬이 없는 경우
+                        List<Product> productList = productRepository.findProduct();
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    }
                 }
 
             } else if(storeId != 0) {
                 // store_id 값을 가진 경우
                 if (saleState == 0) {
-                    List<StockReport> stockReportByStoreIdList = stockReportRepository.findByStoreIdAndProductSaleState((long) storeId,(byte) 0);
-                    List<StockReportResponseDTO> stockReportResponseDTOList = hqControllerStockService.getStockReportResponseDTOList(stockReportByStoreIdList);
-                    return new ResponseEntity<>(stockReportResponseDTOList, HttpStatus.OK);
+                    // 판매 중지 상품 조회
+                    if(order.equals("salePriceASC")) {
+                        // 판매가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceAscBySaleStateAndStoreId(0, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("salePriceDESC")) {
+                        // 판매가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceDescBySaleStateAndStoreId(0, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceASC")) {
+                        // 원가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceAscBySaleStateAndStoreId(0, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceDESC")) {
+                        // 원가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceDescBySaleStateAndStoreId(0, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockASC")) {
+                        // 재고수량 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockAscBySaleStateAndStoreId(0, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockDESC")) {
+                        // 재고수량 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockDescBySaleStateAndStoreId(0, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("none")){
+                        // 정렬이 없는 경우
+                        List<Product> productList = productRepository.findProductBySaleStateAndStoreId(0,storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    }
+
                 } else if (saleState == 1) {
-                    List<StockReport> stockReportByStoreIdList = stockReportRepository.findByStoreIdAndProductSaleState((long) storeId,(byte) 1);
-                    List<StockReportResponseDTO> stockReportResponseDTOList = hqControllerStockService.getStockReportResponseDTOList(stockReportByStoreIdList);
-                    return new ResponseEntity<>(stockReportResponseDTOList, HttpStatus.OK);
+                    // 판매 중 상품 조회
+                    if(order.equals("salePriceASC")) {
+                        // 판매가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceAscBySaleStateAndStoreId(1, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("salePriceDESC")) {
+                        // 판매가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceDescBySaleStateAndStoreId(1, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceASC")) {
+                        // 원가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceAscBySaleStateAndStoreId(1, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceDESC")) {
+                        // 원가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceDescBySaleStateAndStoreId(1, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockASC")) {
+                        // 재고수량 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockAscBySaleStateAndStoreId(1, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockDESC")) {
+                        // 재고수량 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockDescBySaleStateAndStoreId(1, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("none")){
+                        // 정렬이 없는 경우
+                        List<Product> productList = productRepository.findProductBySaleStateAndStoreId(1,storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    }
                 } else if (saleState == 2) {
-                    List<StockReport> stockReportByStoreIdList = stockReportRepository.findByStoreId((long) storeId);
-                    List<StockReportResponseDTO> stockReportResponseDTOList = hqControllerStockService.getStockReportResponseDTOList(stockReportByStoreIdList);
-                    return new ResponseEntity<>(stockReportResponseDTOList, HttpStatus.OK);
+                    // 모든 상품 조회
+                    if(order.equals("salePriceASC")) {
+                        // 판매가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceAscByStoreId(storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("salePriceDESC")) {
+                        // 판매가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceDescByStoreId(storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceASC")) {
+                        // 원가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceAscByStoreId(storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceDESC")) {
+                        // 원가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceDescByStoreId(storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockASC")) {
+                        // 재고수량 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockAscByStoreId(storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockDESC")) {
+                        // 재고수량 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockDescByStoreId(storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("none")){
+                        // 정렬이 없는 경우
+                        List<Product> productList = productRepository.findProductByStoreId(storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -226,6 +435,20 @@ public class HqAdminController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    // 재고관리에서 수정
+    // 상품명, 판매가, 원가 수정 후 DB에 반영, product 반영(DTO 를 생성할 떄 stockReport가 아닌 product에서 가져오기에)
+    // 프런트앤드에서 모든 필드값을 지닌 DTO를 던져줘야한다.
+    @PostMapping("/stock/modify")
+    public ResponseEntity stockModify(@RequestBody StockReportUpdateRequestDTO stockReportUpdateRequestDTO) {
+        // DTO를 받으면 그 DTO 내용을 DB에 적용시키는 서비스를 만들기
+        try {
+            stockReportUpdateService.updateStockReport(stockReportUpdateRequestDTO);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     // 매출관리
@@ -465,8 +688,10 @@ public class HqAdminController {
         }
     }
 
-
-    // 전체 재고 조회
+    /**
+     * 전체 재고 조회
+     * @return ResponseEntity
+     * */
     @GetMapping("/stock/store")
     public ResponseEntity stockReport() {
         try {
