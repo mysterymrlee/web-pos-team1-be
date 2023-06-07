@@ -14,6 +14,6 @@ public class OrderDetailResponseDTO {
     private int pointUsePrice; // 포인트사용금액, PointUsesHistory에서 amount를 가져온다.
     private int finalTotalPrice; // 최총합금액
 
-    private List<OrderDetailProductResponseDTOList> orderDetailProductResponseDTOList = new ArrayList<>(); // 주문상품
+    private List<OrderDetailProductResponseDTO> orderDetailProductResponseDTOList = new ArrayList<>(); // 주문상품
 
 }
