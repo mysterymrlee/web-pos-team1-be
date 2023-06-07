@@ -10,9 +10,7 @@ import com.ssg.webpos.dto.cartDto.CartAddDTO;
 import com.ssg.webpos.dto.cartDto.CartAddRequestDTO;
 import com.ssg.webpos.dto.coupon.CouponAddRequestDTO;
 import com.ssg.webpos.dto.point.PointDTO;
-import com.ssg.webpos.dto.point.PointUseRequestDTO;
 import com.ssg.webpos.repository.cart.CartRedisImplRepository;
-import com.ssg.webpos.service.CartRedisService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,8 +35,6 @@ public class CartRedisRepositoryTest {
   @Autowired
   UserRepository userRepository;
 
-  @Autowired
-  CartRedisService cartRedisService;
   @Autowired
   CouponRepository couponRepository;
 
