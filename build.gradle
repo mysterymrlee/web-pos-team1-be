@@ -93,6 +93,11 @@ dependencies {
 	implementation 'com.github.iamport:iamport-rest-client-java:0.2.21'
 	implementation 'com.itextpdf:itextpdf:5.5.13'
 	implementation 'org.xhtmlrenderer:flying-saucer-pdf:9.1.22'
+	// JWT - 사용자 인증
+	implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
+	implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+	implementation 'redis.clients:jedis:4.3.1' // 'org.springframework.data.redis.connection.RedisConnectionFactory' that could not be found 에러 해결
+	implementation 'org.apache.commons:commons-pool2:2.11.1'
 }
 
 tasks.named('test') {
