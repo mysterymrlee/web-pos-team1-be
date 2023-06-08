@@ -102,4 +102,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
   // 올해 store_id별 영업이익합
   @Query(value = "select sum(profit) from orders where store_id = :storeId", nativeQuery = true)
   int sumOfAllProfitByStoreId(@Param("storeId") int storeId);
+
+  Order findByDeliveryId(Long id);
 }

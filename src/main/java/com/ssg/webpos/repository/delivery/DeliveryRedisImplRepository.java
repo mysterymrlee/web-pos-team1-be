@@ -44,7 +44,6 @@ public class DeliveryRedisImplRepository implements DeliveryRedisRepository {
     deliveryData.put("phoneNumber", deliveryRedisAddRequestDTO.getPhoneNumber());
     deliveryData.put("requestDeliveryTime", deliveryRedisAddRequestDTO.getRequestDeliveryTime());
     deliveryData.put("postCode", deliveryRedisAddRequestDTO.getPostCode());
-    deliveryData.put("isConfirmed", deliveryRedisAddRequestDTO.getIsConfirmed());
     deliveryData.put("requestInfo", deliveryRedisAddRequestDTO.getRequestInfo());
 
     System.out.println("deliveryData = " + deliveryData);
@@ -82,7 +81,7 @@ public class DeliveryRedisImplRepository implements DeliveryRedisRepository {
     selectedAddress.put("isDefault", deliveryListRedisSelectRequestDTO.getIsDefault());
     selectedAddress.put("requestDeliveryTime", deliveryListRedisSelectRequestDTO.getRequestDeliveryTime());
     selectedAddress.put("requestInfo", deliveryListRedisSelectRequestDTO.getRequestInfo());
-
+    selectedAddress.put("phoneNumber", deliveryListRedisSelectRequestDTO.getPhoneNumber());
     System.out.println("selectedAddress = " + selectedAddress);
 
     selectedDeliveryAddress.add(selectedAddress);

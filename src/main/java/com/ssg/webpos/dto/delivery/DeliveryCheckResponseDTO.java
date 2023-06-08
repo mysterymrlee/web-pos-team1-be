@@ -19,7 +19,7 @@ public class DeliveryCheckResponseDTO {
   private DeliveryType deliveryType;
   private String phoneNumber;
   private String deliveryName;
-  private String userName;
+  private String name;
   private String requestInfo;
   private String requestDeliveryTime;
   private LocalDateTime startedDate;
@@ -34,7 +34,7 @@ public class DeliveryCheckResponseDTO {
     this.deliveryType = findDelivery.getDeliveryType();
     this.phoneNumber = findDelivery.getPhoneNumber();
     this.deliveryName = findDelivery.getDeliveryName();
-    this.userName = findDelivery.getUserName();
+    this.name = findDelivery.getUserName();
     this.requestInfo = findDelivery.getRequestInfo();
     this.requestDeliveryTime = findDelivery.getRequestDeliveryTime();
     this.startedDate = findDelivery.getStartedDate();

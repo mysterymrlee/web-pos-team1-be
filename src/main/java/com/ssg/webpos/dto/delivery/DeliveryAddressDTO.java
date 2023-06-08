@@ -15,7 +15,7 @@ public class DeliveryAddressDTO implements Serializable {
   private Long deliveryAddressId;
   private String address;
   private String phoneNumber;
-  private String name;
+  private String userName;
   private String requestInfo;
   private String postCode;
   private byte isDefault;
@@ -25,7 +25,7 @@ public class DeliveryAddressDTO implements Serializable {
     this.deliveryAddressId = deliveryAddress.getId();
     this.address = deliveryAddress.getAddress();
     this.phoneNumber = deliveryAddress.getPhoneNumber();
-    this.name = deliveryAddress.getName();
+    this.userName = deliveryAddress.getName();
     this.requestInfo = deliveryAddress.getRequestInfo();
     this.postCode = deliveryAddress.getPostCode();
     this.isDefault = deliveryAddress.getIsDefault();

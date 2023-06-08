@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssg.webpos.domain.Delivery;
 import com.ssg.webpos.domain.Order;
+import com.ssg.webpos.domain.enums.DeliveryStatus;
 import com.ssg.webpos.domain.enums.DeliveryType;
 import com.ssg.webpos.dto.gift.GiftDeliveryAddressEntryDTO;
 import com.ssg.webpos.dto.gift.GiftSmsDTO;
@@ -42,7 +43,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SmsService {
   private final DeliveryRepository deliveryRepository;
-  private final OrderRepository orderRepository;
 
   @Value("${naver-cloud-sms.accessKey}")
   private String accessKey;
@@ -110,22 +110,26 @@ public class SmsService {
     GiftSmsDTO smsInfo = getInfoToUseInGiftSms(savedDelivery, savedOrder);
 
     String giftProductName = smsInfo.getGiftProductName();
-    if(giftProductName.length() > 10) {
+    if (giftProductName.length() > 10) {
       giftProductName = giftProductName.substring(0, 10) + "...";
     }
-
-    String content1 = "[선물이 도착했어요!]\n"
-        + smsInfo.getSender() + "님이 " + smsInfo.getReceiver() + "님에게 선물을 보냈습니다.\n"
-        + "아래 링크를 통해 선물을 확인하시고 배송지를 입력해주세요.\n\n"
-        + "▶ 상품명: " + giftProductName + "\n"
-        + "▶ 선물 보러 가기: " + giftUrl + "\n"
-        + "▶ 배송지 입력 기한: " + smsInfo.getEntryDeadline() + " 까지\n\n"
-        + "* 기한 내에 배송지 미입력 시, 주문이 자동 취소됩니다.";
-    System.out.println("content1 = " + content1);
-    String content = smsInfo.getSender() + ", " + smsInfo.getReceiver() + "\n"
-        + smsInfo.getGiftProductName() + "\n"
-        + giftUrl + "\n"
-        + smsInfo.getEntryDeadline();
+    DeliveryStatus deliveryStatus = savedDelivery.getDeliveryStatus();
+    System.out.println("deliveryStatus = " + deliveryStatus);
+    String content = "";
+    if (savedDelivery.getDeliveryStatus().equals(DeliveryStatus.PROCESS_DELIVERY)) {
+      content = "주문하신 상품의 배송이 시작되었습니다.";
+    } else if (savedDelivery.getDeliveryStatus().equals(DeliveryStatus.COMPLETE_DELIVERY)) {
+      content = "고객님의 상품이 배송 완료되었습니다.";
+    } else if (savedDelivery.getDeliveryType().equals(DeliveryType.GIFT)
+        && savedDelivery.getDeliveryStatus().equals(DeliveryStatus.COMPLETE_PAYMENT)) {
+      content = "[선물이 도착했어요!]\n"
+          + smsInfo.getSender() + "님이 " + smsInfo.getReceiver() + "님에게 선물을 보냈습니다.\n"
+          + "아래 링크를 통해 선물을 확인하시고 배송지를 입력해주세요.\n\n"
+          + "▶ 상품명: " + giftProductName + "\n"
+          + "▶ 선물 보러 가기: " + giftUrl + "\n"
+          + "▶ 배송지 입력 기한: " + smsInfo.getEntryDeadline() + " 까지\n\n"
+          + "* 기한 내에 배송지 미입력 시, 주문이 자동 취소됩니다.";
+    }
     System.out.println("content = " + content);
     return content;
   }
@@ -178,5 +182,4 @@ public class SmsService {
 
     deliveryRepository.save(findGiftReceiver);
   }
-
 }
