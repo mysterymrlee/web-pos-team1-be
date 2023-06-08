@@ -1,14 +1,9 @@
 package com.ssg.webpos.repository.order;
 
 import com.ssg.webpos.domain.Order;
-import com.ssg.webpos.domain.Pos;
-import com.ssg.webpos.domain.enums.OrderStatus;
-import com.ssg.webpos.domain.PosStoreCompositeId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -107,4 +102,45 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
   // 올해 store_id별 영업이익합
   @Query(value = "select sum(profit) from orders where store_id = :storeId", nativeQuery = true)
   int sumOfAllProfitByStoreId(@Param("storeId") int storeId);
+
+
+  Order findByDeliveryId(Long id);
+
+  // 매출 목록에서 사용할 매서드
+  // 전체 store의 기간별 조회
+  // 1주일
+  @Query(value = "select * from orders o\n" +
+          "where o.order_date between DATE_SUB(CURDATE(), INTERVAL 7 DAY) ANd DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
+  List<Order> allStoreOrderBy1Week();
+
+  // 1달
+  @Query(value = "select * from orders o\n" +
+          "where o.order_date between DATE_SUB(CURDATE(), INTERVAL 1 MONTH) ANd DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
+  List<Order> allStoreOrderBy1Month();
+
+  // 3달
+  @Query(value = "select * from orders o\n" +
+          "where o.order_date between DATE_SUB(CURDATE(), INTERVAL 3 MONTH) ANd DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
+  List<Order> allStoreOrderBy3Month();
+  // 기간별
+  @Query(value = "select * from orders o\n" +
+          "where o.order_date between :startDate AND :endDate", nativeQuery = true)
+  List<Order> allStoreOrderByTerm(@Param("startDate") String startDate, @Param("endDate") String endDate);
+  // store_id별 기간별 조회
+  // 1주
+  @Query(value = "select * from orders o\n" +
+          "where o.store_id = :storeId AND o.order_date between DATE_SUB(CURDATE(), INTERVAL 7 DAY) ANd DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
+  List<Order> allStoreOrderBy1WeekByStoreId(@Param("storeId") int storeId);
+  // 1달
+  @Query(value = "select * from orders o\n" +
+          "where o.store_id = :storeId AND o.order_date between DATE_SUB(CURDATE(), INTERVAL 1 MONTH) ANd DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
+  List<Order> allStoreOrderBy1MonthByStoreId(@Param("storeId") int storeId);
+  // 3달
+  @Query(value = "select * from orders o\n" +
+          "where o.store_id = :storeId AND o.order_date between DATE_SUB(CURDATE(), INTERVAL 3 MONTH) ANd DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
+  List<Order> allStoreOrderBy3MonthByStoreId(@Param("storeId") int storeId);
+  // 기간별
+  @Query(value = "select * from orders o\n" +
+          "where o.store_id = :storeId AND o.order_date between :startDate AND :endDate", nativeQuery = true)
+  List<Order> allStoreOrderByTermByStoreId(@Param("startDate") String startDate, @Param("endDate") String endDate,@Param("storeId") int storeId);
 }

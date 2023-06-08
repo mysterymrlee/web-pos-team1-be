@@ -21,11 +21,6 @@ public class CartRedisImplRepository implements CartRedisRepository {
   UserRepository userRepository;
 
   @Autowired
-  ProductRepository productRepository;
-
-  @Autowired
-  CartRepository cartRepository;
-  @Autowired
   CouponService couponService;
   @Autowired
   CouponRepository couponRepository;

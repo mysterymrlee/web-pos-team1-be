@@ -54,7 +54,7 @@ public class PointController {
     String pointMethod = requestDTO.getPointMethod();
 
     // 요청한 회원이 존재하는지 여부
-    boolean isMemberExist = userService.checkMemberExist(phoneNumbers);
+    boolean isMemberExist = userService.checkMemberExistByPhoneNumber(phoneNumbers);
 
     if (isMemberExist) {
       PointDTO pointDTO = new PointDTO();
@@ -71,13 +71,16 @@ public class PointController {
   }
 
   @PostMapping("/use")
-  public ResponseEntity usePoint(@RequestBody @Valid PointUseRequestDTO requestDTO, BindingResult bindingResult) throws Exception {
-    if (bindingResult.hasErrors()) {
+  public ResponseEntity usePoint(@RequestBody @Valid PointUseRequestDTO requestDTO) throws Exception {
+    Long userId = requestDTO.getUserId();
+    boolean isMemberExist = userService.checkMemberExistByUserId(userId);
+    if (isMemberExist) {
+      int pointAmount = pointService.getPointAmount(userId);
+      PointUseResponseDTO responseDTO = new PointUseResponseDTO(pointAmount);
+      return new ResponseEntity(responseDTO, HttpStatus.OK);
+    } else {
       return new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
-    Long userId = requestDTO.getUserId();
-    int pointAmount = pointService.getPointAmount(userId);
-    PointUseResponseDTO responseDTO = new PointUseResponseDTO(pointAmount);
-    return new ResponseEntity(responseDTO, HttpStatus.OK);
+
     }
   }

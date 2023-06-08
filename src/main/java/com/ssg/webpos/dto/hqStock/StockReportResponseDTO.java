@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class StockReportResponseDTO {
     private String productCode;
+    private Long productId;
     private String storeName;
     private String category;
     private String productName;

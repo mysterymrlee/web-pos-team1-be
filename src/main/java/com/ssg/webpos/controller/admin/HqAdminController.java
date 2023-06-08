@@ -7,23 +7,32 @@ import com.ssg.webpos.dto.hqMain.AllAndStoreDTO;
 import com.ssg.webpos.dto.hqMain.SettlementByTermDTO;
 import com.ssg.webpos.dto.hqMain.SettlementByTermListDTO;
 import com.ssg.webpos.dto.hqMain.StoreDTO;
+import com.ssg.webpos.dto.hqSale.HqSaleByStoreNameDTO;
+import com.ssg.webpos.dto.hqSale.HqSaleOrderDTO;
+import com.ssg.webpos.dto.hqSale.HqSettlementDayDTO;
 import com.ssg.webpos.dto.hqStock.StockReportResponseDTO;
+import com.ssg.webpos.dto.hqStock.StockReportUpdateRequestDTO;
 import com.ssg.webpos.dto.settlement.*;
 import com.ssg.webpos.dto.stock.AllStockReportResponseDTO;
 import com.ssg.webpos.dto.stock.StoreIdStockReportResponseDTO;
 import com.ssg.webpos.repository.StockReportRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
+import com.ssg.webpos.repository.product.ProductRepository;
 import com.ssg.webpos.repository.settlement.SettlementDayRepository;
 import com.ssg.webpos.repository.store.StoreRepository;
 import com.ssg.webpos.service.SettlementDayService;
 import com.ssg.webpos.service.SettlementMonthService;
 import com.ssg.webpos.service.hqController.method.HqControllerStockService;
+import com.ssg.webpos.service.hqController.method.SaleMethodService;
+import com.ssg.webpos.service.hqController.method.StockReportUpdateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -44,6 +53,9 @@ public class HqAdminController {
     private final SettlementDayRepository settlementDayRepository;
     private final OrderRepository orderRepository;
     private final HqControllerStockService hqControllerStockService;
+    private final ProductRepository productRepository;
+    private final StockReportUpdateService stockReportUpdateService;
+    private final SaleMethodService saleMethodService;
     // 스크린 첫 화면에 보이는 데이터 내역
     // 전체, 백화점 이름 + 해당 백화점의 어제 settlement_price
     // 디폴트 화면은
@@ -183,42 +195,245 @@ public class HqAdminController {
 
     // 재고 관리
     // 재고 수량이 30미만인 재고들이 조회됨
-    // 어제,이번주,이번달,3개월,기간별 조회, default : 전체  // 1. 전체 매출,store_id별 매출 2. 판매 여부 조회 3. 재고 목록 4. 검색 조회
-    @GetMapping("/stock/storeId={storeId}/saleState={saleState}") // 조회용 // ElasticSearch 활용하는 건 어떨까 // 0은 판매중지, 1인 판매 //
-    public ResponseEntity stock(@PathVariable(name = "storeId") int storeId, @PathVariable(name = "saleState") int saleState) {
+    //  default : 전체  // 1. 전체 매출,store_id별 매출 2. 판매 여부 조회 3. 재고 목록
+    @GetMapping("/stock") // 조회용 // ElasticSearch 활용하는 건 어떨까 // 0은 판매중지, 1인 판매 //
+    public ResponseEntity stock(@RequestParam(name = "storeId") int storeId, @RequestParam(name = "saleState") int saleState, @RequestParam(name = "order") String order) {
         try {
             if (storeId == 0) {
+                // 모든 store 조회
                 if (saleState == 0 ){
                     // 판매 중지 상품 조회
-                    List<StockReport> stockReportList = stockReportRepository.findByProductSaleState((byte) 0);
-                    List<StockReportResponseDTO> stockReportResponseDTOList = hqControllerStockService.getStockReportResponseDTOList(stockReportList);
-                    return new ResponseEntity<>(stockReportResponseDTOList, HttpStatus.OK);
+                    if(order.equals("salePriceASC")) {
+                        // 판매가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceAscBySaleState(0);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("salePriceDESC")) {
+                        // 판매가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceDescBySaleState(0);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceASC")) {
+                        // 원가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceAscBySaleState(0);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceDESC")) {
+                        // 원가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceDescBySaleState(0);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockASC")) {
+                        // 재고수량 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockAscBySaleState(0);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockDESC")) {
+                        // 재고수량 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockDescBySaleState(0);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("none")){
+                        // 정렬이 없는 경우
+                        List<Product> productList = productRepository.findProductBySalePrice(0);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    }
                 } else if (saleState == 1){
                     // 판매 상품 조회
-                    List<StockReport> stockReportList = stockReportRepository.findByProductSaleState((byte) 1);
-                    List<StockReportResponseDTO> stockReportResponseDTOList = hqControllerStockService.getStockReportResponseDTOList(stockReportList);
-                    return new ResponseEntity<>(stockReportResponseDTOList, HttpStatus.OK);
+                    if(order.equals("salePriceASC")) {
+                        // 판매가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceAscBySaleState(1);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("salePriceDESC")) {
+                        // 판매가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceDescBySaleState(1);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceASC")) {
+                        // 원가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceAscBySaleState(1);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceDESC")) {
+                        // 원가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceDescBySaleState(1);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockASC")) {
+                        // 재고수량 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockAscBySaleState(1);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockDESC")) {
+                        // 재고수량 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockDescBySaleState(1);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("none")){
+                        // 정렬이 없는 경우
+                        List<Product> productList = productRepository.findProductBySalePrice(1);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    }
                 } else if (saleState == 2){
                     //  모든 상품 조회
-                    List<StockReport> stockReportList = stockReportRepository.findAll();
-                    List<StockReportResponseDTO> stockReportResponseDTOList = hqControllerStockService.getStockReportResponseDTOList(stockReportList);
-                    return new ResponseEntity<>(stockReportResponseDTOList, HttpStatus.OK);
+                    if(order.equals("salePriceASC")) {
+                        // 판매가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceAsc();
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("salePriceDESC")) {
+                        // 판매가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceDesc();
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceASC")) {
+                        // 원가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceAsc();
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceDESC")) {
+                        // 원가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceDesc();
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockASC")) {
+                        // 재고수량 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockAsc();
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockDESC")) {
+                        // 재고수량 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockDesc();
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("none")){
+                        // 정렬이 없는 경우
+                        List<Product> productList = productRepository.findProduct();
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    }
                 }
 
             } else if(storeId != 0) {
                 // store_id 값을 가진 경우
                 if (saleState == 0) {
-                    List<StockReport> stockReportByStoreIdList = stockReportRepository.findByStoreIdAndProductSaleState((long) storeId,(byte) 0);
-                    List<StockReportResponseDTO> stockReportResponseDTOList = hqControllerStockService.getStockReportResponseDTOList(stockReportByStoreIdList);
-                    return new ResponseEntity<>(stockReportResponseDTOList, HttpStatus.OK);
+                    // 판매 중지 상품 조회
+                    if(order.equals("salePriceASC")) {
+                        // 판매가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceAscBySaleStateAndStoreId(0, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("salePriceDESC")) {
+                        // 판매가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceDescBySaleStateAndStoreId(0, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceASC")) {
+                        // 원가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceAscBySaleStateAndStoreId(0, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceDESC")) {
+                        // 원가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceDescBySaleStateAndStoreId(0, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockASC")) {
+                        // 재고수량 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockAscBySaleStateAndStoreId(0, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockDESC")) {
+                        // 재고수량 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockDescBySaleStateAndStoreId(0, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("none")){
+                        // 정렬이 없는 경우
+                        List<Product> productList = productRepository.findProductBySaleStateAndStoreId(0,storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    }
+
                 } else if (saleState == 1) {
-                    List<StockReport> stockReportByStoreIdList = stockReportRepository.findByStoreIdAndProductSaleState((long) storeId,(byte) 1);
-                    List<StockReportResponseDTO> stockReportResponseDTOList = hqControllerStockService.getStockReportResponseDTOList(stockReportByStoreIdList);
-                    return new ResponseEntity<>(stockReportResponseDTOList, HttpStatus.OK);
+                    // 판매 중 상품 조회
+                    if(order.equals("salePriceASC")) {
+                        // 판매가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceAscBySaleStateAndStoreId(1, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("salePriceDESC")) {
+                        // 판매가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceDescBySaleStateAndStoreId(1, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceASC")) {
+                        // 원가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceAscBySaleStateAndStoreId(1, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceDESC")) {
+                        // 원가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceDescBySaleStateAndStoreId(1, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockASC")) {
+                        // 재고수량 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockAscBySaleStateAndStoreId(1, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockDESC")) {
+                        // 재고수량 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockDescBySaleStateAndStoreId(1, storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("none")){
+                        // 정렬이 없는 경우
+                        List<Product> productList = productRepository.findProductBySaleStateAndStoreId(1,storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    }
                 } else if (saleState == 2) {
-                    List<StockReport> stockReportByStoreIdList = stockReportRepository.findByStoreId((long) storeId);
-                    List<StockReportResponseDTO> stockReportResponseDTOList = hqControllerStockService.getStockReportResponseDTOList(stockReportByStoreIdList);
-                    return new ResponseEntity<>(stockReportResponseDTOList, HttpStatus.OK);
+                    // 모든 상품 조회
+                    if(order.equals("salePriceASC")) {
+                        // 판매가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceAscByStoreId(storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("salePriceDESC")) {
+                        // 판매가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderBySalePriceDescByStoreId(storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceASC")) {
+                        // 원가 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceAscByStoreId(storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("originPriceDESC")) {
+                        // 원가 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByOriginPriceDescByStoreId(storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockASC")) {
+                        // 재고수량 오름차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockAscByStoreId(storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("stockDESC")) {
+                        // 재고수량 내림차순 정렬
+                        List<Product> productList = productRepository.findProductsOrderByStockDescByStoreId(storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    } else if (order.equals("none")){
+                        // 정렬이 없는 경우
+                        List<Product> productList = productRepository.findProductByStoreId(storeId);
+                        List<StockReportResponseDTO> stockReportResponseDTO = hqControllerStockService.getStockReportResponseDTOByQuery(productList);
+                        return new ResponseEntity(stockReportResponseDTO, HttpStatus.OK);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -227,43 +442,101 @@ public class HqAdminController {
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
+    // 재고관리에서 수정
+    // 상품명, 판매가, 원가 수정 후 DB에 반영, product 반영(DTO 를 생성할 떄 stockReport가 아닌 product에서 가져오기에)
+    // 프런트앤드에서 모든 필드값을 지닌 DTO를 던져줘야한다.
+    @PostMapping("/stock/modify")
+    public ResponseEntity stockModify(@RequestBody StockReportUpdateRequestDTO stockReportUpdateRequestDTO) {
+        // DTO를 받으면 그 DTO 내용을 DB에 적용시키는 서비스를 만들기
+        try {
+            stockReportUpdateService.updateStockReport(stockReportUpdateRequestDTO);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 
     // 매출관리
     // 전체, 가게별 / 기간 : 전체, 1주일, 1달, 3달, 기간별
     // 1. 매출 추이(매출 기간별) 2. 점포별(매출 기간별로 @PathVariable) 3. 매출목록(storeId, term)
     // 1. 매출 추이(매출 기간별)
-    @GetMapping("/sale-management/storeId={storeId}/date={date}")
-    public ResponseEntity saleManagement(@PathVariable(name = "storeId") int storeId, @PathVariable(name = "date") String date) {
+    @GetMapping("/sale-management/storeId={storeId}/date={date}/startDate={startDate}/endDate={endDate}")
+    public ResponseEntity saleManagement(@PathVariable(name = "storeId") int storeId, @PathVariable(name = "date") String date, @PathVariable(name = "startDate") String startDate, @PathVariable(name = "endDate") String endDate) {
         // 기간별 조회시 String 타입으로 "yyyymmddyyyymmdd" 입력값 받는다. ex. "2023010120230401"
         try {
             if (storeId == 0) {
-                // storeId == 0 전체 조회
-                if(date == "1week") {
-                    // 1주일
+                // 전체 조회
+                if(date.equals("1week")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 일주일 전부터 어제까지의 일일 매출 내역
+                    List<Object[]> list = settlementDayRepository.settlementDay1Week();
+                    List<HqSettlementDayDTO> hqSettlementDayDTOList = saleMethodService.saleMethod(list);
+                    return new ResponseEntity<>(hqSettlementDayDTOList, HttpStatus.OK);
+                }
+                if (date.equals("1month")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 1달
+                    List<Object[]> list = settlementDayRepository.settlementDay1Month();
+                    List<HqSettlementDayDTO> hqSettlementDayDTOList = saleMethodService.saleMethod(list);
+                    return new ResponseEntity<>(hqSettlementDayDTOList, HttpStatus.OK);
+                }
+                if (date.equals("3month")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 3달
+                    List<Object[]> list = settlementDayRepository.settlementDay3Month();
+                    List<HqSettlementDayDTO> hqSettlementDayDTOList = saleMethodService.saleMethod(list);
+                    return new ResponseEntity<>(hqSettlementDayDTOList, HttpStatus.OK);
 
                 }
-                if (date == "1month") {
-                    // 1달
-                }
-                if (date == "3month") {
-                    // 3달
-                } else {
+                if (date.equals("term")&&startDate.equals(startDate)&&endDate.equals(endDate)) {
                     // 기간별 조회
+                    // "2023-05-01" 형식 희망
+                    List<Object[]> list = settlementDayRepository.settlementDayTerm(startDate, endDate);
+                    List<HqSettlementDayDTO> hqSettlementDayDTOList = saleMethodService.saleMethod(list);
+                    return new ResponseEntity<>(hqSettlementDayDTOList, HttpStatus.OK);
+                } else {
+                    // 그 외에 들어오는 값은 안내 메세지 넣기
+                    // ex. 적절하지 않은 조회입니다
+                    return new ResponseEntity<>(HttpStatus.OK);
                 }
-                // 기간별 조회
-            } else {
+            } else if (storeId != 0 ){
                 // storeId 값을 지닌 경우
                 // storeId == 0 전체 조회
-                if(date == "1week") {
-                    // 1주일
+                if(date.equals("1week")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 1주일, store_id로 조회
+                    List<Object[]> list = settlementDayRepository.settlementDay1WeekByStoreId(storeId);
+                    List<HqSettlementDayDTO> hqSettlementDayDTOList = saleMethodService.saleMethod(list);
+                    return new ResponseEntity<>(hqSettlementDayDTOList, HttpStatus.OK);
                 }
-                if (date == "1month") {
-                    // 1달
+                if (date.equals("1month")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 1달, store_id로 조회
+                    List<Object[]> list = settlementDayRepository.settlementDay1MonthByStoreId(storeId);
+                    List<HqSettlementDayDTO> hqSettlementDayDTOList = saleMethodService.saleMethod(list);
+                    return new ResponseEntity<>(hqSettlementDayDTOList, HttpStatus.OK);
                 }
-                if (date == "3month") {
-                    // 3달
-                } else {
+                if (date.equals("3month")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 3달, store_id로 조회
+                    List<Object[]> list = settlementDayRepository.settlementDay3MonthByStoreId(storeId);
+                    List<HqSettlementDayDTO> hqSettlementDayDTOList = saleMethodService.saleMethod(list);
+                    return new ResponseEntity<>(hqSettlementDayDTOList, HttpStatus.OK);
+                }
+                if (date.equals("term")&&startDate.equals(startDate)&&endDate.equals(endDate)) {
                     // 기간별 조회
+                    List<Object[]> list = settlementDayRepository.settlementDayTermByStoreId(startDate,endDate,storeId);
+                    List<HqSettlementDayDTO> hqSettlementDayDTOList = new ArrayList<>();
+                    for (Object[] objects : list) {
+                        HqSettlementDayDTO hqSettlementDayDTO = new HqSettlementDayDTO();
+                        java.sql.Date sqlDate = (java.sql.Date) objects[0];
+                        LocalDate settlementDayDate = sqlDate.toLocalDate();
+                        hqSettlementDayDTO.setSettlementDayDate(settlementDayDate);
+                        Integer settlementPriceInteger = (Integer) objects[1];
+                        BigDecimal settlementPrice = BigDecimal.valueOf(settlementPriceInteger);
+                        hqSettlementDayDTO.setSettlementDaySettlementPrice(settlementPrice.intValue());
+                        hqSettlementDayDTOList.add(hqSettlementDayDTO);
+                    }
+                    return new ResponseEntity<>(hqSettlementDayDTOList, HttpStatus.OK);
+                }else {
+                    // 그 외에 들어오는 값은 안내 메세지 넣기
+                    // ex. 적절하지 않은 조회입니다.
+                    return new ResponseEntity<>(HttpStatus.OK);
                 }
             }
             return new ResponseEntity<>(HttpStatus.OK);
@@ -273,116 +546,210 @@ public class HqAdminController {
         }
     }
 
+    @GetMapping("/sale-management/pie-chart/date={date}/startDate={startDate}/endDate={endDate}")
+    public ResponseEntity pieChart(@PathVariable("date") String date, @PathVariable(name = "startDate") String startDate, @PathVariable(name = "endDate") String endDate) {
+        try {
+            if (date.equals("1week")&&startDate.equals("0")&&endDate.equals("0")) {
+                // 어제의 일주일 전부터 어제까지의 지점별 매출합
+                List<Object[]> settlementDayList = settlementDayRepository.Sale1WeekForPieChart();
+                List<HqSaleByStoreNameDTO> list = saleMethodService.pieChartMethod(settlementDayList);
+                return new ResponseEntity<>(list,HttpStatus.OK);
+            } if (date.equals("1month")&&startDate.equals("0")&&endDate.equals("0")) {
+                // 어제의 한달 전부터 어제까지의 지점별 매출합
+                List<Object[]> settlementDayList = settlementDayRepository.Sale1MonthForPieChart();
+                List<HqSaleByStoreNameDTO> list = saleMethodService.pieChartMethod(settlementDayList);
+                return new ResponseEntity<>(list,HttpStatus.OK);
+            } if (date.equals("3month")&&startDate.equals("0")&&endDate.equals("0")) {
+                // 어제의 세달 전부터 어제까지의 지점별 매출합
+                List<Object[]> settlementDayList = settlementDayRepository.Sale3MonthForPieChart();
+                List<HqSaleByStoreNameDTO> list = saleMethodService.pieChartMethod(settlementDayList);
+                return new ResponseEntity<>(list,HttpStatus.OK);
+            } if (date.equals("term")&&startDate.equals(startDate)&&endDate.equals(endDate)) {
+                // 기간별 지점별 매출합
+                List<Object[]> settlementDayList = settlementDayRepository.SaleTermForPieChart(startDate,endDate);
+                List<HqSaleByStoreNameDTO> list = saleMethodService.pieChartMethod(settlementDayList);
+                return new ResponseEntity<>(list,HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    // 매출 목록 조회
+    @GetMapping("/sale-management/list/date={date}/storeId={storeId}/startDate={startDate}/endDate={endDate}")
+    public ResponseEntity saleOrderListView(@PathVariable("date") String date, @PathVariable("storeId") int storeId,@PathVariable("startDate") String startDate,@PathVariable("endDate") String endDate) {
+        try {
+            if(storeId == 0) {
+                if (date.equals("1week")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 일주일 전부터 어제까지의 전체 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy1Week();
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+                } if (date.equals("1month")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 한달 전부터 어제까지의 전체 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy1Month();
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                } if (date.equals("3month")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 세달 전부터 어제까지의 전체 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy3Month();
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                } if (date.equals("term")&&startDate.equals(startDate)&&endDate.equals(endDate)) {
+                    // 기간별 전체 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderByTerm(startDate,endDate);
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                }
+            } else if(storeId !=0 ) {
+                if (date.equals("1week")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 일주일 전부터 어제까지의 store_id별 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy1WeekByStoreId(storeId);
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                } if (date.equals("1month")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 한달 전부터 어제까지의 store_id별 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy1MonthByStoreId(storeId);
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                } if (date.equals("3month")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 세달 전부터 어제까지의 store_id별 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy3MonthByStoreId(storeId);
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                } if (date.equals("term")&&startDate.equals(startDate)&&endDate.equals(endDate)) {
+                    // 기간별 store_id별 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderByTermByStoreId(startDate,endDate,storeId);
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     // 전체 월별정산내역 조회
     // "2023"을 받으면 2023년에 생성된 전체 월별정산내역 조회
-    @PostMapping("/settlement-month/all-store")
-    public ResponseEntity settlementMonth(@RequestBody RequsestSettlementMonthDTO requestSettlementMonthDTO) {
-        try {
-            String year = requestSettlementMonthDTO.getYear();
-            List<SettlementMonth> settlementMonths = settlementMonthService.selectByYear(year);
-            List<SettlementMonthReportDTO> reportDTOs = new ArrayList<>();
-
-            for(SettlementMonth settlementMonth:settlementMonths) {
-                SettlementMonthReportDTO reportDTO = new SettlementMonthReportDTO();
-                reportDTO.setSettlementMontnId(settlementMonth.getId());
-                reportDTO.setSettlementPrice(settlementMonth.getSettlementPrice());
-                reportDTO.setSettlementDate(settlementMonth.getSettlementDate());
-                reportDTO.setStoreId(settlementMonth.getStore().getId());
-                reportDTO.setStoreName(settlementMonth.getStore().getName());
-                reportDTO.setCreatedDate(settlementMonth.getCreatedDate());
-                reportDTOs.add(reportDTO);
-            }
-            return new ResponseEntity<>(reportDTOs, HttpStatus.OK);
-        } catch (Exception e) {
-            e.getStackTrace();
-            e.printStackTrace();
-            return new ResponseEntity(HttpStatus.BAD_REQUEST);
-        }
-    }
+//    @PostMapping("/settlement-month/all-store")
+//    public ResponseEntity settlementMonth(@RequestBody RequsestSettlementMonthDTO requestSettlementMonthDTO) {
+//        try {
+//            String year = requestSettlementMonthDTO.getYear();
+//            List<SettlementMonth> settlementMonths = settlementMonthService.selectByYear(year);
+//            List<SettlementMonthReportDTO> reportDTOs = new ArrayList<>();
+//
+//            for(SettlementMonth settlementMonth:settlementMonths) {
+//                SettlementMonthReportDTO reportDTO = new SettlementMonthReportDTO();
+//                reportDTO.setSettlementMontnId(settlementMonth.getId());
+//                reportDTO.setSettlementPrice(settlementMonth.getSettlementPrice());
+//                reportDTO.setSettlementDate(settlementMonth.getSettlementDate());
+//                reportDTO.setStoreId(settlementMonth.getStore().getId());
+//                reportDTO.setStoreName(settlementMonth.getStore().getName());
+//                reportDTO.setCreatedDate(settlementMonth.getCreatedDate());
+//                reportDTOs.add(reportDTO);
+//            }
+//            return new ResponseEntity<>(reportDTOs, HttpStatus.OK);
+//        } catch (Exception e) {
+//            e.getStackTrace();
+//            e.printStackTrace();
+//            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+//        }
+//    }
 
     // store_id별 월별정산내역 조회
     // 1L, "2023"을 받으면 store_id=1L인 가게의 2023년 발생 월별정산내역 조회
-    @PostMapping("/settlement-month/store-id")
-    public ResponseEntity settlementMonthByStoreId(@RequestBody RequestSettlementMonthByStoreIdDTO requestSettlementMonthByStoreIdDTO) {
-        try {
-            String year = requestSettlementMonthByStoreIdDTO.getYear();
-            Long storeId = requestSettlementMonthByStoreIdDTO.getStoreId();
-            List<SettlementMonth> settlementMonths = settlementMonthService.selectByStoreIdAndDayBetween(storeId, year);
-            List<SettlementMonthReportDTO> reportDTOs = new ArrayList<>();
-
-            for(SettlementMonth settlementMonth:settlementMonths) {
-                SettlementMonthReportDTO reportDTO = new SettlementMonthReportDTO();
-                reportDTO.setSettlementMontnId(settlementMonth.getId());
-                reportDTO.setSettlementPrice(settlementMonth.getSettlementPrice());
-                reportDTO.setSettlementDate(settlementMonth.getSettlementDate());
-                reportDTO.setStoreId(settlementMonth.getStore().getId());
-                reportDTO.setStoreName(settlementMonth.getStore().getName());
-                reportDTO.setCreatedDate(settlementMonth.getCreatedDate());
-                reportDTOs.add(reportDTO);
-            }
-            return new ResponseEntity<>(reportDTOs, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity(HttpStatus.BAD_REQUEST);
-        }
-    }
+//    @PostMapping("/settlement-month/store-id")
+//    public ResponseEntity settlementMonthByStoreId(@RequestBody RequestSettlementMonthByStoreIdDTO requestSettlementMonthByStoreIdDTO) {
+//        try {
+//            String year = requestSettlementMonthByStoreIdDTO.getYear();
+//            Long storeId = requestSettlementMonthByStoreIdDTO.getStoreId();
+//            List<SettlementMonth> settlementMonths = settlementMonthService.selectByStoreIdAndDayBetween(storeId, year);
+//            List<SettlementMonthReportDTO> reportDTOs = new ArrayList<>();
+//
+//            for(SettlementMonth settlementMonth:settlementMonths) {
+//                SettlementMonthReportDTO reportDTO = new SettlementMonthReportDTO();
+//                reportDTO.setSettlementMontnId(settlementMonth.getId());
+//                reportDTO.setSettlementPrice(settlementMonth.getSettlementPrice());
+//                reportDTO.setSettlementDate(settlementMonth.getSettlementDate());
+//                reportDTO.setStoreId(settlementMonth.getStore().getId());
+//                reportDTO.setStoreName(settlementMonth.getStore().getName());
+//                reportDTO.setCreatedDate(settlementMonth.getCreatedDate());
+//                reportDTOs.add(reportDTO);
+//            }
+//            return new ResponseEntity<>(reportDTOs, HttpStatus.OK);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+//        }
+//    }
 
     // 전체 기간별 월별정산내역 조회
     // "2023-02","2023-03" 받으면 2023-02부터 2023-03의 전체 월별정산내역 조회
-    @PostMapping("/settlement-month/range/all-store")
-    public ResponseEntity settlementMonthRange(@RequestBody RequestSettlementMonthRangeDTO requestSettlementMonthRangeDTO) {
-        try {
-            String StartDate = requestSettlementMonthRangeDTO.getStartDate();
-            String EndDate = requestSettlementMonthRangeDTO.getEndDate();
-            List<SettlementMonth> settlementMonths = settlementMonthService.selectByMonthRange(StartDate,EndDate);
-            List<SettlementMonthReportDTO> reportDTOs = new ArrayList<>();
-
-            for(SettlementMonth settlementMonth:settlementMonths) {
-                SettlementMonthReportDTO reportDTO = new SettlementMonthReportDTO();
-                reportDTO.setSettlementMontnId(settlementMonth.getId());
-                reportDTO.setSettlementPrice(settlementMonth.getSettlementPrice());
-                reportDTO.setSettlementDate(settlementMonth.getSettlementDate());
-                reportDTO.setStoreId(settlementMonth.getStore().getId());
-                reportDTO.setStoreName(settlementMonth.getStore().getName());
-                reportDTO.setCreatedDate(settlementMonth.getCreatedDate());
-                reportDTOs.add(reportDTO);
-            }
-
-            return new ResponseEntity<>(reportDTOs, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity(HttpStatus.BAD_REQUEST);
-        }
-    }
+//    @PostMapping("/settlement-month/range/all-store")
+//    public ResponseEntity settlementMonthRange(@RequestBody RequestSettlementMonthRangeDTO requestSettlementMonthRangeDTO) {
+//        try {
+//            String StartDate = requestSettlementMonthRangeDTO.getStartDate();
+//            String EndDate = requestSettlementMonthRangeDTO.getEndDate();
+//            List<SettlementMonth> settlementMonths = settlementMonthService.selectByMonthRange(StartDate,EndDate);
+//            List<SettlementMonthReportDTO> reportDTOs = new ArrayList<>();
+//
+//            for(SettlementMonth settlementMonth:settlementMonths) {
+//                SettlementMonthReportDTO reportDTO = new SettlementMonthReportDTO();
+//                reportDTO.setSettlementMontnId(settlementMonth.getId());
+//                reportDTO.setSettlementPrice(settlementMonth.getSettlementPrice());
+//                reportDTO.setSettlementDate(settlementMonth.getSettlementDate());
+//                reportDTO.setStoreId(settlementMonth.getStore().getId());
+//                reportDTO.setStoreName(settlementMonth.getStore().getName());
+//                reportDTO.setCreatedDate(settlementMonth.getCreatedDate());
+//                reportDTOs.add(reportDTO);
+//            }
+//
+//            return new ResponseEntity<>(reportDTOs, HttpStatus.OK);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+//        }
+//    }
 
     // store_id별 기간별 월별정산내역 조회
     // 1L, "2023-02","2023-03" 받으면 store_id=1L이고 2023-02부터 2023-03의 월별정산내역 조회
-    @PostMapping("/settlement-month/range/store_id")
-    public ResponseEntity settlementMonthRangeByStoreId(@RequestBody RequestSettlementMonthRangeByStoreIdDTO requestSettlementMonthRangeByStoreIdDTO) {
-        try {
-            String StartDate = requestSettlementMonthRangeByStoreIdDTO.getStartDate();
-            String EndDate = requestSettlementMonthRangeByStoreIdDTO.getEndDate();
-            Long storeId = requestSettlementMonthRangeByStoreIdDTO.getStoreId();
-            List<SettlementMonth> settlementMonths = settlementMonthService.selectByStoreIdAndMonthRange(storeId,StartDate,EndDate);
-            List<SettlementMonthReportDTO> reportDTOs = new ArrayList<>();
-
-            for(SettlementMonth settlementMonth:settlementMonths) {
-                SettlementMonthReportDTO reportDTO = new SettlementMonthReportDTO();
-                reportDTO.setSettlementMontnId(settlementMonth.getId());
-                reportDTO.setSettlementPrice(settlementMonth.getSettlementPrice());
-                reportDTO.setSettlementDate(settlementMonth.getSettlementDate());
-                reportDTO.setStoreId(settlementMonth.getStore().getId());
-                reportDTO.setStoreName(settlementMonth.getStore().getName());
-                reportDTO.setCreatedDate(settlementMonth.getCreatedDate());
-                reportDTOs.add(reportDTO);
-            }
-
-            return new ResponseEntity<>(reportDTOs, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity(HttpStatus.BAD_REQUEST);
-        }
-    }
+//    @PostMapping("/settlement-month/range/store_id")
+//    public ResponseEntity settlementMonthRangeByStoreId(@RequestBody RequestSettlementMonthRangeByStoreIdDTO requestSettlementMonthRangeByStoreIdDTO) {
+//        try {
+//            String StartDate = requestSettlementMonthRangeByStoreIdDTO.getStartDate();
+//            String EndDate = requestSettlementMonthRangeByStoreIdDTO.getEndDate();
+//            Long storeId = requestSettlementMonthRangeByStoreIdDTO.getStoreId();
+//            List<SettlementMonth> settlementMonths = settlementMonthService.selectByStoreIdAndMonthRange(storeId,StartDate,EndDate);
+//            List<SettlementMonthReportDTO> reportDTOs = new ArrayList<>();
+//
+//            for(SettlementMonth settlementMonth:settlementMonths) {
+//                SettlementMonthReportDTO reportDTO = new SettlementMonthReportDTO();
+//                reportDTO.setSettlementMontnId(settlementMonth.getId());
+//                reportDTO.setSettlementPrice(settlementMonth.getSettlementPrice());
+//                reportDTO.setSettlementDate(settlementMonth.getSettlementDate());
+//                reportDTO.setStoreId(settlementMonth.getStore().getId());
+//                reportDTO.setStoreName(settlementMonth.getStore().getName());
+//                reportDTO.setCreatedDate(settlementMonth.getCreatedDate());
+//                reportDTOs.add(reportDTO);
+//            }
+//
+//            return new ResponseEntity<>(reportDTOs, HttpStatus.OK);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+//        }
+//    }
 
     // 전체 일별정산내역 조회
     // "2023-05"을 받으면 2023년 5월에 생성된 전체 일별정산내역 조회
@@ -465,8 +832,10 @@ public class HqAdminController {
         }
     }
 
-
-    // 전체 재고 조회
+    /**
+     * 전체 재고 조회
+     * @return ResponseEntity
+     * */
     @GetMapping("/stock/store")
     public ResponseEntity stockReport() {
         try {

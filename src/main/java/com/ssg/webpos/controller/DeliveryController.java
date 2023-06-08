@@ -1,9 +1,7 @@
 package com.ssg.webpos.controller;
 
 import com.ssg.webpos.domain.Delivery;
-import com.ssg.webpos.domain.DeliveryAddress;
 import com.ssg.webpos.domain.Order;
-import com.ssg.webpos.domain.User;
 import com.ssg.webpos.domain.enums.DeliveryStatus;
 import com.ssg.webpos.dto.delivery.DeliveryCheckResponseDTO;
 import com.ssg.webpos.dto.delivery.*;
@@ -58,27 +56,7 @@ public class DeliveryController {
 
   @PostMapping("/add")
   public ResponseEntity addDeliveryInfo(@RequestBody DeliveryRedisAddRequestDTO deliveryRedisAddRequestDTO) {
-    // 추가된 배송지 정보 redis 캐싱
-    deliveryRedisRepository.saveDelivery(deliveryRedisAddRequestDTO);
-    Long storeId = deliveryRedisAddRequestDTO.getStoreId();
-    Long posId = deliveryRedisAddRequestDTO.getPosId();
-    String compositeId = storeId + "-" + posId;
-    // userId 찾기
-    Long userId = cartRedisImplRepository.findUserId(compositeId);
-    User user = userRepository.findById(userId).get();
-    // 회원이면 추가한 배송지 정보 DB에 저장
-    if(userId != null && deliveryRedisAddRequestDTO.getIsConfirmed() == 1) {
-      DeliveryAddress deliveryAddress = DeliveryAddress.builder()
-          .deliveryName(deliveryRedisAddRequestDTO.getDeliveryName())
-          .phoneNumber(deliveryRedisAddRequestDTO.getPhoneNumber())
-          .name(deliveryRedisAddRequestDTO.getUserName())
-          .postCode(deliveryRedisAddRequestDTO.getPostCode())
-          .address(deliveryRedisAddRequestDTO.getAddress())
-          .user(user)
-          .build();
-      System.out.println("deliveryAddress = " + deliveryAddress);
-      deliveryAddressRepository.save(deliveryAddress);
-    }
+    deliveryService.addUserDeliveryAddress(deliveryRedisAddRequestDTO);
     return new ResponseEntity(HttpStatus.CREATED);
   }
 
@@ -155,12 +133,13 @@ public class DeliveryController {
       Delivery findDelivery = deliveryRepository.findBySerialNumber(serialNumber);
       String phoneNumber = findDelivery.getPhoneNumber();
       messageDTO.setTo(phoneNumber);
-      Order findOrder = orderRepository.findBySerialNumber(serialNumber);
+      Order findOrder = orderRepository.findByDeliveryId(findDelivery.getId());
+      System.out.println("findOrder = " + findOrder);
       System.out.println("findDelivery = " + findDelivery);
       findDelivery.setDeliveryStatus(DeliveryStatus.PROCESS_DELIVERY);
       findDelivery.setStartedDate(LocalDateTime.now());
       deliveryRepository.save(findDelivery);
-//      smsService.sendSms()
+      smsService.sendSms(messageDTO, findDelivery, findOrder);
       return new ResponseEntity(HttpStatus.OK);
     } catch (Exception e) {
       e.printStackTrace();
@@ -170,14 +149,18 @@ public class DeliveryController {
 
   // 배송 완료
   @GetMapping("/complete-delivery/{serialNumber}")
-  public ResponseEntity setStatusCompleteDelivery(@PathVariable String serialNumber) {
+  public ResponseEntity setStatusCompleteDelivery(@PathVariable String serialNumber, MessageDTO messageDTO) {
     try {
       Delivery findDelivery = deliveryRepository.findBySerialNumber(serialNumber);
+      String phoneNumber = findDelivery.getPhoneNumber();
       System.out.println("findDelivery = " + findDelivery);
+      messageDTO.setTo(phoneNumber);
+      Order findOrder = orderRepository.findByDeliveryId(findDelivery.getId());
+      System.out.println("findOrder = " + findOrder);
       findDelivery.setDeliveryStatus(DeliveryStatus.COMPLETE_DELIVERY);
       findDelivery.setFinishedDate(LocalDateTime.now());
       deliveryRepository.save(findDelivery);
-
+      smsService.sendSms(messageDTO, findDelivery, findOrder);
       return new ResponseEntity(HttpStatus.OK);
     } catch (Exception e) {
       e.printStackTrace();

@@ -11,6 +11,7 @@ import javax.validation.constraints.NotNull;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString(exclude = {"point", "order"})
 @Table(name = "point_use_history")
 public class PointUseHistory extends BaseTime {
     @Id
@@ -34,6 +35,5 @@ public class PointUseHistory extends BaseTime {
         this.order = order;
         this.point = point;
     }
-
 
 }

@@ -1,23 +1,19 @@
 package com.ssg.webpos.controller.admin;
 
 import com.ssg.webpos.domain.*;
-import com.ssg.webpos.dto.order.OrderDetailProductResponseDTOList;
-import com.ssg.webpos.dto.order.OrderDetailRequestDTO;
+import com.ssg.webpos.dto.order.OrderDetailProductResponseDTO;
 import com.ssg.webpos.dto.order.OrderDetailResponseDTO;
 import com.ssg.webpos.dto.order.RequestOrderDTO;
 import com.ssg.webpos.dto.settlement.*;
 import com.ssg.webpos.dto.stock.modify.ModifyRequestDTO;
 import com.ssg.webpos.dto.stock.stockSubmit.SubmitRequestDTO;
 import com.ssg.webpos.dto.stock.stockSubmit.SubmitRequestDTOList;
-import com.ssg.webpos.repository.CouponRepository;
 import com.ssg.webpos.repository.PointUseHistoryRepository;
 import com.ssg.webpos.repository.ProductRequestRepository;
 import com.ssg.webpos.repository.StockReportRepository;
 import com.ssg.webpos.repository.cart.CartRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
 import com.ssg.webpos.repository.product.ProductRepository;
-import com.ssg.webpos.repository.settlement.SettlementDayRepository;
-import com.ssg.webpos.repository.settlement.SettlementMonthRepository;
 import com.ssg.webpos.repository.store.StoreRepository;
 import com.ssg.webpos.service.OrderService;
 import com.ssg.webpos.service.SettlementDayService;
@@ -30,8 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -60,30 +54,30 @@ public class BranchAdminManagerController {
     //RequestSettlementMonthDTO로 String 타입의 year(ex. "2023")을 받으면 parse 활용해서 2023년도의 월별정산내역 조회
     // 받아오는 건 String으로 받아오고 스프링에서 startDate, endDate를 만들어서 레포지토리 매서드로 활용
     // 로그인 구현시 해당 store_id 만 나오도록 변경
-    @PostMapping("/settlement-month")
-    public ResponseEntity settlementMonth(@RequestBody RequsestSettlementMonthDTO requestSettlementMonthDTO) {
-        try {
-            String year = requestSettlementMonthDTO.getYear();
-            List<SettlementMonth> settlementMonths = settlementMonthService.selectByYear(year);
-            List<SettlementMonthReportDTO> reportDTOs = new ArrayList<>();
-
-            for(SettlementMonth settlementMonth:settlementMonths) {
-                SettlementMonthReportDTO reportDTO = new SettlementMonthReportDTO();
-                reportDTO.setSettlementMontnId(settlementMonth.getId());
-                reportDTO.setSettlementPrice(settlementMonth.getSettlementPrice());
-                reportDTO.setSettlementDate(settlementMonth.getSettlementDate());
-                reportDTO.setStoreId(settlementMonth.getStore().getId());
-                reportDTO.setStoreName(settlementMonth.getStore().getName());
-                reportDTO.setCreatedDate(settlementMonth.getCreatedDate());
-                reportDTOs.add(reportDTO);
-            }
-
-            return new ResponseEntity(reportDTOs, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity(HttpStatus.BAD_REQUEST);
-        }
-    }
+//    @PostMapping("/settlement-month")
+//    public ResponseEntity settlementMonth(@RequestBody RequsestSettlementMonthDTO requestSettlementMonthDTO) {
+//        try {
+//            String year = requestSettlementMonthDTO.getYear();
+//            List<SettlementMonth> settlementMonths = settlementMonthService.selectByYear(year);
+//            List<SettlementMonthReportDTO> reportDTOs = new ArrayList<>();
+//
+//            for(SettlementMonth settlementMonth:settlementMonths) {
+//                SettlementMonthReportDTO reportDTO = new SettlementMonthReportDTO();
+//                reportDTO.setSettlementMontnId(settlementMonth.getId());
+//                reportDTO.setSettlementPrice(settlementMonth.getSettlementPrice());
+//                reportDTO.setSettlementDate(settlementMonth.getSettlementDate());
+//                reportDTO.setStoreId(settlementMonth.getStore().getId());
+//                reportDTO.setStoreName(settlementMonth.getStore().getName());
+//                reportDTO.setCreatedDate(settlementMonth.getCreatedDate());
+//                reportDTOs.add(reportDTO);
+//            }
+//
+//            return new ResponseEntity(reportDTOs, HttpStatus.OK);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+//        }
+//    }
 
     //year 조회, 보이는 DTO : 입력한 year에 해당하는 settlement_month 정산내역
     //demo version
@@ -312,7 +306,7 @@ public class BranchAdminManagerController {
         }
     }
 
-    // orders 목록에서 serial_number를 누르면 상세주문내역이 나온다.그러기 위해서는 serial_nubmer를 req로 받아야한다.
+    // orders 목록에서 serial_number를 누르면 상세주문내역이 나온다.그러기 위해서는 serial_nubmer를 req로 받아야한다. storename, 전화번호 검색
     @GetMapping("/orders-detail")
     public ResponseEntity getOrderDetail(@RequestParam String serialNumber) {
         try {
@@ -328,19 +322,19 @@ public class BranchAdminManagerController {
         orderDetailResponseDTO.setPointUsePrice(pointUseHistory.get().getPointUseAmount());
         // 포인트 정보 가져오기 종료
         orderDetailResponseDTO.setFinalTotalPrice(order.getFinalTotalPrice());
-        List<OrderDetailProductResponseDTOList> orderDetailProductResponseDTOLists = new ArrayList<>();
+        List<OrderDetailProductResponseDTO> orderDetailProductResponseDTOList = new ArrayList<>();
         List<Cart> cartList = cartRepository.findAllByOrderId(orderId);
         // 주문 상품의 이름, 수량, 상품 가격 정보 시작
         for (Cart cart : cartList) {
-            OrderDetailProductResponseDTOList orderDetailProduct = new OrderDetailProductResponseDTOList();
+            OrderDetailProductResponseDTO orderDetailProduct = new OrderDetailProductResponseDTO();
             Long productId = cart.getProduct().getId();
             Optional<Product> product = productRepository.findById(productId);
             orderDetailProduct.setProductName(product.get().getName());
             orderDetailProduct.setProductQty(product.get().getStock());
             orderDetailProduct.setProductSalePrice(product.get().getSalePrice());
-            orderDetailProductResponseDTOLists.add(orderDetailProduct);
+            orderDetailProductResponseDTOList.add(orderDetailProduct);
         }
-        orderDetailResponseDTO.setOrderDetailProductResponseDTOList(orderDetailProductResponseDTOLists);
+        orderDetailResponseDTO.setOrderDetailProductResponseDTOList(orderDetailProductResponseDTOList);
         // 주문 상품의 이름, 수량, 상품 가격 정보 종료
         return new ResponseEntity<>(orderDetailResponseDTO, HttpStatus.OK);
         } catch (Exception e) {

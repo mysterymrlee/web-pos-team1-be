@@ -13,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@ToString(exclude = {"pointUseHistoryList", "pointSaveHistoryList"})
 @Table(name = "point")
 public class Point extends BaseTime {
   @Id
