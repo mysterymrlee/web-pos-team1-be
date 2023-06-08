@@ -14,4 +14,5 @@ public class GiftSmsDTO {
   private String sender;
   private String entryDeadline;
   private String giftProductName;
+  private String orderSerialNumber;
 }
