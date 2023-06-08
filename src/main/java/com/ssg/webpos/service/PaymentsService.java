@@ -1,9 +1,11 @@
 package com.ssg.webpos.service;
 import com.ssg.webpos.domain.*;
+import com.ssg.webpos.domain.enums.DeliveryType;
 import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.domain.enums.PayMethod;
 import com.ssg.webpos.dto.cartDto.CartAddDTO;
 import com.ssg.webpos.dto.PaymentsDTO;
+import com.ssg.webpos.dto.msg.MessageDTO;
 import com.ssg.webpos.repository.PointRepository;
 import com.ssg.webpos.repository.PointUseHistoryRepository;
 import com.ssg.webpos.repository.cart.CartRedisRepository;
@@ -44,6 +46,8 @@ public class PaymentsService {
   private final PointUseHistoryRepository pointUseHistoryRepository;
   private final PointSaveHistoryService pointSaveHistoryService;
   private final PointRepository pointRepository;
+  private final DeliveryService deliveryService;
+  private final SmsService smsService;
 
 
   @Value("${api_key}")
@@ -85,13 +89,36 @@ public class PaymentsService {
       Integer totalPrice = cartRedisRepository.findTotalPrice(compositeId);
       Integer totalOriginPrice = cartRedisRepository.findTotalOriginPrice(compositeId);
       String orderName = cartRedisRepository.findOrderName(compositeId);
+
+      Delivery delivery = deliveryService.saveGiftInfo(paymentsDTO);
+      System.out.println("delivery = " + delivery);
+
       // createOrder
-      order = createOrder(paymentsDTO, compositeId, user, pos, finalTotalPrice, totalPrice, totalOriginPrice, orderName, charge);
+      order = createOrder(paymentsDTO, compositeId, user, pos, finalTotalPrice, totalPrice, totalOriginPrice, orderName, charge, delivery);
       System.out.println("orderName = " + orderName);
       System.out.println("totalOriginPrice = " + totalOriginPrice);
 
       // Save order
-      orderRepository.save(order);
+//      orderRepository.save(order);
+      // send sms
+      MessageDTO messageDTO = new MessageDTO();
+      String phoneNumber = delivery.getPhoneNumber();
+      messageDTO.setTo(phoneNumber);
+
+      DeliveryType findDeliveryType = order.getDelivery().getDeliveryType();
+      System.out.println("findDeliveryType = " + findDeliveryType);
+      if(order.getDelivery().getDeliveryType().equals(DeliveryType.GIFT)) {
+        smsService.sendSms(messageDTO, delivery, order);
+      } else if(order.getDelivery().getDeliveryType().equals(DeliveryType.DELIVERY)) {
+        // 회원인 경우
+        if(userId != null) {
+          deliveryService.saveSelectedDelivery(paymentsDTO);
+        } else {
+          // 비회원인 경우
+          deliveryService.saveAddedDelivery(paymentsDTO);
+        }
+
+      }
 
       List<Map<String, Object>> cartItemList = cartRedisRepository.findCartItems(compositeId); // 캐싱된 cartItemList 가져오기
 
@@ -140,7 +167,7 @@ public class PaymentsService {
   }
 
   private Order createOrder(PaymentsDTO paymentsDTO, String compositeId, User user, Pos pos,
-                            BigDecimal finalTotalPrice, Integer totalPrice, Integer totalOriginPrice, String OrderName, Integer charge) {
+                            BigDecimal finalTotalPrice, Integer totalPrice, Integer totalOriginPrice, String OrderName, Integer charge, Delivery delivery) {
     Order order = new Order();
     order.setOrderDate(LocalDateTime.now());
     List<Order> orderList = orderRepository.findAll();
@@ -148,6 +175,7 @@ public class PaymentsService {
     order.setSerialNumber(serialNumber);
     order.setPos(pos);
     order.setUser(user);
+    order.setDelivery(delivery);
     order.setFinalTotalPrice(finalTotalPrice.intValue());
     order.setTotalPrice(totalPrice);
     order.calcProfit(finalTotalPrice.intValue(), totalOriginPrice);
