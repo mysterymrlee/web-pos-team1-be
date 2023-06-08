@@ -145,6 +145,7 @@ public class DeliveryService {
     Long posId = paymentsDTO.getPosId();
     String compositeId = storeId + "-" + posId;
     System.out.println("compositeId = " + compositeId);
+
     List<Map<String, Object>> selectedDelivery = deliveryRedisImplRepository.findSelectedDelivery(compositeId);
     String serialNumber = makeSerialNumber();
     System.out.println("serialNumber = " + serialNumber);
@@ -155,7 +156,7 @@ public class DeliveryService {
           .address((String) selectedAddress.get("address"))
           .phoneNumber((String) selectedAddress.get("phoneNumber"))
           .deliveryName((String) selectedAddress.get("deliveryName"))
-          .userName((String) selectedAddress.get("name"))
+          .userName((String) selectedAddress.get("userName"))
           .requestInfo((String) selectedAddress.get("requestInfo"))
           .postCode((String) selectedAddress.get("postCode"))
           .deliveryType(DeliveryType.DELIVERY)
@@ -185,7 +186,7 @@ public class DeliveryService {
           .address((String) addedAddress.get("address"))
           .phoneNumber((String) addedAddress.get("phoneNumber"))
           .deliveryName((String) addedAddress.get("deliveryName"))
-          .userName((String) addedAddress.get("name"))
+          .userName((String) addedAddress.get("userName"))
           .requestInfo((String) addedAddress.get("requestInfo"))
           .postCode((String) addedAddress.get("postCode"))
           .deliveryType(DeliveryType.DELIVERY)
@@ -209,7 +210,10 @@ public class DeliveryService {
     String compositeId = storeId + "-" + posId;
     // userId 찾기
     Long userId = cartRedisImplRepository.findUserId(compositeId);
-    User user = userRepository.findById(userId).get();
+    User user = null;
+    if(userId != null) {
+      user = userRepository.findById(userId).get();
+    }
 
     DeliveryAddress savedDeliveryAddress = null;
     // 회원이면 추가한 배송지 정보 DB에 저장

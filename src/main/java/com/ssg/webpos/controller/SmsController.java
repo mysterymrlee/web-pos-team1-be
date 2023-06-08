@@ -6,7 +6,7 @@ import com.ssg.webpos.domain.Order;
 import com.ssg.webpos.domain.enums.DeliveryStatus;
 import com.ssg.webpos.domain.enums.DeliveryType;
 import com.ssg.webpos.domain.enums.OrderStatus;
-import com.ssg.webpos.dto.gift.GiftDeliveryAddressEntryDTO;
+import com.ssg.webpos.dto.gift.GiftSmsRequestDTO;
 import com.ssg.webpos.dto.msg.MessageDTO;
 import com.ssg.webpos.dto.msg.SmsResponseDTO;
 import com.ssg.webpos.repository.delivery.DeliveryRepository;
@@ -73,8 +73,8 @@ public class SmsController {
   }
 
   @PostMapping("/save-address")
-  public ResponseEntity saveAddress(@RequestBody GiftDeliveryAddressEntryDTO giftDeliveryAddressEntryDTO) {
-    smsService.saveDeliveryAddress(giftDeliveryAddressEntryDTO);
+  public ResponseEntity saveAddress(@RequestBody GiftSmsRequestDTO giftSmsRequestDTO) {
+    smsService.saveDeliveryAddress(giftSmsRequestDTO);
     return new ResponseEntity(HttpStatus.CREATED);
   }
 }

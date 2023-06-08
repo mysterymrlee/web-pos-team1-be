@@ -2,9 +2,7 @@ package com.ssg.webpos.repository;
 
 import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.dto.delivery.*;
-import com.ssg.webpos.dto.gift.GiftDTO;
 import com.ssg.webpos.dto.gift.GiftRequestDTO;
-import com.ssg.webpos.dto.point.PointDTO;
 import com.ssg.webpos.repository.cart.CartRedisImplRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRedisImplRepository;
 import org.junit.jupiter.api.Assertions;
