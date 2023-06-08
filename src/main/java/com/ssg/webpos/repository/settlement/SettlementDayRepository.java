@@ -1,6 +1,7 @@
 package com.ssg.webpos.repository.settlement;
 
 import com.ssg.webpos.domain.SettlementDay;
+import jdk.jfr.Unsigned;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -119,17 +120,100 @@ public interface SettlementDayRepository extends JpaRepository<SettlementDay, Lo
             "  AND settlement_date < DATE_FORMAT(CURDATE(), '%Y-%m-%d')",nativeQuery = true)
     int test3b();
 
-    // 어제의 일주일 전부터 어제까지의 settlement_day 조회
+    // 어제의 일주일 전부터 어제까지의 settlement_day 조회(store_id 고려안한 매서드)
     @Query(value = "SELECT *\n" +
             "FROM settlement_day sd \n" +
             "WHERE settlement_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)\n" +
             "AND settlement_date <= CURDATE() - INTERVAL 1 DAY",nativeQuery = true)
     List<SettlementDay> selectSettlementDayBetweenYesterday1WeekAgoAndYesterday();
+
+    // 어제의 일주일 전부터 어제까지의 settlement_day 조회(날짜별로 합침)
+    @Query(value = "SELECT DATE(settlement_date) AS date, SUM(settlement_price) AS total_settlement_price\n" +
+            "FROM settlement_day\n" +
+            "WHERE settlement_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND settlement_date <= DATE_SUB(CURDATE(), INTERVAL 1 DAY)\n" +
+            "GROUP BY DATE(settlement_date)",nativeQuery = true)
+    List<Object[]> settlementDay1Week();
+
+    // 어제의 일주일 전부터 어제까지의 settlement_day 조회(날짜별로 합침), storeId로 조회
+    @Query(value = "SELECT DATE(settlement_date) AS date, SUM(settlement_price) AS total_settlement_price\n" +
+            "FROM settlement_day\n" +
+            "WHERE store_id = :storeId AND settlement_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND settlement_date <= DATE_SUB(CURDATE(), INTERVAL 1 DAY)\n" +
+            "GROUP BY DATE(settlement_date)",nativeQuery = true)
+    List<Object[]> settlementDay1WeekByStoreId(@Param("storeId") int storeId);
+
+    // 어제의 한달 전부터 어제까지의 settlement_day 조회(날짜별로 합침)
+    @Query(value = "SELECT DATE(settlement_date) AS date, SUM(settlement_price) AS total_settlement_price\n" +
+            "FROM settlement_day\n" +
+            "WHERE settlement_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) AND settlement_date <= DATE_SUB(CURDATE(), INTERVAL 1 DAY)\n" +
+            "GROUP BY DATE(settlement_date)",nativeQuery = true)
+
+    List<Object[]> settlementDay1Month();
+
+    // 어제의 한달 전부터 어제까지의 settlement_day 조회(날짜별로 합침), storeId로 조회
+    @Query(value = "SELECT DATE(settlement_date) AS date, SUM(settlement_price) AS total_settlement_price\n" +
+            "FROM settlement_day\n" +
+            "WHERE store_id = :storeId AND settlement_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) AND settlement_date <= DATE_SUB(CURDATE(), INTERVAL 1 DAY)\n" +
+            "GROUP BY DATE(settlement_date)",nativeQuery = true)
+
+    List<Object[]> settlementDay1MonthByStoreId(@Param("storeId") int storeId);
+
+    // 어제의 세달 전부터 어제까지의 settlement_day 조회(날짜별로 합침)
+    @Query(value = "SELECT DATE(settlement_date) AS date, SUM(settlement_price) AS total_settlement_price\n" +
+            "FROM settlement_day\n" +
+            "WHERE settlement_date >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH) AND settlement_date <= DATE_SUB(CURDATE(), INTERVAL 1 DAY)\n" +
+            "GROUP BY DATE(settlement_date)",nativeQuery = true)
+    List<Object[]> settlementDay3Month();
+
+    // 어제의 세달 전부터 어제까지의 settlement_day 조회(날짜별로 합침)
+    @Query(value = "SELECT DATE(settlement_date) AS date, SUM(settlement_price) AS total_settlement_price\n" +
+            "FROM settlement_day\n" +
+            "WHERE store_id = :storeId AND settlement_date >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH) AND settlement_date <= DATE_SUB(CURDATE(), INTERVAL 1 DAY)\n" +
+            "GROUP BY DATE(settlement_date)",nativeQuery = true)
+    List<Object[]> settlementDay3MonthByStoreId(@Param("storeId") int storeId);
+
+    // 기간별 조회(날짜별로 합침)
+    @Query(value = "SELECT DATE(settlement_date) AS date, SUM(settlement_price) AS total_settlement_price\n" +
+            "FROM settlement_day\n" +
+            "WHERE settlement_date BETWEEN :startDate AND :endDate\n" +
+            "GROUP BY DATE(settlement_date)",nativeQuery = true)
+    List<Object[]> settlementDayTerm(@Param("startDate") String startDate, @Param("endDate") String endDate);
+
+    // 기간별 조회(날짜별로 합침), storeId별 조회
+    @Query(value = "SELECT DATE(settlement_date) AS date, settlement_price AS total_settlement_price\n" +
+            "FROM settlement_day\n" +
+            "WHERE store_id = :storeId AND settlement_date BETWEEN :startDate AND :endDate\n" +
+            "GROUP BY DATE(settlement_date)",nativeQuery = true)
+    List<Object[]> settlementDayTermByStoreId(@Param("startDate") String startDate, @Param("endDate") String endDate, @Param("storeId") int storeId);
+
     // 어제의 일주일 전부터 어제까지의 settlement_day 조회, store_id별
     @Query(value = "SELECT *\n" +
             "FROM settlement_day sd \n" +
             "WHERE store_id = :storeId AND settlement_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)\n" +
             "AND settlement_date <= CURDATE() - INTERVAL 1 DAY",nativeQuery = true)
     List<SettlementDay> selectSettlementDayBetweenYesterday1WeekAgoAndYesterdayByStoreId(@Param("storeId") int storeId);
+
+    // 1주일 지점별 매출 파이차트 조회용 매서드
+    @Query(value = "select sum(settlement_price), store_id from settlement_day\n" +
+            "where settlement_date between DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND DATE_SUB(CURDATE(), INTERVAL 1 DAY)\n" +
+            "group by store_id", nativeQuery = true)
+    List<Object[]> Sale1WeekForPieChart();
+
+    // 1달 지점별 매출 파이차트 조회용 매서드
+    @Query(value = "select sum(settlement_price), store_id from settlement_day\n" +
+            "where settlement_date between DATE_SUB(CURDATE(), INTERVAL 1 MONTH) AND DATE_SUB(CURDATE(), INTERVAL 1 DAY)\n" +
+            "group by store_id", nativeQuery = true)
+    List<Object[]> Sale1MonthForPieChart();
+
+    // 3달 지점별 매출 파이차트 조회용 매서드
+    @Query(value = "select sum(settlement_price), store_id from settlement_day\n" +
+            "where settlement_date between DATE_SUB(CURDATE(), INTERVAL 3 MONTH) AND DATE_SUB(CURDATE(), INTERVAL 1 DAY)\n" +
+            "group by store_id", nativeQuery = true)
+    List<Object[]> Sale3MonthForPieChart();
+
+    // 기간별 매출 파이차트 조회용 매서드
+    @Query(value = "select sum(settlement_price), store_id from settlement_day\n" +
+            "where settlement_date between :startDate AND :endDate \n" +
+            "group by store_id", nativeQuery = true)
+    List<Object[]> SaleTermForPieChart(@Param("startDate") String startDate, @Param("endDate") String endDate);
 
 }
