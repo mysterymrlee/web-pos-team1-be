@@ -5,8 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Getter
@@ -15,6 +14,12 @@ import javax.persistence.Table;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CN {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
+    private String pageName;
     private String one;
     private String two;
     private String three;
