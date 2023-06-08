@@ -21,4 +21,5 @@ public class DeliveryListRedisSelectRequestDTO {
   private byte isDefault;
   private String requestDeliveryTime;
   private String requestInfo;
+  private String phoneNumber;
 }

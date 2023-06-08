@@ -5,14 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class GiftDTO implements Serializable {
+public class GiftSmsRequestDTO {
   private String receiver;
   private String phoneNumber;
-  private String sender;
+  private String address;
+  private String postCode;
+  private String orderSerialNumber; // delivery 찾는용
 }
