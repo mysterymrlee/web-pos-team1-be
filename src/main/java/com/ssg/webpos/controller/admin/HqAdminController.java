@@ -1,6 +1,8 @@
 package com.ssg.webpos.controller.admin;
 
 import com.ssg.webpos.domain.*;
+import com.ssg.webpos.dto.HQAdminLoginRequestDTO;
+import com.ssg.webpos.dto.HQAdminLoginResponseDTO;
 import com.ssg.webpos.dto.StockReportDTO;
 import com.ssg.webpos.dto.StoreListDTO;
 import com.ssg.webpos.dto.hqMain.AllAndStoreDTO;
@@ -20,6 +22,7 @@ import com.ssg.webpos.repository.order.OrderRepository;
 import com.ssg.webpos.repository.product.ProductRepository;
 import com.ssg.webpos.repository.settlement.SettlementDayRepository;
 import com.ssg.webpos.repository.store.StoreRepository;
+import com.ssg.webpos.service.HQAdminService;
 import com.ssg.webpos.service.SettlementDayService;
 import com.ssg.webpos.service.SettlementMonthService;
 import com.ssg.webpos.service.hqController.method.HqControllerStockService;
@@ -33,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -56,6 +60,7 @@ public class HqAdminController {
     private final ProductRepository productRepository;
     private final StockReportUpdateService stockReportUpdateService;
     private final SaleMethodService saleMethodService;
+    private final HQAdminService hqAdminService;
     // 스크린 첫 화면에 보이는 데이터 내역
     // 전체, 백화점 이름 + 해당 백화점의 어제 settlement_price
     // 디폴트 화면은
@@ -1015,5 +1020,15 @@ public class HqAdminController {
         }
     }
 
-
+    @PostMapping("/login")
+    public ResponseEntity login(@RequestBody HQAdminLoginRequestDTO requestDTO) throws UserPrincipalNotFoundException {
+        try {
+            HQAdminLoginResponseDTO responseDTO = hqAdminService.login(requestDTO);
+            return new ResponseEntity(responseDTO, HttpStatus.OK);
+        } catch (Exception e) {
+            e.getStackTrace();
+            e.printStackTrace();
+            throw new IllegalArgumentException();
+        }
+    }
 }
