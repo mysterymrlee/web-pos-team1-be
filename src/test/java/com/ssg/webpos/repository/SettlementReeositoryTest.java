@@ -5,10 +5,11 @@ import com.ssg.webpos.domain.SettlementMonth;
 import com.ssg.webpos.dto.hqSale.HqSettlementDayDTO;
 import com.ssg.webpos.repository.settlement.SettlementDayRepository;
 import com.ssg.webpos.repository.settlement.SettlementMonthRepository;
-import com.ssg.webpos.service.hqController.method.SettlementDayByTermService;
+import com.ssg.webpos.service.hqController.method.SaleMethodService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -23,7 +24,7 @@ public class SettlementReeositoryTest {
     SettlementDayRepository settlementDayRepository;
 
     @Autowired
-    SettlementDayByTermService settlementDayByTermService;
+    SaleMethodService saleMethodService;
 
     @Test
     void contextVoid() {
@@ -179,11 +180,27 @@ public class SettlementReeositoryTest {
         System.out.println("settlement_day로 구한 모든 주문 부분 가격 + settlement_month로 구한 모든 주문 부분 가격을 합했을 때 걸리는 시간 : " + nanoseconds);
     }
 
-//    @Test
-//    void settlementDayBetweenYesterdayAgoAndYesterday() {
-//        List<SettlementDay> list = settlementDayRepository.selectSettlementDayBetweenYesterday1WeekAgoAndYesterday();
-//        List<HqSettlementDayDTO> list = settlementDayByTermService.HqSaleMethods(settlementDayList);
-//    }
+    @Test
+    @Transactional
+    void settlementDayBetweenYesterdayAgoAndYesterday() {
+        List<SettlementDay> list = settlementDayRepository.selectSettlementDayBetweenYesterday1WeekAgoAndYesterdayByStoreId(1);
+        List<HqSettlementDayDTO> hqSettlementDayDTOList = saleMethodService.HqSaleMethods(list);
+        for (HqSettlementDayDTO hqSettlementDayDTO : hqSettlementDayDTOList) {
+            System.out.println(hqSettlementDayDTO);
+        }
+    }
+
+    @Test
+    void test() {
+        List<Object[]> list = settlementDayRepository.settlementDay1Month();
+        for (Object[] objects : list) {
+            for (Object object : objects) {
+                System.out.print(object + " ");
+            }
+            System.out.println();
+        }
+
+    }
 
 
 }
