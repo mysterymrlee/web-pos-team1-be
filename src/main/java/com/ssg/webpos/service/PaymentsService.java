@@ -13,10 +13,6 @@ import com.ssg.webpos.repository.cart.CartRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
 import com.ssg.webpos.repository.pos.PosRepository;
 import com.ssg.webpos.repository.product.ProductRepository;
-import com.ssg.webpos.service.CouponService;
-import com.ssg.webpos.service.PointSaveHistoryService;
-import com.ssg.webpos.service.PointService;
-import com.ssg.webpos.service.PointUseHistoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -56,7 +52,7 @@ public class PaymentsService {
   private String api_secret;
 
   @Transactional
-  public void processPaymentCallback(PaymentsDTO paymentsDTO) {
+  public Order processPaymentCallback(PaymentsDTO paymentsDTO) {
     try {
       BigDecimal finalTotalPrice = paymentsDTO.getPaid_amount();
       System.out.println("processPaymentCallback() 호출");
@@ -130,10 +126,12 @@ public class PaymentsService {
         System.out.println("pointSaveHistory = " + pointSaveHistory);
       }
        // redis 초기화
-      cartRedisRepository.delete(compositeId);
+//      cartRedisRepository.delete(compositeId);
+      return order;
     } catch (Exception e) {
       e.printStackTrace();
     }
+    return null;
   }
 
   private Order createOrder(PaymentsDTO paymentsDTO, String compositeId, User user, Pos pos,

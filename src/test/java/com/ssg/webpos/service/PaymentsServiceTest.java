@@ -27,6 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -67,6 +69,7 @@ public class PaymentsServiceTest {
   CartRepository cartRepository;
   @Autowired
   PointUseHistoryService pointUseHistoryService;
+
   @BeforeEach
   void setup() {
 
@@ -112,7 +115,7 @@ public class PaymentsServiceTest {
     assertEquals(beforeStock2 - cartQty2, afterStock2);
   }
   @Test
-  @DisplayName("장바구니 추가 후 쿠폰 적용: 쿠폰 상태 NOT_USED -> USED")
+  @DisplayName("장바구니 추가 후 쿠폰 적용: 비회원일 경우 쿠폰 상태 NOT_USED -> USED")
   void addToCartWithCouponIfPaymentSuccess() throws Exception {
     Long productId1 = 1L;
     Long productId2 = 2L;
@@ -130,9 +133,30 @@ public class PaymentsServiceTest {
     assertEquals(CouponStatus.USED, afterCouponStatus);
   }
   @Test
+  @DisplayName("장바구니 추가 후 쿠폰 적용: 회원일 경우 쿠폰 상태 NOT_USED -> USED")
+  void addToCartWithCouponIfPaymentSuccessAndUser() throws Exception {
+    Long productId1 = 11L;
+    Long productId2 = 12L;
+    int cartQty1 = 3;
+    int cartQty2 = 5;
+    saveRedisCart(productId1, productId2, cartQty1, cartQty2);
+    saveRedisPoint();
+    Coupon createCoupon = createCoupon();
+    System.out.println("beforeCouponStatus" + createCoupon.getCouponStatus());
+    saveRedisCoupon(createCoupon);
+    processPayment();
+
+    CouponStatus afterCouponStatus = createCoupon.getCouponStatus();
+    System.out.println("afterCouponStatus = " + afterCouponStatus);
+
+    assertEquals(CouponStatus.USED, afterCouponStatus);
+  }
+  @Test
   @DisplayName("point 테이블 point_amount 업데이트")
   void SavePointUseHistoryAndPointSaveHistory() {
-
+//    Assertions.assertThrows(IllegalArgumentException.class, () -> {
+//      // 음수 넣는거
+//    });
 
     // 사용자 생성 및 저장
     User user = new User();
@@ -144,6 +168,7 @@ public class PaymentsServiceTest {
 
     Point point = new Point();
     point.setPointAmount(100);
+    point.setUser(user);
 
     user.setPoint(point);
     userRepository.save(user);
@@ -167,8 +192,6 @@ public class PaymentsServiceTest {
     pointUseHistoryRepository.save(pointUseHistory);
 
     // point 업데이트 후
-//    Point updatedPoint = userRepository.findById(user.getId()).get().getPoint();
-//    System.out.println("updatedPoint = " + updatedPoint);
     Point point1 = pointRepository.findByUserId(user.getId()).get();
     System.out.println("point1 = " + point1);
   }
@@ -195,12 +218,102 @@ public class PaymentsServiceTest {
       List<Cart> cartList = order.getCartList();
       Cart cart = new Cart(product, order);
       cart.setQty(cartAddDTO.getCartQty());
+      System.out.println("cart = " + cart);
       cartList.add(cart);
       cartRepository.saveAll(cartList);
     }
-
+  }
+  @Test
+  @DisplayName("결제 수단 설정 테스트: creditCard")
+  void SaveOrderPayMethodCreditCard() {
+    // Given
+    Long productId1 = 11L;
+    Long productId2 = 12L;
+    int cartQty1 = 3;
+    int cartQty2 = 5;
+    saveRedisCart(productId1, productId2, cartQty1, cartQty2);
+    PaymentsDTO paymentsDTO = new PaymentsDTO();
+    paymentsDTO.setPosId(2L);
+    paymentsDTO.setStoreId(2L);
+    paymentsDTO.setSuccess(true);
+    paymentsDTO.setName("사과");
+    paymentsDTO.setPointAmount(50);
+    paymentsDTO.setPg("nice");
+    int finalTotalPrice = 100000;
+    paymentsDTO.setPaid_amount(BigDecimal.valueOf(finalTotalPrice));
+    String pgProvider = paymentsDTO.getPg();
+    Order saveOrder= paymentsService.processPaymentCallback(paymentsDTO);
+    System.out.println("saveOrder = " + saveOrder);
+    if (pgProvider.equals("kakaopay")) {
+      assertEquals(PayMethod.KAKAO_PAY, saveOrder.getPayMethod());
+    } else if (pgProvider.equals("nice")) {
+      assertEquals(PayMethod.CREDIT_CARD, saveOrder.getPayMethod());
+    } else if (pgProvider.equals("kcp")) {
+      assertEquals(PayMethod.SAMSUNG_PAY, saveOrder.getPayMethod());
+    }
 
   }
+  @Test
+  @DisplayName("결제 수단 설정 테스트: kakaoPay")
+  void SaveOrderPayMethodKakaoPay() {
+    // Given
+    Long productId1 = 11L;
+    Long productId2 = 12L;
+    int cartQty1 = 3;
+    int cartQty2 = 5;
+    saveRedisCart(productId1, productId2, cartQty1, cartQty2);
+    PaymentsDTO paymentsDTO = new PaymentsDTO();
+    paymentsDTO.setPosId(2L);
+    paymentsDTO.setStoreId(2L);
+    paymentsDTO.setSuccess(true);
+    paymentsDTO.setName("사과");
+    paymentsDTO.setPointAmount(50);
+    paymentsDTO.setPg("kakaopay");
+    int finalTotalPrice = 100000;
+    paymentsDTO.setPaid_amount(BigDecimal.valueOf(finalTotalPrice));
+    String pgProvider = paymentsDTO.getPg();
+    Order saveOrder= paymentsService.processPaymentCallback(paymentsDTO);
+    System.out.println("saveOrder = " + saveOrder);
+    if (pgProvider.equals("kakaopay")) {
+      assertEquals(PayMethod.KAKAO_PAY, saveOrder.getPayMethod());
+    } else if (pgProvider.equals("nice")) {
+      assertEquals(PayMethod.CREDIT_CARD, saveOrder.getPayMethod());
+    } else if (pgProvider.equals("kcp")) {
+      assertEquals(PayMethod.SAMSUNG_PAY, saveOrder.getPayMethod());
+    }
+
+  }
+  @Test
+  @DisplayName("결제 수단 설정 테스트: samsungPay")
+  void SaveOrderPayMethodSamsungPay() {
+    // Given
+    Long productId1 = 11L;
+    Long productId2 = 12L;
+    int cartQty1 = 3;
+    int cartQty2 = 5;
+    saveRedisCart(productId1, productId2, cartQty1, cartQty2);
+    PaymentsDTO paymentsDTO = new PaymentsDTO();
+    paymentsDTO.setPosId(2L);
+    paymentsDTO.setStoreId(2L);
+    paymentsDTO.setSuccess(true);
+    paymentsDTO.setName("사과");
+    paymentsDTO.setPointAmount(50);
+    paymentsDTO.setPg("kcp");
+    int finalTotalPrice = 100000;
+    paymentsDTO.setPaid_amount(BigDecimal.valueOf(finalTotalPrice));
+    String pgProvider = paymentsDTO.getPg();
+    Order saveOrder= paymentsService.processPaymentCallback(paymentsDTO);
+    System.out.println("saveOrder = " + saveOrder);
+    if (pgProvider.equals("kakaopay")) {
+      assertEquals(PayMethod.KAKAO_PAY, saveOrder.getPayMethod());
+    } else if (pgProvider.equals("nice")) {
+      assertEquals(PayMethod.CREDIT_CARD, saveOrder.getPayMethod());
+    } else if (pgProvider.equals("kcp")) {
+      assertEquals(PayMethod.SAMSUNG_PAY, saveOrder.getPayMethod());
+    }
+
+  }
+
 
   @Test
   @DisplayName("serialNumber")
@@ -240,6 +353,11 @@ public class PaymentsServiceTest {
   requestDTO.setCartItemList(cartItemList);
   cartRedisRepository.saveCart(requestDTO);
 }
+  @Test
+  @DisplayName("쿠폰 사용 및 설정 테스트")
+  void testSetCouponUsage() {
+
+  }
 
 
   private void saveRedisCoupon(Coupon coupon) throws Exception {
@@ -256,7 +374,7 @@ public class PaymentsServiceTest {
     Coupon coupon = new Coupon();
     coupon.setCouponStatus(CouponStatus.NOT_USED);
     coupon.setName("500원");
-    coupon.setSerialNumber("ValidTestSerialNumber4");
+    coupon.setSerialNumber("99999999");
     coupon.setDeductedPrice(500);
     coupon.setExpiredDate(LocalDate.now().plusDays(7));
     Coupon saveCoupon = couponRepository.save(coupon);

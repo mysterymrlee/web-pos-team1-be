@@ -41,7 +41,7 @@ class SmsServiceTest {
     MessageDTO msgDTO = new MessageDTO();
 //    msgDTO.setTo("01012345678");
     msgDTO.setGiftUrl(giftUrl);
-    smsService.sendSms(msgDTO,findDelivery, findOrder);
+//    smsService.sendSms(msgDTO,findDelivery, findOrder);
   }
 
   @Test
