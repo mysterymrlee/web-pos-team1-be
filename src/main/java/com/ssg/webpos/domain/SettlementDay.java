@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Table(name = "settlement_day")
 @ToString(of = {"id", "settlementPrice", "settlementDate", "createdDate"}) //출력할 필드 지정. store는 출렭되지 않음
 @EntityListeners(AuditingEntityListener.class)

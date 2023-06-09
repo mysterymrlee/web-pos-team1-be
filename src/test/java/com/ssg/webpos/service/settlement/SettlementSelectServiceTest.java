@@ -1,9 +1,14 @@
 package com.ssg.webpos.service.settlement;
 
+import com.ssg.webpos.domain.Order;
 import com.ssg.webpos.domain.SettlementDay;
 import com.ssg.webpos.domain.SettlementMonth;
+import com.ssg.webpos.domain.Store;
+import com.ssg.webpos.domain.enums.OrderStatus;
+import com.ssg.webpos.domain.enums.PayMethod;
 import com.ssg.webpos.repository.settlement.SettlementDayRepository;
 import com.ssg.webpos.repository.settlement.SettlementMonthRepository;
+import com.ssg.webpos.repository.store.StoreRepository;
 import com.ssg.webpos.service.SettlementDayService;
 import com.ssg.webpos.service.SettlementMonthService;
 import org.junit.jupiter.api.Assertions;
@@ -15,6 +20,9 @@ import org.springframework.test.annotation.Rollback;
 
 import javax.transaction.Transactional;
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +37,9 @@ public class SettlementSelectServiceTest {
     SettlementDayService settlementDayService;
     @Autowired
     SettlementMonthService settlementMonthService;
+    @Autowired
+    StoreRepository storeRepository;
+
 
     @Test
     void selectSettlementDayByStoreIdTest() throws IllegalArgumentException {

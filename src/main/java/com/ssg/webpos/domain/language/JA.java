@@ -1,5 +1,6 @@
 package com.ssg.webpos.domain.language;
 
+import com.ssg.webpos.dto.TranslationDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -32,4 +33,21 @@ public class JA {
     private String eleven;
     private String twelve;
     private String thirteen;
+    public TranslationDTO convertToDTO() {
+        return TranslationDTO.builder()
+            .pageName(pageName)
+            .one(one)
+            .two(two)
+            .three(three)
+            .four(four)
+            .five(five)
+            .six(six)
+            .seven(seven)
+            .eight(eight)
+            .nine(nine)
+            .ten(ten)
+            .eleven(eleven)
+            .twelve(twelve)
+            .build();
+    }
 }

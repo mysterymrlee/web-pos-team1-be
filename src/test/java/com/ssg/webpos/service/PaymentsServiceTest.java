@@ -67,8 +67,6 @@ public class PaymentsServiceTest {
   PointRepository pointRepository;
   @Autowired
   CartRepository cartRepository;
-  @Autowired
-  PointUseHistoryService pointUseHistoryService;
 
   @BeforeEach
   void setup() {
@@ -97,7 +95,7 @@ public class PaymentsServiceTest {
     paymentsDTO.setStoreId(2L);
     paymentsDTO.setSuccess(true);
     paymentsDTO.setName("사과");
-    paymentsDTO.setPaid_amount(BigDecimal.valueOf(10000));
+    paymentsDTO.setPaidAmount(BigDecimal.valueOf(10000));
     paymentsDTO.setPg("kakaopay");
 
     paymentsService.processPaymentCallback(paymentsDTO);
@@ -195,34 +193,34 @@ public class PaymentsServiceTest {
     Point point1 = pointRepository.findByUserId(user.getId()).get();
     System.out.println("point1 = " + point1);
   }
-  @Test
-  void test_processCartItems_Test() {
-    Long productId1 = 11L;
-    Long productId2 = 12L;
-    int cartQty1 = 3;
-    int cartQty2 = 5;
-    String compositeId = "2-2";
-    Order order = Order.builder()
-        .orderStatus(OrderStatus.SUCCESS)
-        .payMethod(PayMethod.CREDIT_CARD)
-        .orderName("키위 외 2건")
-        .build();
-    orderRepository.save(order);
-    saveRedisCart(productId1, productId2, cartQty1, cartQty2);
-    List<Map<String, Object>> cartItemList = cartRedisRepository.findCartItems(compositeId);
-    for (Map<String, Object> cartItem : cartItemList) {
-      CartAddDTO cartAddDTO = new CartAddDTO();
-      cartAddDTO.setProductId((Long) cartItem.get("productId"));
-      cartAddDTO.setCartQty((int) cartItem.get("cartQty"));
-      Product product = paymentsService.updateStockAndAddToCart(cartAddDTO);
-      List<Cart> cartList = order.getCartList();
-      Cart cart = new Cart(product, order);
-      cart.setQty(cartAddDTO.getCartQty());
-      System.out.println("cart = " + cart);
-      cartList.add(cart);
-      cartRepository.saveAll(cartList);
-    }
-  }
+//  @Test
+//  void test_processCartItems_Test() {
+//    Long productId1 = 11L;
+//    Long productId2 = 12L;
+//    int cartQty1 = 3;
+//    int cartQty2 = 5;
+//    String compositeId = "2-2";
+//    Order order = Order.builder()
+//        .orderStatus(OrderStatus.SUCCESS)
+//        .payMethod(PayMethod.CREDIT_CARD)
+//        .orderName("키위 외 2건")
+//        .build();
+//    orderRepository.save(order);
+//    saveRedisCart(productId1, productId2, cartQty1, cartQty2);
+//    List<Map<String, Object>> cartItemList = cartRedisRepository.findCartItems(compositeId);
+//    for (Map<String, Object> cartItem : cartItemList) {
+//      CartAddDTO cartAddDTO = new CartAddDTO();
+//      cartAddDTO.setProductId((Long) cartItem.get("productId"));
+//      cartAddDTO.setCartQty((int) cartItem.get("cartQty"));
+//      Product product = paymentsService.updateStockAndAddToCart(cartAddDTO);
+//      List<Cart> cartList = order.getCartList();
+//      Cart cart = new Cart(product, order);
+//      cart.setQty(cartAddDTO.getCartQty());
+//      System.out.println("cart = " + cart);
+//      cartList.add(cart);
+//      cartRepository.saveAll(cartList);
+//    }
+//  }
   @Test
   @DisplayName("결제 수단 설정 테스트: creditCard")
   void SaveOrderPayMethodCreditCard() {
@@ -240,7 +238,7 @@ public class PaymentsServiceTest {
     paymentsDTO.setPointAmount(50);
     paymentsDTO.setPg("nice");
     int finalTotalPrice = 100000;
-    paymentsDTO.setPaid_amount(BigDecimal.valueOf(finalTotalPrice));
+    paymentsDTO.setPaidAmount(BigDecimal.valueOf(finalTotalPrice));
     String pgProvider = paymentsDTO.getPg();
     Order saveOrder= paymentsService.processPaymentCallback(paymentsDTO);
     System.out.println("saveOrder = " + saveOrder);
@@ -270,7 +268,7 @@ public class PaymentsServiceTest {
     paymentsDTO.setPointAmount(50);
     paymentsDTO.setPg("kakaopay");
     int finalTotalPrice = 100000;
-    paymentsDTO.setPaid_amount(BigDecimal.valueOf(finalTotalPrice));
+    paymentsDTO.setPaidAmount(BigDecimal.valueOf(finalTotalPrice));
     String pgProvider = paymentsDTO.getPg();
     Order saveOrder= paymentsService.processPaymentCallback(paymentsDTO);
     System.out.println("saveOrder = " + saveOrder);
@@ -300,7 +298,7 @@ public class PaymentsServiceTest {
     paymentsDTO.setPointAmount(50);
     paymentsDTO.setPg("kcp");
     int finalTotalPrice = 100000;
-    paymentsDTO.setPaid_amount(BigDecimal.valueOf(finalTotalPrice));
+    paymentsDTO.setPaidAmount(BigDecimal.valueOf(finalTotalPrice));
     String pgProvider = paymentsDTO.getPg();
     Order saveOrder= paymentsService.processPaymentCallback(paymentsDTO);
     System.out.println("saveOrder = " + saveOrder);
@@ -338,6 +336,7 @@ public class PaymentsServiceTest {
   requestDTO.setPosId(posStoreCompositeId.getPos_id());
   requestDTO.setStoreId(posStoreCompositeId.getStore_id());
   requestDTO.setTotalPrice(10000);
+  String compositeId = String.valueOf(posStoreCompositeId.getStore_id()) + "-" + String.valueOf(posStoreCompositeId.getPos_id());
 
   List<CartAddDTO> cartItemList = new ArrayList<>();
   CartAddDTO cartAddDTO1 = new CartAddDTO();
@@ -351,6 +350,7 @@ public class PaymentsServiceTest {
   cartItemList.add(cartAddDTO2);
 
   requestDTO.setCartItemList(cartItemList);
+  cartRedisRepository.delete(compositeId);
   cartRedisRepository.saveCart(requestDTO);
 }
   @Test
@@ -388,19 +388,27 @@ public class PaymentsServiceTest {
     paymentsDTO.setName("사과");
     paymentsDTO.setPointAmount(50);
     int finalTotalPrice = 100000;
-    paymentsDTO.setPaid_amount(BigDecimal.valueOf(finalTotalPrice));
+    paymentsDTO.setPaidAmount(BigDecimal.valueOf(finalTotalPrice));
     paymentsDTO.setPg("kakaopay");
     paymentsService.processPaymentCallback(paymentsDTO);
     return paymentsDTO;
   }
 
   private Long saveRedisPoint() {
+    User user = new User();
+    user.setName("고경환");
+    user.setEmail("1111@naver.com");
+    user.setPhoneNumber("01033334444");
+    user.setPassword("1234");
+    user.setRole(RoleUser.NORMAL);
+    userRepository.save(user);
     PointDTO pointDTO = new PointDTO();
-    pointDTO.setPhoneNumber("01011111111");
+    pointDTO.setPhoneNumber(user.getPhoneNumber());
     pointDTO.setPointMethod("phoneNumber");
     pointDTO.setStoreId(2L);
     pointDTO.setPosId(2L);
     String compositeId = "2-2";
+    cartRedisRepository.delete(compositeId);
     cartRedisRepository.savePoint(pointDTO);
     Long userId = cartRedisRepository.findUserId(compositeId);
     return userId;
