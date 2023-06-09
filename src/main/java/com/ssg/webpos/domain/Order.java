@@ -47,6 +47,9 @@ public class Order extends BaseTime {
     private int pointUsePrice; // 포인트 사용 금액
     private int finalTotalPrice;
     private int charge;
+    private String cardNumber;
+    private String cardName;
+    private String merchantUid;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
