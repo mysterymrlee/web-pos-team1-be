@@ -54,30 +54,30 @@ public class BranchAdminManagerController {
     //RequestSettlementMonthDTO로 String 타입의 year(ex. "2023")을 받으면 parse 활용해서 2023년도의 월별정산내역 조회
     // 받아오는 건 String으로 받아오고 스프링에서 startDate, endDate를 만들어서 레포지토리 매서드로 활용
     // 로그인 구현시 해당 store_id 만 나오도록 변경
-    @PostMapping("/settlement-month")
-    public ResponseEntity settlementMonth(@RequestBody RequsestSettlementMonthDTO requestSettlementMonthDTO) {
-        try {
-            String year = requestSettlementMonthDTO.getYear();
-            List<SettlementMonth> settlementMonths = settlementMonthService.selectByYear(year);
-            List<SettlementMonthReportDTO> reportDTOs = new ArrayList<>();
-
-            for(SettlementMonth settlementMonth:settlementMonths) {
-                SettlementMonthReportDTO reportDTO = new SettlementMonthReportDTO();
-                reportDTO.setSettlementMontnId(settlementMonth.getId());
-                reportDTO.setSettlementPrice(settlementMonth.getSettlementPrice());
-                reportDTO.setSettlementDate(settlementMonth.getSettlementDate());
-                reportDTO.setStoreId(settlementMonth.getStore().getId());
-                reportDTO.setStoreName(settlementMonth.getStore().getName());
-                reportDTO.setCreatedDate(settlementMonth.getCreatedDate());
-                reportDTOs.add(reportDTO);
-            }
-
-            return new ResponseEntity(reportDTOs, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity(HttpStatus.BAD_REQUEST);
-        }
-    }
+//    @PostMapping("/settlement-month")
+//    public ResponseEntity settlementMonth(@RequestBody RequsestSettlementMonthDTO requestSettlementMonthDTO) {
+//        try {
+//            String year = requestSettlementMonthDTO.getYear();
+//            List<SettlementMonth> settlementMonths = settlementMonthService.selectByYear(year);
+//            List<SettlementMonthReportDTO> reportDTOs = new ArrayList<>();
+//
+//            for(SettlementMonth settlementMonth:settlementMonths) {
+//                SettlementMonthReportDTO reportDTO = new SettlementMonthReportDTO();
+//                reportDTO.setSettlementMontnId(settlementMonth.getId());
+//                reportDTO.setSettlementPrice(settlementMonth.getSettlementPrice());
+//                reportDTO.setSettlementDate(settlementMonth.getSettlementDate());
+//                reportDTO.setStoreId(settlementMonth.getStore().getId());
+//                reportDTO.setStoreName(settlementMonth.getStore().getName());
+//                reportDTO.setCreatedDate(settlementMonth.getCreatedDate());
+//                reportDTOs.add(reportDTO);
+//            }
+//
+//            return new ResponseEntity(reportDTOs, HttpStatus.OK);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+//        }
+//    }
 
     //year 조회, 보이는 DTO : 입력한 year에 해당하는 settlement_month 정산내역
     //demo version

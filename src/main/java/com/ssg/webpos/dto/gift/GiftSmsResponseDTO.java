@@ -9,8 +9,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class GiftDeliveryAddressEntryDTO {
+public class GiftSmsResponseDTO {
   private String receiver;
+  private String sender;
+  private String orderName;
+  private int orderPrice;
   private String phoneNumber;
-  private String address;
 }
