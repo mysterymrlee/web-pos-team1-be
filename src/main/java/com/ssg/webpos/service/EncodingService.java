@@ -1,37 +1,61 @@
 package com.ssg.webpos.service;
 
 import com.ssg.webpos.domain.Delivery;
-import com.ssg.webpos.domain.DeliveryAddress;
+import com.ssg.webpos.domain.encodingTest.EncodingDeliveryAddress;
+import com.ssg.webpos.dto.encode.EncodeDTO;
+import com.ssg.webpos.repository.delivery.DeliveryAddressRepository;
 import com.ssg.webpos.repository.delivery.DeliveryRepository;
+import com.ssg.webpos.repository.test.EncodingDeliveryAddressRepository;
 import com.ssg.webpos.util.RsaUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.security.KeyPair;
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.transaction.Transactional;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
+import java.security.spec.InvalidKeySpecException;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class EncodingService {
   private final DeliveryRepository deliveryRepository;
+  private final DeliveryAddressRepository deliveryAddressRepository;
+  private final EncodingDeliveryAddressRepository encodingDeliveryAddressRepository;
 
-  public void encodingDeliveryInfo(Long id) {
-    Delivery findDelivery = deliveryRepository.findById(id).get();
+  @Value("${public_key}")
+  private String publicKey;
+  @Value("${private_key}")
+  private String privateKey;
 
-  }
+  /**
+   * 1. 암호화용 domain하나 만들어서 이름, 전화번호, 주소, 우편번호 암호화해서 저장 Test
+   * 2.
+   */
+  @Transactional
+  public void saveEncodedDeliveryAddressData(EncodeDTO encodeDTO) throws NoSuchPaddingException, IllegalBlockSizeException, InvalidKeySpecException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    String userName = encodeDTO.getUserName();
+    String address = encodeDTO.getAddress();
+    String phoneNumber = encodeDTO.getPhoneNumber();
+    String postCode = encodeDTO.getPostCode();
 
-  public void generateRsaKeyPair(DeliveryAddress deliveryAddress) throws NoSuchAlgorithmException {
-    KeyPair keyPair = RsaUtil.generateRsaKeyPair();
+    List<String> encodedResult = RsaUtil.rsaEncode(publicKey, userName, address, phoneNumber, postCode);
+    System.out.println("암호화 결과 = " + encodedResult);
 
-    byte[] publicKey = keyPair.getPublic().getEncoded();
-    byte[] privateKey = keyPair.getPrivate().getEncoded();
+    List<String> decodedResult = RsaUtil.rsaDecode(privateKey, encodedResult);
+    System.out.println("복호화 결과 = " + decodedResult);
 
-    // REST API를 통해 공개 키를 전송할 수 있도록 Base64 텍스트 형식의 인코딩 키
-    String rsaPublicKeyBase64 = new String(Base64.getEncoder().encode(publicKey));
-    String rsaPrivateKeyBase64 = new String(Base64.getEncoder().encode(privateKey));
+    EncodingDeliveryAddress encodingDeliveryAddress = EncodingDeliveryAddress.builder()
+        .userName(encodedResult.get(0))
+        .address(encodedResult.get(1))
+        .phoneNumber(encodedResult.get(2))
+        .postCode(encodedResult.get(3))
+        .build();
 
-    // 나중에 사용할 수 있도록 사용자 개체에 키 저장
-
+    encodingDeliveryAddressRepository.save(encodingDeliveryAddress);
   }
 }
