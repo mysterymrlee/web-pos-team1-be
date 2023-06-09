@@ -8,7 +8,9 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 
 public class RsaUtil {
   private static final String INSTANCE_TYPE = "RSA";
@@ -22,21 +24,32 @@ public class RsaUtil {
     return keyPairGen.genKeyPair();
   }
 
-  public static String rsaEncode(String plainText, String publicKey) throws InvalidKeyException, InvalidKeySpecException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+  public static List<String> rsaEncode(String publicKey, String... plainText) throws InvalidKeyException, InvalidKeySpecException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
     Cipher cipher = Cipher.getInstance(INSTANCE_TYPE);
+    // cipher 객체를 암호화 모드로 초기화
     cipher.init(Cipher.ENCRYPT_MODE, convertPublicKey(publicKey));
-
-    byte[] plainTextByte = cipher.doFinal(plainText.getBytes());
-    return base64EncodeToString(plainTextByte);
+    String[] plainTexts = plainText;
+    String result = "";
+    List<String> list = new ArrayList<>();
+    for (String text : plainTexts) {
+      byte[] plainTextByte = cipher.doFinal(text.getBytes());
+      result = base64EncodeToString(plainTextByte);
+      list.add(result);
+    }
+    return list;
   }
 
-  public static String rsaDecode(String encryptedPlainText, String privateKey) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException, IllegalBlockSizeException, BadPaddingException {
-    byte[] encryptedPlainTextByte = Base64.getDecoder().decode(encryptedPlainText.getBytes());
 
+  public static List<String> rsaDecode(String privateKey, List<String> encryptedPlainTextList) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException, IllegalBlockSizeException, BadPaddingException {
     Cipher cipher = Cipher.getInstance(INSTANCE_TYPE);
+    // cipher 객체를 복호화 모드로 초기화
     cipher.init(Cipher.DECRYPT_MODE, convertPrivateKey(privateKey));
-
-    return new String(cipher.doFinal(encryptedPlainTextByte));
+    List<String> list = new ArrayList<>();
+    for (String text : encryptedPlainTextList) {
+      byte[] encryptedPlainTextByte = Base64.getDecoder().decode(text.getBytes());
+      list.add(new String(cipher.doFinal(encryptedPlainTextByte)));
+    }
+    return list;
   }
 
   // 비대칭키 PublicKey와 PrivateKey 생성 후 Client에게 공개키를 전달하거나
@@ -58,26 +71,4 @@ public class RsaUtil {
   public static String base64EncodeToString(byte[] byteData) {
     return Base64.getEncoder().encodeToString(byteData);
   }
-
-
-
-
-//  public static PrivateKey getRsaPrivateKey(String base64PrivateKey) throws Exception {
-//    byte[] privateKey = Base64.getDecoder().decode(base64PrivateKey);
-//    PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec((privateKey));
-//    KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-//    return keyFactory.generatePrivate(keySpec);
-//  }
-//
-//  public static byte[] decryptWithPrivateRsaKey(byte[] data, String rsaPrivateKeyBase64) throws Exception {
-//    Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-//    cipher.init(Cipher.DECRYPT_MODE, getRsaPrivateKey(rsaPrivateKeyBase64));
-//    return cipher.doFinal(data);
-//  }
-//
-//  public static byte[] decryptWithAes(byte[] data, byte[] aesKey, byte[] iv) throws Exception {
-//    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-//    cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(aesKey, "AES"), new IvParameterSpec(iv));
-//    return cipher.doFinal(data);
-//  }
 }

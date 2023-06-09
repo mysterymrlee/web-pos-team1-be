@@ -8,10 +8,7 @@ build/
 /src/main/resources/application-db.yml
 /src/main/resources/application-import.yml
 /src/main/resources/application-sms.yml
-<<<<<<< HEAD
-
-=======
->>>>>>> BranchAdminStaffController
+/src/main/resources/application-rsa.yml
 
 ### STS ###
 .apt_generatedg

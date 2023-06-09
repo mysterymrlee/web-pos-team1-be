@@ -239,6 +239,7 @@ public class PaymentsService {
     String combinedStr = orderDateStr + String.format("%02d", storeId) + String.format("%02d", posId) + serialNumber;
     return combinedStr;
   }
+
   public Product updateStockAndAddToCart(CartAddDTO cartAddDTO) {
     Product product = productRepository.findById(cartAddDTO.getProductId())
         .orElseThrow(() -> new RuntimeException("Product not found."));
