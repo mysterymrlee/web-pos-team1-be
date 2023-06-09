@@ -178,7 +178,9 @@ public class PaymentsService {
   }
 
   private Order createOrder(PaymentsDTO paymentsDTO, String compositeId, User user, Pos pos,
+
                             BigDecimal finalTotalPrice, Integer totalPrice, Integer totalOriginPrice, String OrderName, Integer charge, String cardName, String cardNumber, String merchantUid, Delivery delivery) {
+
     Order order = new Order();
     order.setOrderDate(LocalDateTime.now());
     List<Order> orderList = orderRepository.findAll();
