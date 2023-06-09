@@ -227,7 +227,7 @@ public class PaymentsService {
   }
 
   // 20230530+ 01 + 01 + 0001
-  private String generateSerialNumber(List<Order> orderList, Long storeId, Long posId) {
+  public String generateSerialNumber(List<Order> orderList, Long storeId, Long posId) {
     Long newOrderId = orderList.size() + 1L;
     String serialNumber = String.format("%04d", newOrderId);
     String orderDateStr = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
@@ -235,7 +235,7 @@ public class PaymentsService {
     return combinedStr;
   }
 
-  private Product updateStockAndAddToCart(CartAddDTO cartAddDTO) {
+  public Product updateStockAndAddToCart(CartAddDTO cartAddDTO) {
     Product product = productRepository.findById(cartAddDTO.getProductId())
         .orElseThrow(() -> new RuntimeException("Product not found."));
 
