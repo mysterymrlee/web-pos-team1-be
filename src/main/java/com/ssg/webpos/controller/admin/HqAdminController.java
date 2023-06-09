@@ -1,10 +1,9 @@
 package com.ssg.webpos.controller.admin;
 
+import com.ssg.webpos.config.jwt.JwtUtil;
 import com.ssg.webpos.domain.*;
-import com.ssg.webpos.dto.HQAdminLoginRequestDTO;
-import com.ssg.webpos.dto.HQAdminLoginResponseDTO;
-import com.ssg.webpos.dto.StockReportDTO;
-import com.ssg.webpos.dto.StoreListDTO;
+import com.ssg.webpos.domain.enums.Role;
+import com.ssg.webpos.dto.*;
 import com.ssg.webpos.dto.hqMain.AllAndStoreDTO;
 import com.ssg.webpos.dto.hqMain.SettlementByTermDTO;
 import com.ssg.webpos.dto.hqMain.SettlementByTermListDTO;
@@ -18,6 +17,7 @@ import com.ssg.webpos.dto.settlement.*;
 import com.ssg.webpos.dto.stock.AllStockReportResponseDTO;
 import com.ssg.webpos.dto.stock.StoreIdStockReportResponseDTO;
 import com.ssg.webpos.repository.StockReportRepository;
+import com.ssg.webpos.repository.cart.CartRedisImplRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
 import com.ssg.webpos.repository.product.ProductRepository;
 import com.ssg.webpos.repository.settlement.SettlementDayRepository;
@@ -28,13 +28,17 @@ import com.ssg.webpos.service.SettlementMonthService;
 import com.ssg.webpos.service.hqController.method.HqControllerStockService;
 import com.ssg.webpos.service.hqController.method.SaleMethodService;
 import com.ssg.webpos.service.hqController.method.StockReportUpdateService;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.time.DayOfWeek;
@@ -61,6 +65,8 @@ public class HqAdminController {
     private final StockReportUpdateService stockReportUpdateService;
     private final SaleMethodService saleMethodService;
     private final HQAdminService hqAdminService;
+    private final CartRedisImplRepository cartRedisImplRepository;
+    private final JwtUtil jwtUtil;
     // 스크린 첫 화면에 보이는 데이터 내역
     // 전체, 백화점 이름 + 해당 백화점의 어제 settlement_price
     // 디폴트 화면은
@@ -1030,5 +1036,52 @@ public class HqAdminController {
             e.printStackTrace();
             throw new IllegalArgumentException();
         }
+    }
+    @GetMapping("/check-is-logined")
+    public ResponseEntity checkIsLogined(HttpServletRequest request, HttpServletResponse response) {
+        System.out.println("request = " + request);
+        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        String token = authorizationHeader.replace("Bearer ", "");
+        Claims claims = JwtUtil.extractAllClaims(token);
+        // JwtUtil.getEmail(token);
+        System.out.println("claims.get(\"number\") = " + claims.get("number"));
+        // JwtUtil.getId(token);
+        System.out.println("claims.get(\"id\") = " + claims.get("id"));
+        HttpStatus status;
+        if (!JwtUtil.isExpired(token)) {
+            status = HttpStatus.OK;
+        } else {
+            status = HttpStatus.UNAUTHORIZED;
+        }
+        return new ResponseEntity(claims, status);
+    }
+    @PostMapping("/logout")
+    public ResponseEntity logout(@RequestBody RefreshTokenDto requestDto) {
+        if (JwtUtil.isExpired(requestDto.getRefreshToken())) {
+            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
+        }
+        HttpStatus status = HttpStatus.NOT_IMPLEMENTED; // 501
+        try {
+            cartRedisImplRepository.deleteToken(requestDto.getRefreshToken());
+            status = HttpStatus.NO_CONTENT;
+        } catch (IllegalArgumentException e) {
+            status = HttpStatus.BAD_REQUEST;
+        } finally {
+            return new ResponseEntity(status);
+        }
+    }
+    @PostMapping("/reissue")
+    public ResponseEntity<ReissueTokenResponseDTO> reissue(@RequestBody RefreshTokenDto requestDto) {
+        if (JwtUtil.isExpired(requestDto.getRefreshToken())) {
+            return new ResponseEntity(HttpStatus.UNAUTHORIZED); // 401
+        }
+        Claims claims = JwtUtil.extractAllClaims(requestDto.getRefreshToken());
+        Long userId = Long.valueOf(String.valueOf(claims.get("userId")));
+        String email = String.valueOf(claims.get("email"));
+        Role userRole = Role.valueOf(String.valueOf(claims.get("role")));
+
+        String newAccessToken = jwtUtil.generateAccessToken(userId, email, userRole);
+        ReissueTokenResponseDTO responseDto = new ReissueTokenResponseDTO(newAccessToken, requestDto.getRefreshToken());
+        return new ResponseEntity(responseDto, HttpStatus.CREATED);
     }
 }

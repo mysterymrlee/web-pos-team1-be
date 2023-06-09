@@ -42,37 +42,4 @@ public class HQAdminService {
         HQAdminLoginResponseDTO responseDTO = new HQAdminLoginResponseDTO(accessToken, refreshToken);
         return responseDTO;
     }
-    @GetMapping("/check-is-logined")
-    public ResponseEntity checkIsLogined(HttpServletRequest request, HttpServletResponse response) {
-        System.out.println("request = " + request);
-        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        String token = authorizationHeader.replace("Bearer ", "");
-        Claims claims = JwtUtil.extractAllClaims(token);
-        // JwtUtil.getEmail(token);
-        System.out.println("claims.get(\"number\") = " + claims.get("number"));
-        // JwtUtil.getId(token);
-        System.out.println("claims.get(\"id\") = " + claims.get("id"));
-        HttpStatus status;
-        if (!JwtUtil.isExpired(token)) {
-            status = HttpStatus.OK;
-        } else {
-            status = HttpStatus.UNAUTHORIZED;
-        }
-        return new ResponseEntity(claims, status);
-    }
-    @PostMapping("/logout")
-    public ResponseEntity logout(@RequestBody RefreshTokenDto requestDto) {
-        if (JwtUtil.isExpired(requestDto.getRefreshToken())) {
-            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
-        }
-        HttpStatus status = HttpStatus.NOT_IMPLEMENTED; // 501
-        try {
-            cartRedisImplRepository.deleteToken(requestDto.getRefreshToken());
-            status = HttpStatus.NO_CONTENT;
-        } catch (IllegalArgumentException e) {
-            status = HttpStatus.BAD_REQUEST;
-        } finally {
-            return new ResponseEntity(status);
-        }
-    }
 }
