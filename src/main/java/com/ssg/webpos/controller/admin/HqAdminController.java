@@ -1084,7 +1084,6 @@ public class HqAdminController {
         ReissueTokenResponseDTO responseDto = new ReissueTokenResponseDTO(newAccessToken, requestDto.getRefreshToken());
         return new ResponseEntity(responseDto, HttpStatus.CREATED);
     }
-
 }
 
 

@@ -111,6 +111,7 @@ public class PaymentsService {
       }
 
       // createOrder
+
       order = createOrder(paymentsDTO, compositeId, user, pos, finalTotalPrice, totalPrice, totalOriginPrice, orderName, charge, cardName, cardNumber, merchantUid, delivery);
 
       System.out.println("orderName = " + orderName);
@@ -180,7 +181,6 @@ public class PaymentsService {
   private Order createOrder(PaymentsDTO paymentsDTO, String compositeId, User user, Pos pos,
 
                             BigDecimal finalTotalPrice, Integer totalPrice, Integer totalOriginPrice, String OrderName, Integer charge, String cardName, String cardNumber, String merchantUid, Delivery delivery) {
-
     Order order = new Order();
     order.setOrderDate(LocalDateTime.now());
     List<Order> orderList = orderRepository.findAll();
@@ -239,7 +239,6 @@ public class PaymentsService {
     String combinedStr = orderDateStr + String.format("%02d", storeId) + String.format("%02d", posId) + serialNumber;
     return combinedStr;
   }
-
   public Product updateStockAndAddToCart(CartAddDTO cartAddDTO) {
     Product product = productRepository.findById(cartAddDTO.getProductId())
         .orElseThrow(() -> new RuntimeException("Product not found."));
