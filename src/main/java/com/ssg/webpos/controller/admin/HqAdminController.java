@@ -22,16 +22,18 @@ import com.ssg.webpos.repository.settlement.SettlementDayRepository;
 import com.ssg.webpos.repository.store.StoreRepository;
 import com.ssg.webpos.service.SettlementDayService;
 import com.ssg.webpos.service.SettlementMonthService;
+import com.ssg.webpos.service.hqController.csv.CsvService;
 import com.ssg.webpos.service.hqController.method.HqControllerStockService;
 import com.ssg.webpos.service.hqController.method.SaleMethodService;
 import com.ssg.webpos.service.hqController.method.StockReportUpdateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.*;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -56,6 +58,7 @@ public class HqAdminController {
     private final ProductRepository productRepository;
     private final StockReportUpdateService stockReportUpdateService;
     private final SaleMethodService saleMethodService;
+    private final CsvService csvService;
     // 스크린 첫 화면에 보이는 데이터 내역
     // 전체, 백화점 이름 + 해당 백화점의 어제 settlement_price
     // 디폴트 화면은
@@ -603,6 +606,85 @@ public class HqAdminController {
                     // 기간별 전체 매출 기록
                     List<Order> orderList = orderRepository.allStoreOrderByTerm(startDate,endDate);
                     List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                }
+            } else if(storeId !=0 ) {
+                if (date.equals("1week")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 일주일 전부터 어제까지의 store_id별 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy1WeekByStoreId(storeId);
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                } if (date.equals("1month")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 한달 전부터 어제까지의 store_id별 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy1MonthByStoreId(storeId);
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                } if (date.equals("3month")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 세달 전부터 어제까지의 store_id별 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy3MonthByStoreId(storeId);
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                } if (date.equals("term")&&startDate.equals(startDate)&&endDate.equals(endDate)) {
+                    // 기간별 store_id별 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderByTermByStoreId(startDate,endDate,storeId);
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    // 출력하기 위한 API
+    @GetMapping("/sale-management/list/date={date}/storeId={storeId}/startDate={startDate}/endDate={endDate}/export")
+    public ResponseEntity exportSaleOrderListToCsv(@PathVariable("date") String date, @PathVariable("storeId") int storeId,
+                                                   @PathVariable("startDate") String startDate, @PathVariable("endDate") String endDate) {
+        try {
+            LocalDate now = LocalDate.now();
+            String nowString = now.toString();
+            if(storeId == 0) {
+                if (date.equals("1week")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 일주일 전부터 어제까지의 전체 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy1Week();
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    String fileName = "sale_report_1week" + nowString + ".csv";
+                    csvService.exportToCsv(list,fileName);
+                    String fileURL = "C:/Users/교육생56/Desktop/webpos/" + fileName;
+                    File file = new File(fileURL);
+                    HttpHeaders headers = saleMethodService.makeHttpHeaders(file);
+                    return new ResponseEntity<>(new FileSystemResource(file),headers, HttpStatus.OK);
+
+//                    // return file, 매개변수는 List<HqSaleOrderDTO> list와 filePath를 가지는 서비스를 만든다.
+//                    File file = saleMethodService.makeFile(list,fileName);
+//                    HttpHeaders headers = saleMethodService.makeHttpHeaders(file);
+//                    return new ResponseEntity<>(new FileSystemResource(file), headers, HttpStatus.OK);
+                } if (date.equals("1month")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 한달 전부터 어제까지의 전체 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy1Month();
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    String fileName = "sale_report_1month" + nowString + ".csv";
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                } if (date.equals("3month")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 세달 전부터 어제까지의 전체 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy3Month();
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    String fileName = "sale_report_3month" + nowString + ".csv";
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                } if (date.equals("term")&&startDate.equals(startDate)&&endDate.equals(endDate)) {
+                    // 기간별 전체 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderByTerm(startDate,endDate);
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    String fileName = "sale_report_term" + nowString + ".csv";
                     return new ResponseEntity(list, HttpStatus.OK);
 
                 }
