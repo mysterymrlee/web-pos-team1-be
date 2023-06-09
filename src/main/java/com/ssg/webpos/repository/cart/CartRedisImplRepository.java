@@ -1,5 +1,7 @@
 package com.ssg.webpos.repository.cart;
 
+import com.ssg.webpos.config.jwt.JwtUtil;
+import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.dto.cartDto.CartAddDTO;
 import com.ssg.webpos.dto.cartDto.CartAddRequestDTO;
 import com.ssg.webpos.dto.coupon.CouponAddRequestDTO;
@@ -257,5 +259,18 @@ public class CartRedisImplRepository implements CartRedisRepository {
   @Override
   public void deleteAll() {
     redisTemplate.delete("CART");
+  }
+
+  public void saveToken(String refreshToken, PosStoreCompositeId compositeId) {
+    Long id = JwtUtil.getId(refreshToken);
+    String compositeIdStr = compositeId.getStore_id() + "-" + compositeId.getPos_id();
+    List idData = new ArrayList();
+    idData.add(id);
+    Map<String, List<Object>> tokenData = new HashMap<>();
+    tokenData.put(refreshToken, idData);
+    hashOperations.put("CART", compositeIdStr, tokenData);
+  }
+  public void deleteToken(String refreshToken) {
+    // CART -> compositId -> ${refresh} 를 key로 가진 것만 삭제하는 로직
   }
 }

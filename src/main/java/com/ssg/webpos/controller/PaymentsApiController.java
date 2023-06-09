@@ -62,7 +62,6 @@ public class PaymentsApiController {
     responseObj.put("process_result", "결제 성공");
 
 
-
     return new ResponseEntity(responseObj, responseHeaders, HttpStatus.OK);
   }
 }

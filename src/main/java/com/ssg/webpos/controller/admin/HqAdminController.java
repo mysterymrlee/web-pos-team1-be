@@ -1,8 +1,9 @@
 package com.ssg.webpos.controller.admin;
 
+import com.ssg.webpos.config.jwt.JwtUtil;
 import com.ssg.webpos.domain.*;
-import com.ssg.webpos.dto.StockReportDTO;
-import com.ssg.webpos.dto.StoreListDTO;
+import com.ssg.webpos.domain.enums.Role;
+import com.ssg.webpos.dto.*;
 import com.ssg.webpos.dto.hqMain.AllAndStoreDTO;
 import com.ssg.webpos.dto.hqMain.SettlementByTermDTO;
 import com.ssg.webpos.dto.hqMain.SettlementByTermListDTO;
@@ -16,23 +17,35 @@ import com.ssg.webpos.dto.settlement.*;
 import com.ssg.webpos.dto.stock.AllStockReportResponseDTO;
 import com.ssg.webpos.dto.stock.StoreIdStockReportResponseDTO;
 import com.ssg.webpos.repository.StockReportRepository;
+import com.ssg.webpos.repository.cart.CartRedisImplRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
 import com.ssg.webpos.repository.product.ProductRepository;
 import com.ssg.webpos.repository.settlement.SettlementDayRepository;
 import com.ssg.webpos.repository.store.StoreRepository;
+import com.ssg.webpos.service.HQAdminService;
 import com.ssg.webpos.service.SettlementDayService;
 import com.ssg.webpos.service.SettlementMonthService;
+import com.ssg.webpos.service.hqController.csv.CsvService;
 import com.ssg.webpos.service.hqController.method.HqControllerStockService;
 import com.ssg.webpos.service.hqController.method.SaleMethodService;
 import com.ssg.webpos.service.hqController.method.StockReportUpdateService;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.core.io.FileSystemResource;
+import java.io.File;
 import java.math.BigDecimal;
+import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -56,6 +69,13 @@ public class HqAdminController {
     private final ProductRepository productRepository;
     private final StockReportUpdateService stockReportUpdateService;
     private final SaleMethodService saleMethodService;
+
+    private final HQAdminService hqAdminService;
+    private final CartRedisImplRepository cartRedisImplRepository;
+    private final JwtUtil jwtUtil;
+
+    private final CsvService csvService;
+
     // 스크린 첫 화면에 보이는 데이터 내역
     // 전체, 백화점 이름 + 해당 백화점의 어제 settlement_price
     // 디폴트 화면은
@@ -640,6 +660,85 @@ public class HqAdminController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    // 출력하기 위한 API
+    @GetMapping("/sale-management/list/date={date}/storeId={storeId}/startDate={startDate}/endDate={endDate}/export")
+    public ResponseEntity exportSaleOrderListToCsv(@PathVariable("date") String date, @PathVariable("storeId") int storeId,
+                                                   @PathVariable("startDate") String startDate, @PathVariable("endDate") String endDate) {
+        try {
+            LocalDate now = LocalDate.now();
+            String nowString = now.toString();
+            if(storeId == 0) {
+                if (date.equals("1week")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 일주일 전부터 어제까지의 전체 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy1Week();
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    String fileName = "sale_report_1week" + nowString + ".csv";
+                    csvService.exportToCsv(list,fileName);
+                    String fileURL = "C:/Users/교육생56/Desktop/webpos/" + fileName;
+                    File file = new File(fileURL);
+                    HttpHeaders headers = saleMethodService.makeHttpHeaders(file);
+                    return new ResponseEntity<>(new FileSystemResource(file),headers, HttpStatus.OK);
+
+//                    // return file, 매개변수는 List<HqSaleOrderDTO> list와 filePath를 가지는 서비스를 만든다.
+//                    File file = saleMethodService.makeFile(list,fileName);
+//                    HttpHeaders headers = saleMethodService.makeHttpHeaders(file);
+//                    return new ResponseEntity<>(new FileSystemResource(file), headers, HttpStatus.OK);
+                } if (date.equals("1month")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 한달 전부터 어제까지의 전체 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy1Month();
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    String fileName = "sale_report_1month" + nowString + ".csv";
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                } if (date.equals("3month")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 세달 전부터 어제까지의 전체 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy3Month();
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    String fileName = "sale_report_3month" + nowString + ".csv";
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                } if (date.equals("term")&&startDate.equals(startDate)&&endDate.equals(endDate)) {
+                    // 기간별 전체 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderByTerm(startDate,endDate);
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    String fileName = "sale_report_term" + nowString + ".csv";
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                }
+            } else if(storeId !=0 ) {
+                if (date.equals("1week")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 일주일 전부터 어제까지의 store_id별 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy1WeekByStoreId(storeId);
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                } if (date.equals("1month")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 한달 전부터 어제까지의 store_id별 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy1MonthByStoreId(storeId);
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                } if (date.equals("3month")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 세달 전부터 어제까지의 store_id별 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy3MonthByStoreId(storeId);
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                } if (date.equals("term")&&startDate.equals(startDate)&&endDate.equals(endDate)) {
+                    // 기간별 store_id별 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderByTermByStoreId(startDate,endDate,storeId);
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     // 전체 월별정산내역 조회
     // "2023"을 받으면 2023년에 생성된 전체 월별정산내역 조회
 //    @PostMapping("/settlement-month/all-store")
@@ -1015,5 +1114,64 @@ public class HqAdminController {
         }
     }
 
+    @PostMapping("/login")
+    public ResponseEntity login(@RequestBody HQAdminLoginRequestDTO requestDTO) throws UserPrincipalNotFoundException {
+        try {
+            HQAdminLoginResponseDTO responseDTO = hqAdminService.login(requestDTO);
+            return new ResponseEntity(responseDTO, HttpStatus.OK);
+        } catch (Exception e) {
+            e.getStackTrace();
+            e.printStackTrace();
+            throw new IllegalArgumentException();
+        }
+    }
+    @GetMapping("/check-is-logined")
+    public ResponseEntity checkIsLogined(HttpServletRequest request, HttpServletResponse response) {
+        System.out.println("request = " + request);
+        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        String token = authorizationHeader.replace("Bearer ", "");
+        Claims claims = JwtUtil.extractAllClaims(token);
+        // JwtUtil.getEmail(token);
+        System.out.println("claims.get(\"number\") = " + claims.get("number"));
+        // JwtUtil.getId(token);
+        System.out.println("claims.get(\"id\") = " + claims.get("id"));
+        HttpStatus status;
+        if (!JwtUtil.isExpired(token)) {
+            status = HttpStatus.OK;
+        } else {
+            status = HttpStatus.UNAUTHORIZED;
+        }
+        return new ResponseEntity(claims, status);
+    }
+    @PostMapping("/logout")
+    public ResponseEntity logout(@RequestBody RefreshTokenDto requestDto) {
+        if (JwtUtil.isExpired(requestDto.getRefreshToken())) {
+            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
+        }
+        HttpStatus status = HttpStatus.NOT_IMPLEMENTED; // 501
+        try {
+            cartRedisImplRepository.deleteToken(requestDto.getRefreshToken());
+            status = HttpStatus.NO_CONTENT;
+        } catch (IllegalArgumentException e) {
+            status = HttpStatus.BAD_REQUEST;
+        } finally {
+            return new ResponseEntity(status);
+        }
+    }
+    @PostMapping("/reissue")
+    public ResponseEntity<ReissueTokenResponseDTO> reissue(@RequestBody RefreshTokenDto requestDto) {
+        if (JwtUtil.isExpired(requestDto.getRefreshToken())) {
+            return new ResponseEntity(HttpStatus.UNAUTHORIZED); // 401
+        }
+        Claims claims = JwtUtil.extractAllClaims(requestDto.getRefreshToken());
+        Long id = Long.valueOf(String.valueOf(claims.get("id")));
+        String number = String.valueOf(claims.get("number"));
+        Role userRole = Role.valueOf(String.valueOf(claims.get("role")));
 
+        String newAccessToken = jwtUtil.generateAccessToken(id, number, userRole);
+        ReissueTokenResponseDTO responseDto = new ReissueTokenResponseDTO(newAccessToken, requestDto.getRefreshToken());
+        return new ResponseEntity(responseDto, HttpStatus.CREATED);
+    }
 }
+
+

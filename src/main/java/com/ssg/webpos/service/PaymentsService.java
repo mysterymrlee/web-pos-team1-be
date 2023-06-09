@@ -17,10 +17,6 @@ import com.ssg.webpos.repository.delivery.DeliveryRedisImplRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
 import com.ssg.webpos.repository.pos.PosRepository;
 import com.ssg.webpos.repository.product.ProductRepository;
-import com.ssg.webpos.service.CouponService;
-import com.ssg.webpos.service.PointSaveHistoryService;
-import com.ssg.webpos.service.PointService;
-import com.ssg.webpos.service.PointUseHistoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -45,16 +41,12 @@ public class PaymentsService {
   private final PointService pointService;
 
   private final PosRepository posRepository;
-  private final PointUseHistoryService pointUseHistoryService;
   private final PointUseHistoryRepository pointUseHistoryRepository;
   private final PointSaveHistoryRepository pointSaveHistoryRepository;
-
-  private final PointSaveHistoryService pointSaveHistoryService;
   private final PointRepository pointRepository;
   private final DeliveryService deliveryService;
   private final DeliveryRedisImplRepository deliveryRedisImplRepository;
   private final SmsService smsService;
-
 
   @Value("${api_key}")
   private String api_key;
@@ -63,11 +55,14 @@ public class PaymentsService {
   private String api_secret;
 
   @Transactional
-  public void processPaymentCallback(PaymentsDTO paymentsDTO) {
+  public Order processPaymentCallback(PaymentsDTO paymentsDTO) {
     try {
-      BigDecimal finalTotalPrice = paymentsDTO.getPaid_amount();
+      BigDecimal finalTotalPrice = paymentsDTO.getPaidAmount();
       System.out.println("processPaymentCallback() 호출");
       int couponUsePrice = paymentsDTO.getCouponUsePrice();
+      String cardName = paymentsDTO.getCardName();
+      String merchantUid = paymentsDTO.getMerchantUid();
+      String cardNumber = paymentsDTO.getCardNumber();
 
       int charge = paymentsDTO.getCharge();
 
@@ -116,7 +111,9 @@ public class PaymentsService {
       }
 
       // createOrder
-      order = createOrder(paymentsDTO, compositeId, user, pos, finalTotalPrice, totalPrice, totalOriginPrice, orderName, charge, delivery);
+
+      order = createOrder(paymentsDTO, compositeId, user, pos, finalTotalPrice, totalPrice, totalOriginPrice, orderName, charge, cardName, cardNumber, merchantUid, delivery);
+
       System.out.println("orderName = " + orderName);
       System.out.println("totalOriginPrice = " + totalOriginPrice);
 
@@ -178,10 +175,12 @@ public class PaymentsService {
     } catch (Exception e) {
       e.printStackTrace();
     }
+    return null;
   }
 
   private Order createOrder(PaymentsDTO paymentsDTO, String compositeId, User user, Pos pos,
-                            BigDecimal finalTotalPrice, Integer totalPrice, Integer totalOriginPrice, String OrderName, Integer charge, Delivery delivery) {
+
+                            BigDecimal finalTotalPrice, Integer totalPrice, Integer totalOriginPrice, String OrderName, Integer charge, String cardName, String cardNumber, String merchantUid, Delivery delivery) {
     Order order = new Order();
     order.setOrderDate(LocalDateTime.now());
     List<Order> orderList = orderRepository.findAll();
@@ -196,6 +195,9 @@ public class PaymentsService {
     order.setTotalOriginPrice(totalOriginPrice);
     order.setOrderName(OrderName);
     order.setCharge(charge);
+    order.setCardName(cardName);
+    order.setCardNumber(cardNumber);
+    order.setMerchantUid(merchantUid);
     pos.getOrderList().add(order);
     System.out.println("pos.getOrderList() = " + pos.getOrderList());
 
@@ -230,15 +232,14 @@ public class PaymentsService {
   }
 
   // 20230530+ 01 + 01 + 0001
-  private String generateSerialNumber(List<Order> orderList, Long storeId, Long posId) {
+  public String generateSerialNumber(List<Order> orderList, Long storeId, Long posId) {
     Long newOrderId = orderList.size() + 1L;
     String serialNumber = String.format("%04d", newOrderId);
     String orderDateStr = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
     String combinedStr = orderDateStr + String.format("%02d", storeId) + String.format("%02d", posId) + serialNumber;
     return combinedStr;
   }
-
-  private Product updateStockAndAddToCart(CartAddDTO cartAddDTO) {
+  public Product updateStockAndAddToCart(CartAddDTO cartAddDTO) {
     Product product = productRepository.findById(cartAddDTO.getProductId())
         .orElseThrow(() -> new RuntimeException("Product not found."));
 
