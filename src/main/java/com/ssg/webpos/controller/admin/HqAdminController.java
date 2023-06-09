@@ -1076,11 +1076,11 @@ public class HqAdminController {
             return new ResponseEntity(HttpStatus.UNAUTHORIZED); // 401
         }
         Claims claims = JwtUtil.extractAllClaims(requestDto.getRefreshToken());
-        Long userId = Long.valueOf(String.valueOf(claims.get("userId")));
-        String email = String.valueOf(claims.get("email"));
+        Long id = Long.valueOf(String.valueOf(claims.get("id")));
+        String number = String.valueOf(claims.get("number"));
         Role userRole = Role.valueOf(String.valueOf(claims.get("role")));
 
-        String newAccessToken = jwtUtil.generateAccessToken(userId, email, userRole);
+        String newAccessToken = jwtUtil.generateAccessToken(id, number, userRole);
         ReissueTokenResponseDTO responseDto = new ReissueTokenResponseDTO(newAccessToken, requestDto.getRefreshToken());
         return new ResponseEntity(responseDto, HttpStatus.CREATED);
     }
