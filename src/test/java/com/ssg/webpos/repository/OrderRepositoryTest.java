@@ -1,6 +1,7 @@
 package com.ssg.webpos.repository;
 
 import com.ssg.webpos.domain.Order;
+import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.repository.order.OrderRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -164,6 +165,39 @@ public class OrderRepositoryTest {
         int count = orderRepository.sumOfProfitBetweenYesterday1WeekAgoAndYesterdayByStoreId(1);
         System.out.println(count);
     }
+    @Test
+    void test() {
+        Order order = orderRepository.findBySerialNumber("20230601013");
+        System.out.println(order);
+    }
 
+    @Test
+    void test1() {
+        try {
+            Order order = orderRepository.findByMerchantUid("202306011011410202");
+            System.out.println(order);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
+    @Test
+    void testForInsert() {
+        try {
+            LocalDateTime createdDate = LocalDateTime.now();
+            LocalDateTime lastModifiedDate = LocalDateTime.now();
+
+            orderRepository.insertOrderCancel(3,3,3,"CANCEL","CREDIT_CARD",
+                    3,3,3,3,"2032-12-01T00:00:01",createdDate,lastModifiedDate, (long) 1, (long)1,
+                    (long)1, null,"1313");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    void testForSuccessReceipt() {
+        Order order = orderRepository.findByMerchantUidAndOrderStatus("202306011011410202", OrderStatus.SUCCESS);
+        System.out.println(order);
+    }
 }
