@@ -169,6 +169,9 @@ public class BranchAdminManagerController {
             orderDetailResponseDTO.setVat(vat);
             orderDetailResponseDTO.setStoreName(store.get().getName());
             orderDetailResponseDTO.setStoreAdress(store.get().getAddress());
+            orderDetailResponseDTO.setStoreTelNumber(store.get().getTelNumber());
+            orderDetailResponseDTO.setBusinessNumber(store.get().getBusinessNumber());
+            orderDetailResponseDTO.setOrderSerialNumber(order.getSerialNumber());
             return new ResponseEntity<>(orderDetailResponseDTO, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
