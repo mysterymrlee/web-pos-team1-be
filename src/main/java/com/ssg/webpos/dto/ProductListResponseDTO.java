@@ -17,6 +17,7 @@ public class ProductListResponseDTO {
     private String description;
     private int qty;
     private boolean isEvent;
+    private int origin_price;
 
     public ProductListResponseDTO(Product product, boolean isEvent) {
         this.product_id = product.getId();
@@ -26,6 +27,7 @@ public class ProductListResponseDTO {
         this.image_url = product.getImageUrl();
         this.description = product.getDescription();
         this.qty = product.getStock();
+        this.origin_price = product.getOriginPrice();
         this.isEvent = isEvent;
     }
 }
