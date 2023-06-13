@@ -113,14 +113,16 @@ public class CartService {
   }
 
   @Transactional
-  public void cancelOrder(Long orderId, Long userId) {
-    Order order = orderRepository.findById(orderId).orElseThrow(
-        () -> new RuntimeException("주문 내역을 찾을 수 없습니다."));
+  public void cancelOrder(String merchantUid) {
+    // merchantUid로 order 찾기
+    Order order = orderRepository.findByMerchantUid(merchantUid);
+    System.out.println("findOrder = " + order);
     order.setOrderStatus(OrderStatus.CANCEL);
     orderRepository.save(order);
+    System.out.println("savedOrder = " + order);
 
     // 포인트 사용 내역 확인
-    PointUseHistory findUsePoint = pointUseHistoryRepository.findByOrderId(orderId).orElse(null);
+    PointUseHistory findUsePoint = pointUseHistoryRepository.findByOrderId(order.getId()).orElse(null);
     if (findUsePoint != null) {
       int usePointAmount = findUsePoint.getPointUseAmount();
       System.out.println("usePointAmount = " + usePointAmount);
@@ -130,7 +132,7 @@ public class CartService {
     }
 
     // 적립 포인트 취소
-    PointSaveHistory findSavePoint = pointSaveHistoryRepository.findByOrderId(orderId).orElse(null);
+    PointSaveHistory findSavePoint = pointSaveHistoryRepository.findByOrderId(order.getId()).orElse(null);
     if (findSavePoint != null) {
       int savePointAmount = findSavePoint.getPointSaveAmount();
       System.out.println("savePointAmount = " + savePointAmount);
@@ -138,11 +140,9 @@ public class CartService {
       pointSaveHistoryRepository.save(findSavePoint);
     }
 
-
     // 쿠폰 상태 변경
-    Coupon useCoupon = couponRepository.findByOrderId(orderId);
+    Coupon useCoupon = couponRepository.findByOrderId(order.getId());
     System.out.println("useCoupon = " + useCoupon);
-
 
     if (useCoupon != null) {
       useCoupon.setCouponStatus(CouponStatus.NOT_USED);
@@ -163,7 +163,6 @@ public class CartService {
       int stock = product.getStock();
       System.out.println("stock = " + stock);
     }
-
     orderRepository.save(order);
   }
 }

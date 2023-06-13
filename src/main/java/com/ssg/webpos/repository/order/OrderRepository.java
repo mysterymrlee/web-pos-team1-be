@@ -143,4 +143,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
   @Query(value = "select * from orders o\n" +
           "where o.store_id = :storeId AND o.order_date between :startDate AND :endDate", nativeQuery = true)
   List<Order> allStoreOrderByTermByStoreId(@Param("startDate") String startDate, @Param("endDate") String endDate,@Param("storeId") int storeId);
+
+  Order findByMerchantUid(String merchantUid);
 }
