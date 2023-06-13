@@ -17,7 +17,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
   List<Order> findOrderById(Long id);
   List<Order> findAll();
   Order findByMerchantUid(String merchantUid);
+  // merchantUid와 orderState로 조회
   Order findByMerchantUidAndOrderStatus(String merchantUid, OrderStatus orderStats);
+
+  // 한 매서드 안에 위에 있는 매서드를 2번 활용하면 IncorrectResultSizeDataAccessException이 발생해서 별도의 매서드를 생성했다.
+  // 가장 최근에 생성된 order 불러오기, 해결됨..
+  Order findFirstByMerchantUidAndOrderStatusOrderByOrderDateDesc(String merchantUid, OrderStatus orderStats);
   // pos의 store_id와 orderDate 조회
   List<Order> findOrderByPos_StoreIdAndOrderDate(Long storeId, LocalDateTime orderDate);
   // 기간 쿼리 조회하기
