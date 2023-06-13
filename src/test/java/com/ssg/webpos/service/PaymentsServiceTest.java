@@ -43,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 @SpringBootTest
-@Transactional
+@Rollback(value = false)
 public class PaymentsServiceTest {
   @Autowired
   PaymentsService paymentsService;

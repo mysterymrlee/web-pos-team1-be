@@ -26,6 +26,8 @@ public class OrderDetailResponseDTO {
     private String ceoName; // 대표자 이름
     private String orderSerialNumber; // 주문시리얼넘버
     private LocalDateTime cancelDate;
+    private String cardName;
+    private String cardNumber;
     private List<OrderDetailProductResponseDTO> orderDetailProductResponseDTOList = new ArrayList<>(); // 주문상품
 
 }
