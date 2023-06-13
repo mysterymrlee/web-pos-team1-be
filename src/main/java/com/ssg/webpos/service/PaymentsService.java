@@ -89,6 +89,7 @@ public class PaymentsService {
 
       // Delivery / Gift 저장
       Delivery delivery = null;
+
       List<Map<String, Object>> redisGiftRecipientInfo = deliveryRedisImplRepository.findGiftRecipientInfo(compositeId);
       System.out.println("redisGiftRecipientInfo = " + redisGiftRecipientInfo);
       // 배송
@@ -114,6 +115,7 @@ public class PaymentsService {
 
       order = createOrder(paymentsDTO, compositeId, user, pos, finalTotalPrice, totalPrice, totalOriginPrice, orderName, charge, cardName, cardNumber, merchantUid, delivery);
 
+      System.out.println("createorder = " + order);
       System.out.println("orderName = " + orderName);
       System.out.println("totalOriginPrice = " + totalOriginPrice);
 
@@ -122,16 +124,19 @@ public class PaymentsService {
       System.out.println("savedOrder = " + savedOrder);
       // send sms
       MessageDTO messageDTO = new MessageDTO();
-      String phoneNumber = delivery.getPhoneNumber();
-      System.out.println("찾은 phoneNumber = " + phoneNumber);
-      messageDTO.setTo(phoneNumber);
+      if (delivery != null) {
+        String phoneNumber = delivery.getPhoneNumber();
+        System.out.println("찾은 phoneNumber = " + phoneNumber);
+        messageDTO.setTo(phoneNumber);
 
-      DeliveryType findDeliveryType = savedOrder.getDelivery().getDeliveryType();
-      System.out.println("findDeliveryType = " + findDeliveryType);
 
-      if (savedOrder.getDelivery().getDeliveryType().equals(DeliveryType.GIFT)) {
-        System.out.println("DeliveryType is GIFT");
-        smsService.sendSms(messageDTO, delivery, savedOrder);
+        DeliveryType findDeliveryType = savedOrder.getDelivery().getDeliveryType();
+        System.out.println("findDeliveryType = " + findDeliveryType);
+
+        if (savedOrder.getDelivery().getDeliveryType().equals(DeliveryType.GIFT)) {
+          System.out.println("DeliveryType is GIFT");
+          smsService.sendSms(messageDTO, delivery, savedOrder);
+        }
       }
 
       List<Map<String, Object>> cartItemList = cartRedisRepository.findCartItems(compositeId); // 캐싱된 cartItemList 가져오기
@@ -154,6 +159,7 @@ public class PaymentsService {
       if (findUserId != null) {
         // 포인트 사용. pointUseHistory 테이블에 저장 (트리거를 통해 point 테이블의 point_amount 업데이트)
         Integer pointUseAmount = paymentsDTO.getPointAmount();
+        System.out.println("pointUseAmount = " + pointUseAmount);
         Point point = userRepository.findById(userId).get().getPoint();
 
         if (pointUseAmount != null) {
@@ -171,7 +177,7 @@ public class PaymentsService {
         System.out.println("pointSaveHistory = " + pointSaveHistory);
       }
       // redis 초기화
-      cartRedisRepository.delete(compositeId);
+//      cartRedisRepository.delete(compositeId);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -227,7 +233,7 @@ public class PaymentsService {
       }
     }
 
-
+    System.out.println("finalorder = " + order);
     return order;
   }
 

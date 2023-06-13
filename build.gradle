@@ -28,7 +28,9 @@ jacocoTestReport {
 					"com/ssg/webpos/exception/*",
 					"com/ssg/webpos/config/*",
 					"com/ssg/webpos/controller/*",
-					"com/ssg/webpos/repository/*"
+					"com/ssg/webpos/repository/*",
+					"com/ssg/webpos/service/NotificationService/*",
+					"com/ssg/webpos/service/NotificationService1/*"
 			])
 		}))
 	}

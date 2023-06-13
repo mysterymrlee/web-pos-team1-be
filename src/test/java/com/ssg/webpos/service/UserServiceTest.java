@@ -1,6 +1,7 @@
 package com.ssg.webpos.service;
 
 import com.ssg.webpos.domain.Point;
+import com.ssg.webpos.domain.PosStoreCompositeId;
 import com.ssg.webpos.domain.User;
 import com.ssg.webpos.domain.enums.RoleUser;
 import com.ssg.webpos.repository.UserRepository;
@@ -55,4 +56,21 @@ class UserServiceTest {
     boolean result = userService.checkMemberExistByUserId(user.getId());
     Assertions.assertTrue(result);
   }
+    @Test
+  void login() {
+      User user = new User();
+      user.setName("홍길동");
+      user.setEmail("1111@naver.com");
+      user.setPhoneNumber("01099999999");
+      user.setPassword("1234");
+      user.setRole(RoleUser.NORMAL);
+      userRepository.save(user);
+
+      PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();
+      posStoreCompositeId.setPos_id(2L);
+      posStoreCompositeId.setStore_id(2L);
+
+      userService.login(user, posStoreCompositeId);
+
+    }
 }
