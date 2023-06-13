@@ -25,7 +25,7 @@ public class HQAdmin extends BaseTime {
     @NotNull
     private String password;
     @NotNull
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     private RoleHQadmin role;
 
     private LocalDate startDate;

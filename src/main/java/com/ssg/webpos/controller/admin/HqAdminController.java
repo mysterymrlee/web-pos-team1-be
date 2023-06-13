@@ -1013,7 +1013,7 @@ public class HqAdminController {
         } catch (Exception e) {
             e.getStackTrace();
             e.printStackTrace();
-            throw new IllegalArgumentException();
+            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
         }
     }
     @GetMapping("/check-is-logined")
