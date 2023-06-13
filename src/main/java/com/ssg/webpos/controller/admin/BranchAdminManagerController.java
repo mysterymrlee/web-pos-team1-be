@@ -1,6 +1,6 @@
 package com.ssg.webpos.controller.admin;
-
 import com.ssg.webpos.domain.*;
+import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.dto.order.OrderDetailProductResponseDTO;
 import com.ssg.webpos.dto.order.OrderDetailResponseDTO;
 import com.ssg.webpos.dto.order.RequestOrderDTO;
@@ -18,14 +18,14 @@ import com.ssg.webpos.repository.store.StoreRepository;
 import com.ssg.webpos.service.OrderService;
 import com.ssg.webpos.service.SettlementDayService;
 import com.ssg.webpos.service.SettlementMonthService;
+import com.ssg.webpos.service.managerController.CancelOrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-
-
+import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 
 
 @RestController
-@RequestMapping("/api/v1/manager") // 팀장님한테 점장 로그인 구현 기능 받으면 manager에서 branchadmin-manager로 변경
+@RequestMapping("/api/v1/manager")
 @Slf4j
 @RequiredArgsConstructor
 public class BranchAdminManagerController {
@@ -50,6 +50,192 @@ public class BranchAdminManagerController {
     private final StockReportRepository stockReportRepository;
     private final CartRepository cartRepository;
     private final PointUseHistoryRepository pointUseHistoryRepository;
+    private final CancelOrderService cancelOrderService;
+
+    // 주문취소
+    // 주문 취소 이력을 추적하고 분석할 수 있도록 취소 열을 추가
+    // 구매 내역 시간, 구매 취소 시간이 나오도록 별도의 열을 추가하는 게 좋겠다.
+    /**
+     * 매출 내역을 계산할 때는 취소된 것까지 모두 포함해서 계산
+     * 일단 merchant_uid는 serialNumber와 같게 설정했다. 추후에 변경해야한다.
+     * 주문 취소가 진행되면 주문 취소 영수증이 나오도록 하는 것
+     * 1. merchat_uid 조회
+     * 2. 취소 진행
+     * 3. 취소 영수증 발급(프런트엔드에서는 '주문이 취소되었습니다.' 알림창과 함께 주문 취소 영수증 발급)
+     * **/
+    @GetMapping("/order-cancel") // 추후에 merchantUid로 변경해야합니다.
+    public ResponseEntity cancelOrder(@RequestParam("merchantUid") String merchantUid) {
+        try {
+            // 202306011011410202
+            Order order = orderRepository.findByMerchantUid(merchantUid);
+            System.out.println(order);
+            // 가격과 관련된 건 모두 - 붙임
+            // orderStaus는 CANCEL
+            // orderId는 auto increment이므로 생략함
+            int charge = order.getCharge();
+            int couponUsePrice = order.getCouponUsePrice();
+            int finalTotalPrice = order.getFinalTotalPrice();
+            String payMethod = order.getPayMethod().toString();
+            int profit = order.getProfit();
+            int totalOriginPrice = order.getTotalOriginPrice();
+            int totalPrice = order.getTotalPrice();
+            int pointUsePrice = order.getPointUsePrice();
+            String orderDate = order.getOrderDate().toString();
+            LocalDateTime createdDate = LocalDateTime.now();
+            LocalDateTime lastModifiedDate = LocalDateTime.now();
+            Long posId = order.getPos().getId().getPos_id();
+            Long storeId = order.getPos().getId().getStore_id();
+            // nullPointerException 발생
+            // userId는 if 문 활용
+            // deliveryId는 if 문 활용하기
+            // 원래 userId의 타입은 long이었는데 null 값때문에 Long으로 변경했다.
+            if (order.getDelivery() != null) {
+                if (order.getUser() != null) {
+                    // user_id가 존재한다면
+                    Long deliveryId = order.getDelivery().getId();
+                    Long userId = order.getUser().getId();
+                    orderRepository.insertOrderCancel(-charge,-couponUsePrice,-finalTotalPrice,"CANCEL",payMethod,-profit,-totalOriginPrice,-totalPrice,-pointUsePrice,orderDate,
+                            createdDate,lastModifiedDate,posId,storeId,userId,deliveryId,merchantUid);
+                } else if (order.getUser() == null) {
+                    // user_id가 존재하지않는다면
+                    Long deliveryId = order.getDelivery().getId();;
+                    orderRepository.insertOrderCancel(-charge,-couponUsePrice,-finalTotalPrice,"CANCEL",payMethod,-profit,-totalOriginPrice,-totalPrice,-pointUsePrice,orderDate,
+                            createdDate,lastModifiedDate,posId,storeId,null,deliveryId,merchantUid);
+                }
+            } else if(order.getDelivery() == null) {
+                if (order.getUser() != null) {
+                    // user_id가 존재한다면
+                    Long userId = order.getUser().getId();
+                    orderRepository.insertOrderCancel(-charge,-couponUsePrice,-finalTotalPrice,"CANCEL",payMethod,-profit,-totalOriginPrice,-totalPrice,-pointUsePrice,orderDate,
+                            createdDate,lastModifiedDate,posId,storeId,userId,null,merchantUid);
+                } else if (order.getUser() == null) {
+                    // user_id가 존재하지않는다면
+                }
+                orderRepository.insertOrderCancel(-charge,-couponUsePrice,-finalTotalPrice,"CANCEL",payMethod,-profit,-totalOriginPrice,-totalPrice,-pointUsePrice,orderDate,
+                        createdDate,lastModifiedDate,posId,storeId,null,null,merchantUid);
+            }
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 영수증 재발급(order_state가 SUCCESS인 것만 조회)
+    // 만약 주문을 취소했다면 취소 영수증이 나오게 하는건 어떨까..-> 찾아보니 어려울 것 같다.
+    @GetMapping("/receipt")
+    public ResponseEntity receipt(@RequestParam String merchantUid) {
+        try {
+            // 202306011011410202
+            OrderDetailResponseDTO orderDetailResponseDTO = new OrderDetailResponseDTO();
+            Order order = orderRepository.findByMerchantUidAndOrderStatus(merchantUid, OrderStatus.SUCCESS);
+
+            Long orderId = order.getId();
+            Long storeId = order.getPos().getStore().getId();
+            Optional<Store> store = storeRepository.findById(storeId);
+            orderDetailResponseDTO.setMerchantUid(merchantUid);
+            orderDetailResponseDTO.setOrderDate(order.getOrderDate());
+            orderDetailResponseDTO.setTotalPrice(order.getTotalPrice());
+            orderDetailResponseDTO.setCouponUsePrice(order.getCouponUsePrice());
+            orderDetailResponseDTO.setPointUsePrice(order.getPointUsePrice());
+            orderDetailResponseDTO.setFinalTotalPrice(order.getFinalTotalPrice());
+            List<OrderDetailProductResponseDTO> orderDetailProductResponseDTOList = new ArrayList<>();
+            List<Cart> cartList = cartRepository.findAllByOrderId(orderId);
+            // 주문 상품의 이름, 수량, 상품 가격 정보 시작
+            for (Cart cart : cartList) {
+                OrderDetailProductResponseDTO orderDetailProduct = new OrderDetailProductResponseDTO();
+                Long productId = cart.getProduct().getId();
+                Optional<Product> product = productRepository.findById(productId);
+                orderDetailProduct.setProductName(product.get().getName());
+                orderDetailProduct.setProductQty(product.get().getStock());
+                orderDetailProduct.setProductSalePrice(product.get().getSalePrice());
+                orderDetailProductResponseDTOList.add(orderDetailProduct);
+            }
+            orderDetailResponseDTO.setOrderDetailProductResponseDTOList(orderDetailProductResponseDTOList);
+            if (order.getUser() == null) {
+                // 사용자가 존재하지 않는 경우
+                orderDetailResponseDTO.setUserName(" ");
+                orderDetailResponseDTO.setUserPoint(0);
+            } else if (order.getUser() != null){
+                User user = order.getUser();
+                // 사용자가 존재하는 경우
+                orderDetailResponseDTO.setUserName(user.getName());
+                orderDetailResponseDTO.setUserPoint(user.getPoint().getPointAmount());
+            }
+            int finalTotalPrice = order.getFinalTotalPrice();
+            int productPrice = finalTotalPrice*10/11;
+            int vat = finalTotalPrice*1/11;
+            orderDetailResponseDTO.setProductPrice(productPrice);
+            orderDetailResponseDTO.setVat(vat);
+            orderDetailResponseDTO.setStoreName(store.get().getName());
+            orderDetailResponseDTO.setStoreAdress(store.get().getAddress());
+            orderDetailResponseDTO.setStoreTelNumber(store.get().getTelNumber());
+            orderDetailResponseDTO.setBusinessNumber(store.get().getBusinessNumber());
+            orderDetailResponseDTO.setOrderSerialNumber(order.getSerialNumber());
+            orderDetailResponseDTO.setCeoName(store.get().getCeoName());
+            return new ResponseEntity<>(orderDetailResponseDTO, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
+    }
+    // 주문 취소한 주문 영수증 재발급
+    @GetMapping("/receipt-cancel")
+    public ResponseEntity receiptCancel(@RequestParam String merchantUid) {
+        try {
+            // 202306011011410202
+            OrderDetailResponseDTO orderDetailResponseDTO = new OrderDetailResponseDTO();
+            Order order = orderRepository.findByMerchantUidAndOrderStatus(merchantUid, OrderStatus.CANCEL);
+
+            Long orderId = order.getId();
+            Long storeId = order.getPos().getStore().getId();
+            Optional<Store> store = storeRepository.findById(storeId);
+            orderDetailResponseDTO.setMerchantUid(merchantUid);
+            orderDetailResponseDTO.setOrderDate(order.getOrderDate());
+            orderDetailResponseDTO.setTotalPrice(order.getTotalPrice());
+            orderDetailResponseDTO.setCouponUsePrice(order.getCouponUsePrice());
+            orderDetailResponseDTO.setPointUsePrice(order.getPointUsePrice());
+            orderDetailResponseDTO.setFinalTotalPrice(order.getFinalTotalPrice());
+            List<OrderDetailProductResponseDTO> orderDetailProductResponseDTOList = new ArrayList<>();
+            //merchantUid로 주문 내역 조회
+            Order orderSuccess = orderRepository.findByMerchantUidAndOrderStatus(merchantUid, OrderStatus.SUCCESS);
+            Long orderSuccessId = orderSuccess.getId();
+
+            List<Cart> cartList = cartRepository.findAllByOrderId(orderSuccessId);
+            // 주문 상품의 이름, 수량, 상품 가격 정보 시작
+            for (Cart cart : cartList) {
+                OrderDetailProductResponseDTO orderDetailProduct = new OrderDetailProductResponseDTO();
+                Long productId = cart.getProduct().getId();
+                Optional<Product> product = productRepository.findById(productId);
+                orderDetailProduct.setProductName(product.get().getName());
+                orderDetailProduct.setProductQty(product.get().getStock());
+                orderDetailProduct.setProductSalePrice(product.get().getSalePrice());
+                orderDetailProductResponseDTOList.add(orderDetailProduct);
+            }
+            orderDetailResponseDTO.setOrderDetailProductResponseDTOList(orderDetailProductResponseDTOList);
+            if (order.getUser() == null) {
+                // 사용자가 존재하지 않는 경우
+                orderDetailResponseDTO.setUserName(" ");
+                orderDetailResponseDTO.setUserPoint(0);
+            } else if (order.getUser() != null){
+                User user = order.getUser();
+                // 사용자가 존재하는 경우
+                orderDetailResponseDTO.setUserName(user.getName());
+                orderDetailResponseDTO.setUserPoint(user.getPoint().getPointAmount());
+            }
+            int finalTotalPrice = order.getFinalTotalPrice();
+            int productPrice = finalTotalPrice*10/11;
+            int vat = finalTotalPrice*1/11;
+            orderDetailResponseDTO.setProductPrice(productPrice);
+            orderDetailResponseDTO.setVat(vat);
+            orderDetailResponseDTO.setStoreName(store.get().getName());
+            orderDetailResponseDTO.setStoreAdress(store.get().getAddress());
+            return new ResponseEntity<>(orderDetailResponseDTO, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
+    }
 
 
     //조건을 명시한 상태에서 settlement_day 내역 GET (조건 : store_id=1L, settlement_date="2023-05-08")
@@ -180,7 +366,7 @@ public class BranchAdminManagerController {
         Long orderId = order.getId();
         Long storeId = order.getPos().getStore().getId();
         Optional<Store> store = storeRepository.findById(storeId);
-        orderDetailResponseDTO.setSerialNumber(serialNumber);
+//        orderDetailResponseDTO.setSerialNumber(serialNumber);
         orderDetailResponseDTO.setOrderDate(order.getOrderDate());
         orderDetailResponseDTO.setTotalPrice(order.getTotalPrice());
         orderDetailResponseDTO.setCouponUsePrice(order.getCouponUsePrice());

@@ -1,9 +1,12 @@
 package com.ssg.webpos.repository.order;
 
 import com.ssg.webpos.domain.Order;
+import com.ssg.webpos.domain.enums.OrderStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -13,14 +16,11 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
   // Id로 조회
   List<Order> findOrderById(Long id);
   List<Order> findAll();
-  // pos의 store_id로 조회
-  List<Order> findByPos_StoreId(Long storeId);
-//  @Query("SELECT o FROM Order o WHERE o.pos.storeId = :storeId AND o.orderDate LIKE CONCAT(:orderDate, '%')")
-//  List<Order> findOrderByPos_StoreIdAndOrderDate(Long storeId, String orderDate);
+  Order findByMerchantUid(String merchantUid);
+  Order findByMerchantUidAndOrderStatus(String merchantUid, OrderStatus orderStats);
   // pos의 store_id와 orderDate 조회
   List<Order> findOrderByPos_StoreIdAndOrderDate(Long storeId, LocalDateTime orderDate);
   // 기간 쿼리 조회하기
-  List<Order> findOrderByOrderDateBetween(LocalDateTime startDate, LocalDateTime endDate);
   // store_id,startDate,endDate
   List<Order> findOrderByPos_StoreIdAndOrderDateBetween(Long storeId, LocalDateTime startDate, LocalDateTime endDate);
   Order findBySerialNumber(String serialNumber);
@@ -67,8 +67,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
   int countOrderByThisWeekAndStoreId(@Param("storeId") int storeID);
 
   // 어제의 일주일 전부터 어제까지의 store_id별 백화점 구매 주문수
-  @Query(value = "SELECT COUNT(*) FROM orders WHERE order_date BETWEEN DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND DATE_SUB(CURDATE(), INTERVAL 1 DAY) AND store_id = :storeId", nativeQuery = true)
-  int countOrderByThisWeekAndStoreIDBetweenYesterdayAndYesterday1WeekAgo(@Param("storeId") int storeID);
+
 
   // 이번달의 모든 백화점 구매 주문수
   @Query(value = "SELECT COUNT(*)  FROM orders WHERE MONTH(order_date) = MONTH(CURDATE())", nativeQuery = true)
@@ -143,4 +142,17 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
   @Query(value = "select * from orders o\n" +
           "where o.store_id = :storeId AND o.order_date between :startDate AND :endDate", nativeQuery = true)
   List<Order> allStoreOrderByTermByStoreId(@Param("startDate") String startDate, @Param("endDate") String endDate,@Param("storeId") int storeId);
+
+  // 주문 취소시 생성되는 열
+  @Transactional
+  @Query(value = "INSERT INTO orders (charge, coupon_use_price,final_total_price, order_status, pay_method, profit, total_origin_price, total_price, point_use_price," +
+          "order_date, created_date, last_modified_date,pos_id, store_id, user_id, delivery_id, merchant_uid) " +
+          "VALUES ( :charge, :couponUsePrice,:finalTotalPrice ,:orderStatus, :PayMethod, :profit, :totalOriginPrice, :totalPrice, :pointUsePrice," +
+          ":orderDate, :createdDate, :lastModifiedDate, :posId, :storeId, :userId, :deliveryId, :merchantUid)", nativeQuery = true)
+  void insertOrderCancel(@Param("charge") int charge, @Param("couponUsePrice") int couponUsePrice,@Param("finalTotalPrice") int finalTotalPrice,
+                          @Param("orderStatus") String orderStatus, @Param("PayMethod") String PayMethod, @Param("profit") int profit,
+                          @Param("totalOriginPrice") int totalOriginPrice, @Param("totalPrice") int totalPrice, @Param("pointUsePrice") int pointUsePrice,
+                         @Param("orderDate") String orderDate, @Param("createdDate") LocalDateTime createdDate, @Param("lastModifiedDate") LocalDateTime lastModifiedDate, @Param("posId") long posId,
+                         @Param("storeId") long storeId, @Param("userId") Long userId, @Param("deliveryId") Long deliveryId, @Param("merchantUid") String merchantUid);
+
 }

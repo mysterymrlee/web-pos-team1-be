@@ -7,7 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 @Data
 public class OrderDetailResponseDTO {
-    private String serialNumber; //주문일렬번호
+    // 영수증 발급용
+    private String merchantUid;
     private LocalDateTime orderDate; //주문일자
     private int totalPrice; //총합계
     private int couponUsePrice; //쿠폰사용금액
@@ -20,6 +21,10 @@ public class OrderDetailResponseDTO {
     private int productPrice; // 과세물품가액, 적절한 영어 단어가 없어서 임의로 설정, finalTotalPrice의 10/11
     private int vat; // 부가세, finalTotalPrice의 1/11
     // finalTotalPrice를 받으면 해당 매서드에서 활용해서 DTO.setProductPrice(); 처럼 작성할 예정
+    private String storeTelNumber;
+    private String businessNumber;
+    private String ceoName;
+    private String orderSerialNumber;
     private List<OrderDetailProductResponseDTO> orderDetailProductResponseDTOList = new ArrayList<>(); // 주문상품
 
 }

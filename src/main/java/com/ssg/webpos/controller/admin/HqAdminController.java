@@ -57,8 +57,6 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class HqAdminController {
-    // hq 기능 : 재고 조회, 수정, 삭제, 재고 리포트(주말 재고 현황) 제출
-    //          정산 전체 조회,
     private final SettlementDayService settlementDayService;
     private final SettlementMonthService settlementMonthService;
     private final StockReportRepository stockReportRepository;
@@ -107,6 +105,40 @@ public class HqAdminController {
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
         }
     }
+
+    // 파이차트에 활용하는 DTO
+    @GetMapping("/sale-management/pie-chart/date={date}/startDate={startDate}/endDate={endDate}")
+    public ResponseEntity pieChart(@PathVariable("date") String date, @PathVariable(name = "startDate") String startDate, @PathVariable(name = "endDate") String endDate) {
+        try {
+            if (date.equals("1week")&&startDate.equals("0")&&endDate.equals("0")) {
+                // 어제의 일주일 전부터 어제까지의 지점별 매출합
+                List<Object[]> settlementDayList = settlementDayRepository.Sale1WeekForPieChart();
+                List<HqSaleByStoreNameDTO> list = saleMethodService.pieChartMethod(settlementDayList);
+                return new ResponseEntity<>(list,HttpStatus.OK);
+            } if (date.equals("1month")&&startDate.equals("0")&&endDate.equals("0")) {
+                // 어제의 한달 전부터 어제까지의 지점별 매출합
+                List<Object[]> settlementDayList = settlementDayRepository.Sale1MonthForPieChart();
+                List<HqSaleByStoreNameDTO> list = saleMethodService.pieChartMethod(settlementDayList);
+                return new ResponseEntity<>(list,HttpStatus.OK);
+            } if (date.equals("3month")&&startDate.equals("0")&&endDate.equals("0")) {
+                // 어제의 세달 전부터 어제까지의 지점별 매출합
+                List<Object[]> settlementDayList = settlementDayRepository.Sale3MonthForPieChart();
+                List<HqSaleByStoreNameDTO> list = saleMethodService.pieChartMethod(settlementDayList);
+                return new ResponseEntity<>(list,HttpStatus.OK);
+            } if (date.equals("term")&&startDate.equals(startDate)&&endDate.equals(endDate)) {
+                // 기간별 지점별 매출합
+                List<Object[]> settlementDayList = settlementDayRepository.SaleTermForPieChart(startDate,endDate);
+                List<HqSaleByStoreNameDTO> list = saleMethodService.pieChartMethod(settlementDayList);
+                return new ResponseEntity<>(list,HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    // 기간별 store_id별 매출 일자
     @GetMapping("/term/storeId={storeId}")
     public ResponseEntity settlement4Term(@PathVariable(name = "storeId") int storeId ) {
         SettlementByTermListDTO settlementByTermListDTO = new SettlementByTermListDTO();
@@ -478,9 +510,9 @@ public class HqAdminController {
     }
 
     // 매출관리
-    // 전체, 가게별 / 기간 : 전체, 1주일, 1달, 3달, 기간별
-    // 1. 매출 추이(매출 기간별) 2. 점포별(매출 기간별로 @PathVariable) 3. 매출목록(storeId, term)
-    // 1. 매출 추이(매출 기간별)
+    /**
+     * 선 그래프에서 활용하는 DTO 조회
+     * **/
     @GetMapping("/sale-management/storeId={storeId}/date={date}/startDate={startDate}/endDate={endDate}")
     public ResponseEntity saleManagement(@PathVariable(name = "storeId") int storeId, @PathVariable(name = "date") String date, @PathVariable(name = "startDate") String startDate, @PathVariable(name = "endDate") String endDate) {
         // 기간별 조회시 String 타입으로 "yyyymmddyyyymmdd" 입력값 받는다. ex. "2023010120230401"
@@ -564,37 +596,6 @@ public class HqAdminController {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-    }
-
-    @GetMapping("/sale-management/pie-chart/date={date}/startDate={startDate}/endDate={endDate}")
-    public ResponseEntity pieChart(@PathVariable("date") String date, @PathVariable(name = "startDate") String startDate, @PathVariable(name = "endDate") String endDate) {
-        try {
-            if (date.equals("1week")&&startDate.equals("0")&&endDate.equals("0")) {
-                // 어제의 일주일 전부터 어제까지의 지점별 매출합
-                List<Object[]> settlementDayList = settlementDayRepository.Sale1WeekForPieChart();
-                List<HqSaleByStoreNameDTO> list = saleMethodService.pieChartMethod(settlementDayList);
-                return new ResponseEntity<>(list,HttpStatus.OK);
-            } if (date.equals("1month")&&startDate.equals("0")&&endDate.equals("0")) {
-                // 어제의 한달 전부터 어제까지의 지점별 매출합
-                List<Object[]> settlementDayList = settlementDayRepository.Sale1MonthForPieChart();
-                List<HqSaleByStoreNameDTO> list = saleMethodService.pieChartMethod(settlementDayList);
-                return new ResponseEntity<>(list,HttpStatus.OK);
-            } if (date.equals("3month")&&startDate.equals("0")&&endDate.equals("0")) {
-                // 어제의 세달 전부터 어제까지의 지점별 매출합
-                List<Object[]> settlementDayList = settlementDayRepository.Sale3MonthForPieChart();
-                List<HqSaleByStoreNameDTO> list = saleMethodService.pieChartMethod(settlementDayList);
-                return new ResponseEntity<>(list,HttpStatus.OK);
-            } if (date.equals("term")&&startDate.equals(startDate)&&endDate.equals(endDate)) {
-                // 기간별 지점별 매출합
-                List<Object[]> settlementDayList = settlementDayRepository.SaleTermForPieChart(startDate,endDate);
-                List<HqSaleByStoreNameDTO> list = saleMethodService.pieChartMethod(settlementDayList);
-                return new ResponseEntity<>(list,HttpStatus.OK);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     // 매출 목록 조회
@@ -739,116 +740,6 @@ public class HqAdminController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    // 전체 월별정산내역 조회
-    // "2023"을 받으면 2023년에 생성된 전체 월별정산내역 조회
-//    @PostMapping("/settlement-month/all-store")
-//    public ResponseEntity settlementMonth(@RequestBody RequsestSettlementMonthDTO requestSettlementMonthDTO) {
-//        try {
-//            String year = requestSettlementMonthDTO.getYear();
-//            List<SettlementMonth> settlementMonths = settlementMonthService.selectByYear(year);
-//            List<SettlementMonthReportDTO> reportDTOs = new ArrayList<>();
-//
-//            for(SettlementMonth settlementMonth:settlementMonths) {
-//                SettlementMonthReportDTO reportDTO = new SettlementMonthReportDTO();
-//                reportDTO.setSettlementMontnId(settlementMonth.getId());
-//                reportDTO.setSettlementPrice(settlementMonth.getSettlementPrice());
-//                reportDTO.setSettlementDate(settlementMonth.getSettlementDate());
-//                reportDTO.setStoreId(settlementMonth.getStore().getId());
-//                reportDTO.setStoreName(settlementMonth.getStore().getName());
-//                reportDTO.setCreatedDate(settlementMonth.getCreatedDate());
-//                reportDTOs.add(reportDTO);
-//            }
-//            return new ResponseEntity<>(reportDTOs, HttpStatus.OK);
-//        } catch (Exception e) {
-//            e.getStackTrace();
-//            e.printStackTrace();
-//            return new ResponseEntity(HttpStatus.BAD_REQUEST);
-//        }
-//    }
-
-    // store_id별 월별정산내역 조회
-    // 1L, "2023"을 받으면 store_id=1L인 가게의 2023년 발생 월별정산내역 조회
-//    @PostMapping("/settlement-month/store-id")
-//    public ResponseEntity settlementMonthByStoreId(@RequestBody RequestSettlementMonthByStoreIdDTO requestSettlementMonthByStoreIdDTO) {
-//        try {
-//            String year = requestSettlementMonthByStoreIdDTO.getYear();
-//            Long storeId = requestSettlementMonthByStoreIdDTO.getStoreId();
-//            List<SettlementMonth> settlementMonths = settlementMonthService.selectByStoreIdAndDayBetween(storeId, year);
-//            List<SettlementMonthReportDTO> reportDTOs = new ArrayList<>();
-//
-//            for(SettlementMonth settlementMonth:settlementMonths) {
-//                SettlementMonthReportDTO reportDTO = new SettlementMonthReportDTO();
-//                reportDTO.setSettlementMontnId(settlementMonth.getId());
-//                reportDTO.setSettlementPrice(settlementMonth.getSettlementPrice());
-//                reportDTO.setSettlementDate(settlementMonth.getSettlementDate());
-//                reportDTO.setStoreId(settlementMonth.getStore().getId());
-//                reportDTO.setStoreName(settlementMonth.getStore().getName());
-//                reportDTO.setCreatedDate(settlementMonth.getCreatedDate());
-//                reportDTOs.add(reportDTO);
-//            }
-//            return new ResponseEntity<>(reportDTOs, HttpStatus.OK);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return new ResponseEntity(HttpStatus.BAD_REQUEST);
-//        }
-//    }
-
-    // 전체 기간별 월별정산내역 조회
-    // "2023-02","2023-03" 받으면 2023-02부터 2023-03의 전체 월별정산내역 조회
-//    @PostMapping("/settlement-month/range/all-store")
-//    public ResponseEntity settlementMonthRange(@RequestBody RequestSettlementMonthRangeDTO requestSettlementMonthRangeDTO) {
-//        try {
-//            String StartDate = requestSettlementMonthRangeDTO.getStartDate();
-//            String EndDate = requestSettlementMonthRangeDTO.getEndDate();
-//            List<SettlementMonth> settlementMonths = settlementMonthService.selectByMonthRange(StartDate,EndDate);
-//            List<SettlementMonthReportDTO> reportDTOs = new ArrayList<>();
-//
-//            for(SettlementMonth settlementMonth:settlementMonths) {
-//                SettlementMonthReportDTO reportDTO = new SettlementMonthReportDTO();
-//                reportDTO.setSettlementMontnId(settlementMonth.getId());
-//                reportDTO.setSettlementPrice(settlementMonth.getSettlementPrice());
-//                reportDTO.setSettlementDate(settlementMonth.getSettlementDate());
-//                reportDTO.setStoreId(settlementMonth.getStore().getId());
-//                reportDTO.setStoreName(settlementMonth.getStore().getName());
-//                reportDTO.setCreatedDate(settlementMonth.getCreatedDate());
-//                reportDTOs.add(reportDTO);
-//            }
-//
-//            return new ResponseEntity<>(reportDTOs, HttpStatus.OK);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return new ResponseEntity(HttpStatus.BAD_REQUEST);
-//        }
-//    }
-
-    // store_id별 기간별 월별정산내역 조회
-    // 1L, "2023-02","2023-03" 받으면 store_id=1L이고 2023-02부터 2023-03의 월별정산내역 조회
-//    @PostMapping("/settlement-month/range/store_id")
-//    public ResponseEntity settlementMonthRangeByStoreId(@RequestBody RequestSettlementMonthRangeByStoreIdDTO requestSettlementMonthRangeByStoreIdDTO) {
-//        try {
-//            String StartDate = requestSettlementMonthRangeByStoreIdDTO.getStartDate();
-//            String EndDate = requestSettlementMonthRangeByStoreIdDTO.getEndDate();
-//            Long storeId = requestSettlementMonthRangeByStoreIdDTO.getStoreId();
-//            List<SettlementMonth> settlementMonths = settlementMonthService.selectByStoreIdAndMonthRange(storeId,StartDate,EndDate);
-//            List<SettlementMonthReportDTO> reportDTOs = new ArrayList<>();
-//
-//            for(SettlementMonth settlementMonth:settlementMonths) {
-//                SettlementMonthReportDTO reportDTO = new SettlementMonthReportDTO();
-//                reportDTO.setSettlementMontnId(settlementMonth.getId());
-//                reportDTO.setSettlementPrice(settlementMonth.getSettlementPrice());
-//                reportDTO.setSettlementDate(settlementMonth.getSettlementDate());
-//                reportDTO.setStoreId(settlementMonth.getStore().getId());
-//                reportDTO.setStoreName(settlementMonth.getStore().getName());
-//                reportDTO.setCreatedDate(settlementMonth.getCreatedDate());
-//                reportDTOs.add(reportDTO);
-//            }
-//
-//            return new ResponseEntity<>(reportDTOs, HttpStatus.OK);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return new ResponseEntity(HttpStatus.BAD_REQUEST);
-//        }
-//    }
 
     // 전체 일별정산내역 조회
     // "2023-05"을 받으면 2023년 5월에 생성된 전체 일별정산내역 조회

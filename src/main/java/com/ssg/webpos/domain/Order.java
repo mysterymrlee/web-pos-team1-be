@@ -41,12 +41,12 @@ public class Order extends BaseTime {
     @NotNull
     @Enumerated(EnumType.STRING)
     private PayMethod payMethod;
-    private int totalPrice;
+    private int totalPrice; // 취소내역은 - 붙여서
     private String orderName;
-    private int couponUsePrice; // 쿠폰 사용 금액
-    private int pointUsePrice; // 포인트 사용 금액
-    private int finalTotalPrice;
-    private int charge;
+    private int couponUsePrice; // 쿠폰 사용 금액 // 취소내역은 - 붙여서
+    private int pointUsePrice; // 포인트 사용 금액 // 취소내역은 - 붙여서
+    private int finalTotalPrice; // 취소내역은 - 붙여서
+    private int charge; // 취소내역은 - 붙여서
     private String cardNumber;
     private String cardName;
     private String merchantUid;
