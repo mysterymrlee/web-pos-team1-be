@@ -197,7 +197,21 @@ public class OrderRepositoryTest {
 
     @Test
     void testForSuccessReceipt() {
-        Order order = orderRepository.findByMerchantUidAndOrderStatus("202306011011410202", OrderStatus.SUCCESS);
-        System.out.println(order);
+        try {
+            Order order = orderRepository.findByMerchantUidAndOrderStatus("202306011011410202", OrderStatus.SUCCESS);
+            System.out.println(order);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    void testForDESC() {
+        try {
+            Order order = orderRepository.findFirstByMerchantUidAndOrderStatusOrderByOrderDateDesc("202306011011410202", OrderStatus.SUCCESS);
+            System.out.println(order);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

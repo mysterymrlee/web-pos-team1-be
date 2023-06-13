@@ -63,7 +63,7 @@ public class BranchAdminManagerController {
      * 2. 취소 진행
      * 3. 취소 영수증 발급(프런트엔드에서는 '주문이 취소되었습니다.' 알림창과 함께 주문 취소 영수증 발급)
      * **/
-    @GetMapping("/order-cancel") // 추후에 merchantUid로 변경해야합니다.
+    @GetMapping("/order-cancel")
     public ResponseEntity cancelOrder(@RequestParam("merchantUid") String merchantUid) {
         try {
             // 202306011011410202
@@ -126,7 +126,7 @@ public class BranchAdminManagerController {
     @GetMapping("/receipt")
     public ResponseEntity receipt(@RequestParam String merchantUid) {
         try {
-            // 202306011011410202
+            //202306013160300101
             OrderDetailResponseDTO orderDetailResponseDTO = new OrderDetailResponseDTO();
             Order order = orderRepository.findByMerchantUidAndOrderStatus(merchantUid, OrderStatus.SUCCESS);
 
@@ -179,13 +179,14 @@ public class BranchAdminManagerController {
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
         }
     }
-    // 주문 취소한 주문 영수증 재발급
+    // 주문 취소한 주문 영수증 발급
+    // 기존 영수증과 다른 점은 영수증(취소) 문구와 주문 취소 일자
     @GetMapping("/receipt-cancel")
     public ResponseEntity receiptCancel(@RequestParam String merchantUid) {
         try {
             // 202306011011410202
             OrderDetailResponseDTO orderDetailResponseDTO = new OrderDetailResponseDTO();
-            Order order = orderRepository.findByMerchantUidAndOrderStatus(merchantUid, OrderStatus.CANCEL);
+            Order order = orderRepository.findFirstByMerchantUidAndOrderStatusOrderByOrderDateDesc(merchantUid, OrderStatus.CANCEL);
 
             Long orderId = order.getId();
             Long storeId = order.getPos().getStore().getId();
@@ -196,9 +197,10 @@ public class BranchAdminManagerController {
             orderDetailResponseDTO.setCouponUsePrice(order.getCouponUsePrice());
             orderDetailResponseDTO.setPointUsePrice(order.getPointUsePrice());
             orderDetailResponseDTO.setFinalTotalPrice(order.getFinalTotalPrice());
+            orderDetailResponseDTO.setCancelDate(order.getOrderDate());
             List<OrderDetailProductResponseDTO> orderDetailProductResponseDTOList = new ArrayList<>();
             //merchantUid로 주문 내역 조회
-            Order orderSuccess = orderRepository.findByMerchantUidAndOrderStatus(merchantUid, OrderStatus.SUCCESS);
+            Order orderSuccess = orderRepository.findFirstByMerchantUidAndOrderStatusOrderByOrderDateDesc(merchantUid, OrderStatus.SUCCESS);
             Long orderSuccessId = orderSuccess.getId();
 
             List<Cart> cartList = cartRepository.findAllByOrderId(orderSuccessId);
@@ -230,6 +232,12 @@ public class BranchAdminManagerController {
             orderDetailResponseDTO.setVat(vat);
             orderDetailResponseDTO.setStoreName(store.get().getName());
             orderDetailResponseDTO.setStoreAdress(store.get().getAddress());
+            orderDetailResponseDTO.setStoreTelNumber(store.get().getTelNumber());
+            orderDetailResponseDTO.setCeoName(store.get().getCeoName());
+            orderDetailResponseDTO.setOrderSerialNumber(order.getSerialNumber());
+            orderDetailResponseDTO.setBusinessNumber(store.get().getBusinessNumber());
+            orderDetailResponseDTO.setCancelDate(order.getOrderDate());
+            orderDetailResponseDTO.setOrderSerialNumber(orderSuccess.getSerialNumber());
             return new ResponseEntity<>(orderDetailResponseDTO, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
