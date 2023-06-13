@@ -51,7 +51,7 @@ class SaleMethodServiceTest {
     settlementDayList.add(settlementDay2);
 
     // SaleMethodService 객체 생성
-    SaleMethodService saleMethodService = new SaleMethodService(settlementDayRepository, storeRepository);
+//    SaleMethodService saleMethodService = new SaleMethodService(settlementDayRepository, storeRepository);
 
     // HqSaleMethods 메소드 호출
     List<HqSettlementDayDTO> result = saleMethodService.HqSaleMethods(settlementDayList);
@@ -83,7 +83,7 @@ class SaleMethodServiceTest {
     objectList.add(objects2);
 
     // SaleMethodService 객체 생성
-    SaleMethodService saleMethodService = new SaleMethodService(settlementDayRepository, storeRepository);
+//    SaleMethodService saleMethodService = new SaleMethodService(settlementDayRepository, storeRepository);
 
     // saleMethod 메소드 호출
     List<HqSettlementDayDTO> result = saleMethodService.saleMethod(objectList);
@@ -177,7 +177,7 @@ class SaleMethodServiceTest {
     orderList.add(order2);
 
 // SaleMethodService 객체 생성
-    SaleMethodService saleMethodService = new SaleMethodService(settlementDayRepository, storeRepository);
+//    SaleMethodService saleMethodService = new SaleMethodService(settlementDayRepository, storeRepository);
 
 // orderListMethod 메소드 호출
     List<HqSaleOrderDTO> result = saleMethodService.orderListMethod(orderList);

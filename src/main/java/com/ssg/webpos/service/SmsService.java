@@ -6,6 +6,7 @@ import com.ssg.webpos.domain.Delivery;
 import com.ssg.webpos.domain.Order;
 import com.ssg.webpos.domain.enums.DeliveryStatus;
 import com.ssg.webpos.domain.enums.DeliveryType;
+import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.dto.gift.GiftSmsDTO;
 import com.ssg.webpos.dto.gift.GiftSmsRequestDTO;
 import com.ssg.webpos.dto.gift.GiftSmsResponseDTO;
@@ -94,6 +95,7 @@ public class SmsService {
 
     String receiver = savedDelivery.getUserName();
     String sender = savedDelivery.getSender();
+
     LocalDateTime orderDate = savedOrder.getOrderDate();
     String orderSerialNumber = savedOrder.getSerialNumber();
 
@@ -115,33 +117,55 @@ public class SmsService {
 
   // sms 보낼 내용 작성
   public String makeSmsContent(Order savedOrder) {
-    GiftSmsDTO smsInfo = getInfoToUseInGiftSms(savedOrder);
+//    GiftSmsDTO smsInfo = getInfoToUseInGiftSms(savedOrder);
     String giftUrl = "http://{배포된FE주소}/enter-gift-address/" + savedOrder.getSerialNumber();
-//    String url = "http://3.36.176.254:8080/api/enter-gift-address/2023060801010147";
+    String receiptUrl = "http://{배포된링크}/" + savedOrder.getMerchantUid();
     System.out.println("giftUrl = " + giftUrl);
 
-    String giftProductName = smsInfo.getGiftProductName();
-    if (giftProductName.length() > 10) {
-      giftProductName = giftProductName.substring(0, 10) + "...";
+    // 상품명이 10자를 초과하면 ...으로 표시
+    String orderName = savedOrder.getOrderName();
+    if (orderName.length() > 10) {
+      orderName = orderName.substring(0, 10) + "...";
     }
+
     Delivery savedDelivery = savedOrder.getDelivery();
-    DeliveryStatus deliveryStatus = savedDelivery.getDeliveryStatus();
-    System.out.println("deliveryStatus = " + deliveryStatus);
+
     String content = "";
-    if (savedDelivery.getDeliveryStatus().equals(DeliveryStatus.PROCESS_DELIVERY)) {
-      content = "주문하신 상품의 배송이 시작되었습니다.";
-    } else if (savedDelivery.getDeliveryStatus().equals(DeliveryStatus.COMPLETE_DELIVERY)) {
-      content = "고객님의 상품이 배송 완료되었습니다.";
-    } else if (savedDelivery.getDeliveryType().equals(DeliveryType.GIFT)
-        && savedDelivery.getDeliveryStatus().equals(DeliveryStatus.COMPLETE_PAYMENT)) {
-      content = "[선물이 도착했어요!]\n"
-          + smsInfo.getSender() + "님이 " + smsInfo.getReceiver() + "님에게 선물을 보냈습니다.\n"
-          + "아래 링크를 통해 선물을 확인하시고 배송지를 입력해주세요.\n\n"
-          + "▶ 상품명: " + giftProductName + "\n"
-          + "▶ 선물 보러 가기: " + giftUrl + "\n"
-          + "▶ 배송지 입력 기한: " + smsInfo.getEntryDeadline() + " 까지\n\n"
-          + "* 기한 내에 배송지 미입력 시, 주문이 자동 취소됩니다.";
+    if (savedDelivery != null) {
+      if (savedDelivery.getDeliveryStatus().equals(DeliveryStatus.PROCESS_DELIVERY)) {
+        // 배송 시작
+        content = "[배송 출발]\n"
+            + "고객님의 소중한 상품이 배송 예정입니다.\n"
+            + "- 상품명: " + savedOrder.getOrderName() + "\n"
+            + "- 배송 예정 시간: " + savedDelivery.getRequestDeliveryTime();
+
+      } else if (savedDelivery.getDeliveryStatus().equals(DeliveryStatus.COMPLETE_DELIVERY)) {
+        // 배송 완료
+        content = "고객님의 상품이 배송 완료되었습니다.";
+      } else if (savedDelivery.getDeliveryType().equals(DeliveryType.GIFT)
+          && savedDelivery.getDeliveryStatus().equals(DeliveryStatus.COMPLETE_PAYMENT)) {
+        // 선물하기
+        content = "[선물이 도착했어요!]\n"
+            + savedDelivery.getSender() + "님이 " + savedDelivery.getUserName() + "님에게 선물을 보냈습니다.\n"
+            + "아래 링크를 통해 선물을 확인하시고 배송지를 입력해주세요.\n\n"
+            + "▶ 상품명: " + orderName + "\n"
+            + "▶ 선물 보러 가기: " + giftUrl + "\n"
+            + "▶ 배송지 입력 기한: " + savedOrder.getOrderDate() + " 까지\n\n"
+            + "* 기한 내에 배송지 미입력 시, 주문이 자동 취소됩니다.";
 //      String content1 = "▶ 선물 보러 가기: " + url;
+      }
+    } else {
+      if (savedOrder.getOrderStatus().equals(OrderStatus.CANCEL)) {
+        // 주문 취소
+//          content = savedDelivery.getUserName() + "님께서 주문하신 " + orderName + " 주문 취소가 완료되었습니다.";
+          content = savedOrder.getUser().getName() +"님께서 주문하신 " + orderName + " 주문 취소가 완료되었습니다.";
+
+      } else if (savedOrder.getOrderStatus().equals(OrderStatus.SUCCESS) && savedOrder.getUser().getId() != null) {
+        // 회원이 결제 완료하면 전자 영수증 발급 문자 전송
+        content = "전자 영수증이 발급되었습니다.\n" +
+//            "상세한 거래내역은 영수증 상세보기 링크를 통해 확인해주세요.\n\n" +
+            "- 영수증 상세 보기: " + receiptUrl;
+      }
     }
     System.out.println("content = " + content);
     return content;
@@ -159,7 +183,13 @@ public class SmsService {
 
     String content = makeSmsContent(savedOrder);
     messageDTO.setContent(content);
-    messageDTO.setTo(savedDelivery.getPhoneNumber());
+    if (savedDelivery != null) {
+      messageDTO.setTo(savedDelivery.getPhoneNumber());
+    } else {
+      String phoneNumber = savedOrder.getUser().getPhoneNumber();
+      System.out.println("phoneNumber = " + phoneNumber);
+      messageDTO.setTo(phoneNumber);
+    }
 
     List<MessageDTO> messages = new ArrayList<>();
     messages.add(messageDTO);
