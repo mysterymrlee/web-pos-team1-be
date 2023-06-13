@@ -366,10 +366,10 @@ public class BranchAdminManagerController {
 
     // orders 목록에서 serial_number를 누르면 상세주문내역이 나온다.그러기 위해서는 serial_nubmer를 req로 받아야한다. storename, 전화번호 검색
     @GetMapping("/orders-detail")
-    public ResponseEntity getOrderDetail(@RequestParam String serialNumber) {
+    public ResponseEntity getOrderDetail(@RequestParam String merchantUid) {
         try {
         OrderDetailResponseDTO orderDetailResponseDTO = new OrderDetailResponseDTO();
-        Order order = orderRepository.findBySerialNumber(serialNumber);
+        Order order = orderRepository.findByMerchantUid(merchantUid);
         User user = order.getUser();
         Long orderId = order.getId();
         Long storeId = order.getPos().getStore().getId();
@@ -380,6 +380,11 @@ public class BranchAdminManagerController {
         orderDetailResponseDTO.setCouponUsePrice(order.getCouponUsePrice());
         orderDetailResponseDTO.setPointUsePrice(order.getPointUsePrice());
         orderDetailResponseDTO.setFinalTotalPrice(order.getFinalTotalPrice());
+        //
+        orderDetailResponseDTO.setCardName(order.getCardName());
+        orderDetailResponseDTO.setCardNumber(order.getCardNumber());
+        orderDetailResponseDTO.setOrderSerialNumber(order.getSerialNumber());
+        // 적립 예정은 계산하면댐
         List<OrderDetailProductResponseDTO> orderDetailProductResponseDTOList = new ArrayList<>();
         List<Cart> cartList = cartRepository.findAllByOrderId(orderId);
         // 주문 상품의 이름, 수량, 상품 가격 정보 시작
@@ -390,6 +395,10 @@ public class BranchAdminManagerController {
             orderDetailProduct.setProductName(product.get().getName());
             orderDetailProduct.setProductQty(product.get().getStock());
             orderDetailProduct.setProductSalePrice(product.get().getSalePrice());
+            //
+            orderDetailProduct.setCartQty(cart.getQty());
+            orderDetailProduct.setOriginPrice(product.get().getOriginPrice());
+            //
             orderDetailProductResponseDTOList.add(orderDetailProduct);
         }
         orderDetailResponseDTO.setOrderDetailProductResponseDTOList(orderDetailProductResponseDTOList);

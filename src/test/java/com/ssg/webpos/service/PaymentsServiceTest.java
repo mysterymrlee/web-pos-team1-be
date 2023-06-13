@@ -43,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 @SpringBootTest
-@Transactional
+@Rollback(value = false)
 public class PaymentsServiceTest {
   @Autowired
   PaymentsService paymentsService;
@@ -395,7 +395,8 @@ public class PaymentsServiceTest {
     int finalTotalPrice = 100000;
     paymentsDTO.setPaidAmount(BigDecimal.valueOf(finalTotalPrice));
     paymentsDTO.setPg("kakaopay");
-    paymentsService.processPaymentCallback(paymentsDTO);
+    Order order = paymentsService.processPaymentCallback(paymentsDTO);
+    System.out.println("processPayment order = " + order);
     return paymentsDTO;
   }
 

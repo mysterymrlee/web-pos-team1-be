@@ -1,5 +1,6 @@
 package com.ssg.webpos.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ssg.webpos.domain.*;
 import com.ssg.webpos.domain.enums.CouponStatus;
 import com.ssg.webpos.domain.enums.OrderStatus;
@@ -19,6 +20,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 
 import javax.transaction.Transactional;
+import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -80,7 +85,8 @@ public class CartServiceTest {
   @Test
   @Rollback(value = false)
   @DisplayName("[주문 취소] 포인트 사용 및 적립 취소, 쿠폰 반환, 재고량 증가 테스트")
-  void cancelOrder() {
+
+  void cancelOrder() throws UnsupportedEncodingException, URISyntaxException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
     Long productId1 = 50L;
     Long userId = 1L;
     User findUser = userRepository.findById(userId).get();
