@@ -50,4 +50,13 @@ public class CartController {
     return new ResponseEntity(HttpStatus.NO_CONTENT); // 204
   }
 
+  @GetMapping("/delete-redis")
+  public ResponseEntity deleteRedis() {
+    try {
+      cartRedisRepository.deleteAll();
+      return new ResponseEntity(HttpStatus.OK);
+    } catch (Exception e) {
+     return new ResponseEntity(HttpStatus.BAD_REQUEST);
+    }
+  }
 }

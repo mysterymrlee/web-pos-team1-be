@@ -21,8 +21,12 @@ public class ProductController {
     ProductService productService;
 
     @GetMapping
-    public List<Product> getProductList(@RequestParam("category") String category) {
+    public ResponseEntity getProductList(@RequestParam("category") String category) {
     List<Product> productList = productService.getProductsBySalesDateAndCategory(category);
-        return productList;
+    List<ProductListResponseDTO> productListResponseDTO =
+            productList.stream().map(
+                (product) -> new ProductListResponseDTO(product, product.getEvent() != null)
+            ).collect(Collectors.toList());
+        return new ResponseEntity(productListResponseDTO, HttpStatus.OK);
     }
 }
