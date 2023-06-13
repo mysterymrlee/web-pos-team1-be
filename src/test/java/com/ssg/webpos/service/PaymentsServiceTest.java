@@ -395,7 +395,8 @@ public class PaymentsServiceTest {
     int finalTotalPrice = 100000;
     paymentsDTO.setPaidAmount(BigDecimal.valueOf(finalTotalPrice));
     paymentsDTO.setPg("kakaopay");
-    paymentsService.processPaymentCallback(paymentsDTO);
+    Order order = paymentsService.processPaymentCallback(paymentsDTO);
+    System.out.println("processPayment order = " + order);
     return paymentsDTO;
   }
 

@@ -13,7 +13,9 @@ import com.ssg.webpos.repository.settlement.SettlementDayRepository;
 import com.ssg.webpos.repository.store.StoreRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
+import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
@@ -24,7 +26,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-
+@SpringBootTest
+@Transactional
 class SaleMethodServiceTest {
   @Autowired
   SettlementDayRepository settlementDayRepository;
@@ -50,9 +53,6 @@ class SaleMethodServiceTest {
     settlementDay2.setSettlementPrice(2000);
     settlementDayList.add(settlementDay2);
 
-    // SaleMethodService 객체 생성
-    SaleMethodService saleMethodService = new SaleMethodService(settlementDayRepository, storeRepository);
-
     // HqSaleMethods 메소드 호출
     List<HqSettlementDayDTO> result = saleMethodService.HqSaleMethods(settlementDayList);
 
@@ -64,6 +64,7 @@ class SaleMethodServiceTest {
     assertEquals(LocalDate.of(2023, 6, 2), result.get(1).getSettlementDayDate());
     assertEquals(2000, result.get(1).getSettlementDaySettlementPrice());
   }
+
 
   @Test
   void saleMethod() {
@@ -82,8 +83,6 @@ class SaleMethodServiceTest {
     objects2[1] = BigDecimal.valueOf(2000);
     objectList.add(objects2);
 
-    // SaleMethodService 객체 생성
-    SaleMethodService saleMethodService = new SaleMethodService(settlementDayRepository, storeRepository);
 
     // saleMethod 메소드 호출
     List<HqSettlementDayDTO> result = saleMethodService.saleMethod(objectList);
@@ -99,28 +98,26 @@ class SaleMethodServiceTest {
 
   @Test
   void testPieChartMethod() {
-//    // Create sample input data
-//    List<Object[]> objectList = new ArrayList<>();
-//    Object[] object1 = {BigDecimal.valueOf(100), BigInteger.valueOf(1)};
-//    Object[] object2 = {BigDecimal.valueOf(200), BigInteger.valueOf(2)};
-//    objectList.add(object1);
-//    objectList.add(object2);
-//
-//    saleMethodService.pieChartMethod(objectList);
-//
-////    // Invoke the method
-////    List<HqSaleByStoreNameDTO> result = saleMethodService.pieChartMethod(objectList);
-////
-////    // Assertions
-////    assertEquals(2, result.size());
-////
-////    HqSaleByStoreNameDTO dto1 = result.get(0);
-////    assertEquals(100, dto1.getSettlementPrice());
-////    assertEquals("Store 1", dto1.getStoreName());
-////
-////    HqSaleByStoreNameDTO dto2 = result.get(1);
-////    assertEquals(200, dto2.getSettlementPrice());
-////    assertEquals("Store 2", dto2.getStoreName());
+    // Create sample input data
+    List<Object[]> objectList = new ArrayList<>();
+    Object[] object1 = {BigDecimal.valueOf(100), BigInteger.valueOf(1)};
+    Object[] object2 = {BigDecimal.valueOf(200), BigInteger.valueOf(2)};
+    objectList.add(object1);
+    objectList.add(object2);
+
+    saleMethodService.pieChartMethod(objectList);
+
+    // Invoke the method
+    List<HqSaleByStoreNameDTO> result = saleMethodService.pieChartMethod(objectList);
+
+    // Assertions
+    assertEquals(2, result.size());
+
+    HqSaleByStoreNameDTO dto1 = result.get(0);
+    assertEquals(100, dto1.getSettlementPrice());
+
+    HqSaleByStoreNameDTO dto2 = result.get(1);
+    assertEquals(200, dto2.getSettlementPrice());
   }
 
 
@@ -143,7 +140,6 @@ class SaleMethodServiceTest {
     order1.setTotalOriginPrice(7000);
     order1.setProfit(100);
 
-    // POS 객체와 가짜 Store 객체 생성
     Pos pos1 = new Pos();
     Store store1 = new Store();
     store1.setId(1L);
@@ -176,8 +172,6 @@ class SaleMethodServiceTest {
 
     orderList.add(order2);
 
-// SaleMethodService 객체 생성
-    SaleMethodService saleMethodService = new SaleMethodService(settlementDayRepository, storeRepository);
 
 // orderListMethod 메소드 호출
     List<HqSaleOrderDTO> result = saleMethodService.orderListMethod(orderList);
@@ -215,4 +209,4 @@ class SaleMethodServiceTest {
 
 
   }
-}
+  }
