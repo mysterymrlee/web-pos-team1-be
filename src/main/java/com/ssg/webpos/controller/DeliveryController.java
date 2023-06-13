@@ -14,6 +14,8 @@ import com.ssg.webpos.repository.delivery.DeliveryRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
 import com.ssg.webpos.service.DeliveryService;
 import com.ssg.webpos.service.SmsService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/delivery")
+@Api(tags = {"배송 API"})
 public class DeliveryController {
   @Autowired
   DeliveryService deliveryService;
@@ -44,6 +47,7 @@ public class DeliveryController {
   SmsService smsService;
 
   @GetMapping("")
+  @ApiOperation(value = "redis 조회")
   public ResponseEntity getDeliveryInfo() {
     Map<String, Map<String, List<Object>>> findAll = null;
     try {
@@ -55,6 +59,7 @@ public class DeliveryController {
   }
 
   @PostMapping("/add")
+  @ApiOperation(value = "추가된 배송지 redis 캐싱", notes = "추가된 배송지 redis 캐싱, <strong>회원</strong>일 경우 delivery_list 테이블에 저장")
   public ResponseEntity addDeliveryInfo(@RequestBody DeliveryRedisAddRequestDTO deliveryRedisAddRequestDTO) {
     deliveryService.addUserDeliveryAddress(deliveryRedisAddRequestDTO);
     return new ResponseEntity(HttpStatus.CREATED);
@@ -149,7 +154,7 @@ public class DeliveryController {
 
   // 배송 완료
   @GetMapping("/complete-delivery/{serialNumber}")
-  public ResponseEntity setStatusCompleteDelivery(@PathVariable String serialNumber, MessageDTO messageDTO) {
+public ResponseEntity setStatusCompleteDelivery(@PathVariable String serialNumber, MessageDTO messageDTO) {
     try {
       Delivery findDelivery = deliveryRepository.findBySerialNumber(serialNumber);
       String phoneNumber = findDelivery.getPhoneNumber();

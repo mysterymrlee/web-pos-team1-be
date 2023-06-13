@@ -102,6 +102,10 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 	implementation 'redis.clients:jedis:4.3.1' // 'org.springframework.data.redis.connection.RedisConnectionFactory' that could not be found 에러 해결
 	implementation 'org.apache.commons:commons-pool2:2.11.1'
+	// swagger 설정
+	//https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui
+	implementation group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
+	implementation group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.2'
 }
 
 tasks.named('test') {
