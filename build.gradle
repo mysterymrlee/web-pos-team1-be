@@ -54,7 +54,7 @@ jacocoTestCoverageVerification {
 	}
 }
 group = 'com.ssg'
-version = '0.1.5-SNAPSHOT'
+version = '0.1.7-SNAPSHOT'
 sourceCompatibility = '11'
 
 configurations {
