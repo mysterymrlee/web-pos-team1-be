@@ -1,11 +1,13 @@
 package com.ssg.webpos.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ssg.webpos.domain.*;
 import com.ssg.webpos.domain.enums.CouponStatus;
 import com.ssg.webpos.domain.enums.OrderStatus;
 import com.ssg.webpos.domain.enums.PayMethod;
 import com.ssg.webpos.dto.cartDto.CartAddDTO;
 import com.ssg.webpos.dto.OrderDTO;
+import com.ssg.webpos.dto.msg.MessageDTO;
 import com.ssg.webpos.repository.*;
 import com.ssg.webpos.repository.cart.CartRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
@@ -15,6 +17,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -30,6 +36,7 @@ public class CartService {
   private final PointSaveHistoryRepository pointSaveHistoryRepository;
   private final CouponRepository couponRepository;
   private final PointRepository pointRepository;
+  private final SmsService smsService;
 
   // 장바구니 상품 개별 삭제
   @Transactional
@@ -113,14 +120,16 @@ public class CartService {
   }
 
   @Transactional
-  public void cancelOrder(Long orderId, Long userId) {
-    Order order = orderRepository.findById(orderId).orElseThrow(
-        () -> new RuntimeException("주문 내역을 찾을 수 없습니다."));
+  public void cancelOrder(String merchantUid) throws UnsupportedEncodingException, URISyntaxException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
+    // merchantUid로 order 찾기
+    Order order = orderRepository.findByMerchantUid(merchantUid);
+    System.out.println("findOrder = " + order);
     order.setOrderStatus(OrderStatus.CANCEL);
-    orderRepository.save(order);
+    Order save1 = orderRepository.save(order);
+    System.out.println("savedOrder = " + save1);
 
     // 포인트 사용 내역 확인
-    PointUseHistory findUsePoint = pointUseHistoryRepository.findByOrderId(orderId).orElse(null);
+    PointUseHistory findUsePoint = pointUseHistoryRepository.findByOrderId(order.getId()).orElse(null);
     if (findUsePoint != null) {
       int usePointAmount = findUsePoint.getPointUseAmount();
       System.out.println("usePointAmount = " + usePointAmount);
@@ -130,7 +139,7 @@ public class CartService {
     }
 
     // 적립 포인트 취소
-    PointSaveHistory findSavePoint = pointSaveHistoryRepository.findByOrderId(orderId).orElse(null);
+    PointSaveHistory findSavePoint = pointSaveHistoryRepository.findByOrderId(order.getId()).orElse(null);
     if (findSavePoint != null) {
       int savePointAmount = findSavePoint.getPointSaveAmount();
       System.out.println("savePointAmount = " + savePointAmount);
@@ -138,11 +147,9 @@ public class CartService {
       pointSaveHistoryRepository.save(findSavePoint);
     }
 
-
     // 쿠폰 상태 변경
-    Coupon useCoupon = couponRepository.findByOrderId(orderId);
+    Coupon useCoupon = couponRepository.findByOrderId(order.getId());
     System.out.println("useCoupon = " + useCoupon);
-
 
     if (useCoupon != null) {
       useCoupon.setCouponStatus(CouponStatus.NOT_USED);
@@ -163,7 +170,13 @@ public class CartService {
       int stock = product.getStock();
       System.out.println("stock = " + stock);
     }
-
-    orderRepository.save(order);
+    Order save = orderRepository.save(order);
+    System.out.println("save = " + save);
+    // 주문 취소 sms 전송
+    MessageDTO messageDTO = new MessageDTO();
+    String phoneNumber = order.getUser().getPhoneNumber();
+    System.out.println("phoneNumber = " + phoneNumber);
+    messageDTO.setTo(phoneNumber);
+    smsService.sendSms(messageDTO, null, order);
   }
 }
