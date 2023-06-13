@@ -239,8 +239,8 @@ public class PaymentsServiceTest {
     paymentsDTO.setPg("nice");
     int finalTotalPrice = 100000;
     paymentsDTO.setPaidAmount(BigDecimal.valueOf(finalTotalPrice));
-    String pgProvider = paymentsDTO.getPg();
     Order saveOrder= paymentsService.processPaymentCallback(paymentsDTO);
+    String pgProvider = paymentsDTO.getPg();
     System.out.println("saveOrder = " + saveOrder);
     if (pgProvider.equals("kakaopay")) {
       assertEquals(PayMethod.KAKAO_PAY, saveOrder.getPayMethod());
@@ -269,8 +269,10 @@ public class PaymentsServiceTest {
     paymentsDTO.setPg("kakaopay");
     int finalTotalPrice = 100000;
     paymentsDTO.setPaidAmount(BigDecimal.valueOf(finalTotalPrice));
-    String pgProvider = paymentsDTO.getPg();
     Order saveOrder= paymentsService.processPaymentCallback(paymentsDTO);
+    String pgProvider = paymentsDTO.getPg();
+
+    System.out.println("saveOrder = " + saveOrder);
     System.out.println("saveOrder = " + saveOrder);
     if (pgProvider.equals("kakaopay")) {
       assertEquals(PayMethod.KAKAO_PAY, saveOrder.getPayMethod());
@@ -299,8 +301,9 @@ public class PaymentsServiceTest {
     paymentsDTO.setPg("kcp");
     int finalTotalPrice = 100000;
     paymentsDTO.setPaidAmount(BigDecimal.valueOf(finalTotalPrice));
-    String pgProvider = paymentsDTO.getPg();
     Order saveOrder= paymentsService.processPaymentCallback(paymentsDTO);
+    String pgProvider = paymentsDTO.getPg();
+
     System.out.println("saveOrder = " + saveOrder);
     if (pgProvider.equals("kakaopay")) {
       assertEquals(PayMethod.KAKAO_PAY, saveOrder.getPayMethod());
@@ -311,6 +314,8 @@ public class PaymentsServiceTest {
     }
 
   }
+
+
 
 
   @Test
