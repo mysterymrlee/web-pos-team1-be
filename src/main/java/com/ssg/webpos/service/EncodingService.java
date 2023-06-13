@@ -23,8 +23,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class EncodingService {
-  private final DeliveryRepository deliveryRepository;
-  private final DeliveryAddressRepository deliveryAddressRepository;
   private final EncodingDeliveryAddressRepository encodingDeliveryAddressRepository;
 
   @Value("${public_key}")
@@ -34,7 +32,6 @@ public class EncodingService {
 
   /**
    * 1. 암호화용 domain하나 만들어서 이름, 전화번호, 주소, 우편번호 암호화해서 저장 Test
-   * 2.
    */
   @Transactional
   public void saveEncodedDeliveryAddressData(EncodeDTO encodeDTO) throws NoSuchPaddingException, IllegalBlockSizeException, InvalidKeySpecException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
