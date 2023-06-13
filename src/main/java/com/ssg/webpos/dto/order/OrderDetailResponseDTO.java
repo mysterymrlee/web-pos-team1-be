@@ -21,10 +21,11 @@ public class OrderDetailResponseDTO {
     private int productPrice; // 과세물품가액, 적절한 영어 단어가 없어서 임의로 설정, finalTotalPrice의 10/11
     private int vat; // 부가세, finalTotalPrice의 1/11
     // finalTotalPrice를 받으면 해당 매서드에서 활용해서 DTO.setProductPrice(); 처럼 작성할 예정
-    private String storeTelNumber;
-    private String businessNumber;
-    private String ceoName;
-    private String orderSerialNumber;
+    private String storeTelNumber; // 가게번호
+    private String businessNumber; // 사업자 등록 번호
+    private String ceoName; // 대표자 이름
+    private String orderSerialNumber; // 주문시리얼넘버
+    private LocalDateTime cancelDate;
     private List<OrderDetailProductResponseDTO> orderDetailProductResponseDTOList = new ArrayList<>(); // 주문상품
 
 }
