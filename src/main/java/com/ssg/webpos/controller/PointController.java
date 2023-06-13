@@ -8,6 +8,7 @@ import com.ssg.webpos.dto.point.PointRequestDTO;
 import com.ssg.webpos.dto.point.PointUseRequestDTO;
 import com.ssg.webpos.dto.point.PointUseResponseDTO;
 import com.ssg.webpos.repository.UserRepository;
+import com.ssg.webpos.repository.cart.CartRedisImplRepository;
 import com.ssg.webpos.repository.cart.CartRedisRepository;
 import com.ssg.webpos.service.PointService;
 import com.ssg.webpos.service.UserService;
@@ -30,6 +31,8 @@ public class PointController {
 
   @Autowired
   CartRedisRepository cartRedisRepository;
+  @Autowired
+  CartRedisImplRepository cartRedisImplRepository;
 
   @Autowired
   UserService userService;
@@ -53,9 +56,11 @@ public class PointController {
 
 
   @PostMapping("/add")
-  public ResponseEntity addPoint(@RequestBody @Valid PointRequestDTO requestDTO, BindingResult bindingResult) throws Exception {
+//  public ResponseEntity addPoint(@RequestBody @Valid PointRequestDTO requestDTO, BindingResult bindingResult) throws Exception {
+  public boolean addPoint(@RequestBody @Valid PointRequestDTO requestDTO, BindingResult bindingResult) throws Exception {
     if (bindingResult.hasErrors()) {
-      return new ResponseEntity(HttpStatus.BAD_REQUEST);
+//      return new ResponseEntity(HttpStatus.BAD_REQUEST);
+      return false;
     }
 
     String phoneNumber = requestDTO.getPhoneNumber();
@@ -71,14 +76,16 @@ public class PointController {
       pointDTO.setPhoneNumber(phoneNumber);
       pointDTO.setPosId(requestDTO.getPosId());
       pointDTO.setStoreId(requestDTO.getStoreId());
-      cartRedisRepository.savePoint(pointDTO);
+      cartRedisImplRepository.savePoint(pointDTO);
 
-      PointResponseDTO responseDTO = userService.login(findUser.get(), new PosStoreCompositeId(requestDTO.getPosId(), requestDTO.getStoreId()));
-      log.info("responseDTO: ", responseDTO);
-      return new ResponseEntity(responseDTO, HttpStatus.OK);
+//      PointResponseDTO responseDTO = userService.login(findUser.get(), new PosStoreCompositeId(requestDTO.getPosId(), requestDTO.getStoreId()));
+//      log.info("responseDTO: ", responseDTO);
+//      return new ResponseEntity(responseDTO, HttpStatus.OK);
+      return true;
     } else {
       // 회원 테이블에 존재하지 않는 전화번호인 경우
-      return new ResponseEntity(HttpStatus.NOT_FOUND);
+//      return new ResponseEntity(HttpStatus.NOT_FOUND);
+      return false;
     }
   }
 
