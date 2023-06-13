@@ -85,6 +85,7 @@ public class CartServiceTest {
   @Test
   @Rollback(value = false)
   @DisplayName("[주문 취소] 포인트 사용 및 적립 취소, 쿠폰 반환, 재고량 증가 테스트")
+
   void cancelOrder() throws UnsupportedEncodingException, URISyntaxException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
     Long productId1 = 50L;
     Long userId = 1L;

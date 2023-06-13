@@ -173,6 +173,7 @@ class SaleMethodServiceTest {
     orderList.add(order2);
 
 
+
 // orderListMethod 메소드 호출
     List<HqSaleOrderDTO> result = saleMethodService.orderListMethod(orderList);
 
