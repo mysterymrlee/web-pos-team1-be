@@ -25,6 +25,8 @@ public class OrderDetailResponseDTO {
     private String businessNumber;
     private String ceoName;
     private String orderSerialNumber;
+    private String cardName;
+    private String cardNumber;
     private List<OrderDetailProductResponseDTO> orderDetailProductResponseDTOList = new ArrayList<>(); // 주문상품
 
 }
