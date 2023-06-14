@@ -15,9 +15,7 @@ import com.ssg.webpos.repository.cart.CartRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
 import com.ssg.webpos.repository.product.ProductRepository;
 import com.ssg.webpos.repository.store.StoreRepository;
-import com.ssg.webpos.service.OrderService;
-import com.ssg.webpos.service.SettlementDayService;
-import com.ssg.webpos.service.SettlementMonthService;
+import com.ssg.webpos.service.*;
 import com.ssg.webpos.service.managerController.CancelOrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,10 +45,12 @@ public class BranchAdminManagerController {
     private final ProductRequestRepository productRequestRepository;
     private final ProductRepository productRepository;
     private final StoreRepository storeRepository;
+    private final CartService cartService;
     private final StockReportRepository stockReportRepository;
     private final CartRepository cartRepository;
     private final PointUseHistoryRepository pointUseHistoryRepository;
     private final CancelOrderService cancelOrderService;
+    private final PointService pointService;
 
     // 주문취소
     // 주문 취소 이력을 추적하고 분석할 수 있도록 취소 열을 추가
@@ -63,6 +63,67 @@ public class BranchAdminManagerController {
      * 2. 취소 진행
      * 3. 취소 영수증 발급(프런트엔드에서는 '주문이 취소되었습니다.' 알림창과 함께 주문 취소 영수증 발급)
      * **/
+    @GetMapping("/order-cancel2")
+    public ResponseEntity cancelOrder2(@RequestParam String merchantUid) {
+        try {
+            Order order = cartService.cancelOrder(merchantUid);
+            //202306013160300101
+            User user = order.getUser();
+            Long orderId = order.getId();
+            Long storeId = order.getPos().getStore().getId();
+            Optional<Store> store = storeRepository.findById(storeId);
+            OrderDetailResponseDTO orderDetailResponseDTO = new OrderDetailResponseDTO();
+//        orderDetailResponseDTO.setSerialNumber(serialNumber);
+            orderDetailResponseDTO.setOrderDate(order.getOrderDate());
+            orderDetailResponseDTO.setTotalPrice(order.getTotalPrice());
+            orderDetailResponseDTO.setCouponUsePrice(order.getCouponUsePrice());
+            orderDetailResponseDTO.setPointUsePrice(order.getPointUsePrice());
+            orderDetailResponseDTO.setFinalTotalPrice(order.getFinalTotalPrice());
+            //
+            orderDetailResponseDTO.setCardName(order.getCardName());
+            orderDetailResponseDTO.setCardNumber(order.getCardNumber());
+            orderDetailResponseDTO.setOrderSerialNumber(order.getSerialNumber());
+            orderDetailResponseDTO.setCancelDate(order.getCancelDate());
+            // 적립 예정은 계산하면댐
+            List<OrderDetailProductResponseDTO> orderDetailProductResponseDTOList = new ArrayList<>();
+            List<Cart> cartList = cartRepository.findAllByOrderId(orderId);
+            // 주문 상품의 이름, 수량, 상품 가격 정보 시작
+            for (Cart cart : cartList) {
+                OrderDetailProductResponseDTO orderDetailProduct = new OrderDetailProductResponseDTO();
+                Long productId = cart.getProduct().getId();
+                Optional<Product> product = productRepository.findById(productId);
+                orderDetailProduct.setProductName(product.get().getName());
+                orderDetailProduct.setProductQty(product.get().getStock());
+                orderDetailProduct.setProductSalePrice(product.get().getSalePrice());
+                //
+                orderDetailProduct.setCartQty(cart.getQty());
+                orderDetailProduct.setOriginPrice(product.get().getOriginPrice());
+                //
+                orderDetailProductResponseDTOList.add(orderDetailProduct);
+            }
+            orderDetailResponseDTO.setOrderDetailProductResponseDTOList(orderDetailProductResponseDTOList);
+            if (user == null) {
+                // 사용자가 존재하지 않는 경우
+                orderDetailResponseDTO.setUserName(" ");
+                orderDetailResponseDTO.setUserPoint(0);
+            } else {
+                // 사용자가 존재하는 경우
+                orderDetailResponseDTO.setUserName(user.getName());
+                orderDetailResponseDTO.setUserPoint(user.getPoint().getPointAmount());
+            }
+            int finalTotalPrice = order.getFinalTotalPrice();
+            int productPrice = finalTotalPrice*10/11;
+            int vat = finalTotalPrice*1/11;
+            orderDetailResponseDTO.setProductPrice(productPrice);
+            orderDetailResponseDTO.setVat(vat);
+            orderDetailResponseDTO.setStoreName(store.get().getName());
+            orderDetailResponseDTO.setStoreAdress(store.get().getAddress());
+            return new ResponseEntity<>(orderDetailResponseDTO, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
+    }
     @GetMapping("/order-cancel")
     public ResponseEntity cancelOrder(@RequestParam("merchantUid") String merchantUid) {
         try {
@@ -373,12 +434,17 @@ public class BranchAdminManagerController {
         User user = order.getUser();
         Long orderId = order.getId();
         Long storeId = order.getPos().getStore().getId();
-        Optional<Store> store = storeRepository.findById(storeId);
+
+
+            Optional<Store> store = storeRepository.findById(storeId);
 //        orderDetailResponseDTO.setSerialNumber(serialNumber);
         orderDetailResponseDTO.setOrderDate(order.getOrderDate());
         orderDetailResponseDTO.setTotalPrice(order.getTotalPrice());
         orderDetailResponseDTO.setCouponUsePrice(order.getCouponUsePrice());
         orderDetailResponseDTO.setPointUsePrice(order.getPointUsePrice());
+            int finalTotalPrice1 = order.getFinalTotalPrice();
+            int pointSaveAmount = pointService.updatePoint(finalTotalPrice1);
+        orderDetailResponseDTO.setPointSaveAmount(pointSaveAmount);
         orderDetailResponseDTO.setFinalTotalPrice(order.getFinalTotalPrice());
         //
         orderDetailResponseDTO.setCardName(order.getCardName());

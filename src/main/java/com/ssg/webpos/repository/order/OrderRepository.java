@@ -133,22 +133,22 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
   // 매출 목록에서 사용할 매서드
   // 전체 store의 기간별 조회
-  // 1주일
+  // 1주일 // 활용한 거
   @Query(value = "select * from orders o\n" +
       "where o.order_date between DATE_SUB(CURDATE(), INTERVAL 7 DAY) ANd DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
   List<Order> allStoreOrderBy1Week();
 
-  // 1달
+  // 1달 // 활용한 거
   @Query(value = "select * from orders o\n" +
       "where o.order_date between DATE_SUB(CURDATE(), INTERVAL 1 MONTH) ANd DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
   List<Order> allStoreOrderBy1Month();
 
-  // 3달
+  // 3달 // 활용한 거
   @Query(value = "select * from orders o\n" +
       "where o.order_date between DATE_SUB(CURDATE(), INTERVAL 3 MONTH) ANd DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
   List<Order> allStoreOrderBy3Month();
 
-  // 기간별
+  // 기간별 // 활용한 거
   @Query(value = "select * from orders o\n" +
       "where o.order_date between :startDate AND :endDate", nativeQuery = true)
   List<Order> allStoreOrderByTerm(@Param("startDate") String startDate, @Param("endDate") String endDate);

@@ -216,4 +216,28 @@ public interface SettlementDayRepository extends JpaRepository<SettlementDay, Lo
             "group by store_id", nativeQuery = true)
     List<Object[]> SaleTermForPieChart(@Param("startDate") String startDate, @Param("endDate") String endDate);
 
+    // 매출관리 페이지 매출목록에서 활용할 매서드
+    // 일주일
+    @Query(value = "select * from settlement_day sd\n" +
+            "where sd.settlement_date between DATE_SUB(CURDATE(), INTERVAL 7 DAY) " +
+            "AND DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
+    List<SettlementDay> listFor1Week();
+
+    // 한달
+    @Query(value = "select * from settlement_day sd\n" +
+            "where sd.settlement_date between DATE_SUB(CURDATE(), INTERVAL 1 MONTH) " +
+            "AND DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
+    List<SettlementDay> listFor1Month();
+
+    // 3달
+    @Query(value = "select * from settlement_day sd\n" +
+            "where sd.settlement_date between DATE_SUB(CURDATE(), INTERVAL 3 MONTH) " +
+            "AND DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
+    List<SettlementDay> listFor3Month();
+
+    // 기간별
+    @Query(value = "select * from settlement_day sd\n" +
+            "where sd.settlement_date between :startDate AND :endDate", nativeQuery = true)
+    List<SettlementDay> listForTerm(@Param("startDate") String startDate, @Param("endDate") String endDate);
+
 }

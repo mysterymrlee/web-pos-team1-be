@@ -21,6 +21,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -120,9 +122,10 @@ public class CartService {
   }
 
   @Transactional
-  public void cancelOrder(String merchantUid) throws UnsupportedEncodingException, URISyntaxException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
+  public Order cancelOrder(String merchantUid) throws UnsupportedEncodingException, URISyntaxException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
     // merchantUid로 order 찾기
     Order order = orderRepository.findByMerchantUid(merchantUid);
+    order.setCancelDate(LocalDateTime.now());
     System.out.println("findOrder = " + order);
     order.setOrderStatus(OrderStatus.CANCEL);
     Order save1 = orderRepository.save(order);
@@ -173,10 +176,11 @@ public class CartService {
     Order save = orderRepository.save(order);
     System.out.println("save = " + save);
     // 주문 취소 sms 전송
-    MessageDTO messageDTO = new MessageDTO();
-    String phoneNumber = order.getUser().getPhoneNumber();
-    System.out.println("phoneNumber = " + phoneNumber);
-    messageDTO.setTo(phoneNumber);
-    smsService.sendSms(messageDTO, null, order);
+//    MessageDTO messageDTO = new MessageDTO();
+//    String phoneNumber = order.getUser().getPhoneNumber();
+//    System.out.println("phoneNumber = " + phoneNumber);
+//    messageDTO.setTo(phoneNumber);
+////    smsService.sendSms(messageDTO, null, order);
+    return order;
   }
 }

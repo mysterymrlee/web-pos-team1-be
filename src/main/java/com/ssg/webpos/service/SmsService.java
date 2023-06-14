@@ -158,7 +158,7 @@ public class SmsService {
       if (savedOrder.getOrderStatus().equals(OrderStatus.CANCEL)) {
         // 주문 취소
 //          content = savedDelivery.getUserName() + "님께서 주문하신 " + orderName + " 주문 취소가 완료되었습니다.";
-          content = savedOrder.getUser().getName() +"님께서 주문하신 " + orderName + " 주문 취소가 완료되었습니다.";
+          content = savedOrder.getUser().getName() +"님께서 주문하신\n " + orderName + " 주문 취소가 완료되었습니다.";
 
       } else if (savedOrder.getOrderStatus().equals(OrderStatus.SUCCESS) && savedOrder.getUser().getId() != null) {
         // 회원이 결제 완료하면 전자 영수증 발급 문자 전송
