@@ -118,8 +118,9 @@ public class SmsService {
   // sms 보낼 내용 작성
   public String makeSmsContent(Order savedOrder) {
 //    GiftSmsDTO smsInfo = getInfoToUseInGiftSms(savedOrder);
-    String giftUrl = "http://{배포된FE주소}/enter-gift-address/" + savedOrder.getSerialNumber();
-    String receiptUrl = "http://{배포된링크}/" + savedOrder.getMerchantUid();
+    String giftUrl = "http://3.34.250.96:3000/enter-gift-address/" + savedOrder.getSerialNumber();
+    String receiptUrl = "http://3.34.250.96:3000/recipt/" + savedOrder.getMerchantUid();
+
     System.out.println("giftUrl = " + giftUrl);
 
     // 상품명이 10자를 초과하면 ...으로 표시
@@ -195,7 +196,7 @@ public class SmsService {
     messages.add(messageDTO);
 
     SmsRequestDTO request = SmsRequestDTO.builder()
-        .type("SMS")
+        .type("LMS")
         .contentType("COMM")
         .countryCode("82")
         .from(phone)
