@@ -218,26 +218,54 @@ public interface SettlementDayRepository extends JpaRepository<SettlementDay, Lo
 
     // 매출관리 페이지 매출목록에서 활용할 매서드
     // 일주일
+
+    // 일주일 날짜순 ASC 정렬
     @Query(value = "select * from settlement_day sd\n" +
             "where sd.settlement_date between DATE_SUB(CURDATE(), INTERVAL 7 DAY) " +
-            "AND DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
-    List<SettlementDay> listFor1Week();
+            "AND DATE_SUB(CURDATE(), INTERVAL 1 DAY) ORDER BY sd.settlement_date", nativeQuery = true)
+    List<SettlementDay> listFor1WeekASC();
 
-    // 한달
+    // 일주일 날짜순 ASC 정렬, store_id별
+    @Query(value = "select * from settlement_day sd\n" +
+            "WHERE sd.store_id = :storeId AND sd.settlement_date between DATE_SUB(CURDATE(), INTERVAL 7 DAY) " +
+            "AND DATE_SUB(CURDATE(), INTERVAL 1 DAY) ORDER BY sd.settlement_date", nativeQuery = true)
+    List<SettlementDay> listFor1WeekASCByStoreId(@Param("storeId") int storeId);
+
+
+    // 한달 날짜순 ASC 정렬
     @Query(value = "select * from settlement_day sd\n" +
             "where sd.settlement_date between DATE_SUB(CURDATE(), INTERVAL 1 MONTH) " +
-            "AND DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
-    List<SettlementDay> listFor1Month();
+            "AND DATE_SUB(CURDATE(), INTERVAL 1 DAY) ORDER BY sd.settlement_date", nativeQuery = true)
+    List<SettlementDay> listFor1MonthASC();
 
-    // 3달
+    // 한달 날짜순 ASC 정렬
+    @Query(value = "select * from settlement_day sd\n" +
+            "where sd.store_id = :storeId AND sd.settlement_date between DATE_SUB(CURDATE(), INTERVAL 1 MONTH) " +
+            "AND DATE_SUB(CURDATE(), INTERVAL 1 DAY) ORDER BY sd.settlement_date", nativeQuery = true)
+    List<SettlementDay> listFor1MonthASCByStoreId(@Param("storeId") int storeId);
+
+
+    // 3달 날짜순 ASC 정렬
     @Query(value = "select * from settlement_day sd\n" +
             "where sd.settlement_date between DATE_SUB(CURDATE(), INTERVAL 3 MONTH) " +
-            "AND DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
-    List<SettlementDay> listFor3Month();
+            "AND DATE_SUB(CURDATE(), INTERVAL 1 DAY) ORDER BY sd.settlement_date", nativeQuery = true)
+    List<SettlementDay> listFor3MonthASC();
 
-    // 기간별
+    // 3달 날짜순 ASC 정렬, storeId별
     @Query(value = "select * from settlement_day sd\n" +
-            "where sd.settlement_date between :startDate AND :endDate", nativeQuery = true)
-    List<SettlementDay> listForTerm(@Param("startDate") String startDate, @Param("endDate") String endDate);
+            "where sd.store_id = :storeId AND sd.settlement_date between DATE_SUB(CURDATE(), INTERVAL 3 MONTH) " +
+            "AND DATE_SUB(CURDATE(), INTERVAL 1 DAY) ORDER BY sd.settlement_date", nativeQuery = true)
+    List<SettlementDay> listFor3MonthASCByStoreId(@Param("storeId") int storeId);
+
+
+    // 기간별 날짜순 ASC 정렬
+    @Query(value = "select * from settlement_day sd\n" +
+            "where sd.settlement_date between :startDate AND :endDate ORDER BY sd.settlement_date", nativeQuery = true)
+    List<SettlementDay> listForTermASC(@Param("startDate") String startDate, @Param("endDate") String endDate);
+
+    // 기간별 날짜순 ASC 정렬,storeId별
+    @Query(value = "select * from settlement_day sd\n" +
+            "where sd.store_id = :storeId AND sd.settlement_date between :startDate AND :endDate ORDER BY sd.settlement_date", nativeQuery = true)
+    List<SettlementDay> listForTermASCByStoreId(@Param("startDate") String startDate, @Param("endDate") String endDate, @Param("storeId") int storeId);
 
 }
