@@ -3,6 +3,7 @@ package com.ssg.webpos.service.hqController.method;
 import com.ssg.webpos.domain.Order;
 import com.ssg.webpos.domain.SettlementDay;
 import com.ssg.webpos.domain.Store;
+import com.ssg.webpos.dto.hqSale.HqListForSaleDTO;
 import com.ssg.webpos.dto.hqSale.HqSaleByStoreNameDTO;
 import com.ssg.webpos.dto.hqSale.HqSaleOrderDTO;
 import com.ssg.webpos.dto.hqSale.HqSettlementDayDTO;
@@ -14,7 +15,6 @@ import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -98,19 +98,30 @@ public class SaleMethodService {
         return list;
     }
 
-    // 파일 만드는 매서드
-    public File makeFile(List<HqSaleOrderDTO> list, String fileName) {
-        String filePath = "C:/Users/교육생56/Desktop/webpos/" + fileName; // 사용자가 파일 저장 장소 선택할 수 있게 코드 구현
-        csvService.exportToCsv(list, filePath);
-        File file = new File(filePath);
-        return file;
-    }
-
     // file을 매개변수로 가지는 HttpHeaders 매서드
     public HttpHeaders makeHttpHeaders(File file) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         headers.setContentDisposition(ContentDisposition.builder("attachment").filename(file.getName()).build());
         return headers;
+    }
+
+    //settlementDayList를 DTO에 넣기 위한 서비스
+    public List<HqListForSaleDTO> makeHqListForSaleDTO(List<SettlementDay> list) {
+        List<HqListForSaleDTO> DTOList = new ArrayList<>();
+        for(SettlementDay settlementDay: list ) {
+            HqListForSaleDTO hqListForSaleDTO = new HqListForSaleDTO();
+            hqListForSaleDTO.setSettlementDate(settlementDay.getSettlementDate());
+            Long storeId = settlementDay.getStore().getId(); // storeId가 아닌 settlementDayId 불러와서 논리적인 오류 발생
+            Optional<Store> store = storeRepository.findById(storeId);
+            String storeName = store.get().getName();
+            hqListForSaleDTO.setStoreName(storeName);
+            hqListForSaleDTO.setCharge(settlementDay.getCharge());
+            hqListForSaleDTO.setSettlementPrice(settlementDay.getSettlementPrice());
+            hqListForSaleDTO.setOriginPrice(settlementDay.getTotalOriginPrice());
+            hqListForSaleDTO.setProfit(settlementDay.getProfit());
+            DTOList.add(hqListForSaleDTO);
+        }
+        return DTOList;
     }
 }

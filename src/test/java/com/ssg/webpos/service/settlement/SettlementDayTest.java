@@ -21,8 +21,4 @@ public class SettlementDayTest {
             System.out.println(list);
         }
     }
-    @Test
-    void contextVoid2() {
-
-    }
 }
