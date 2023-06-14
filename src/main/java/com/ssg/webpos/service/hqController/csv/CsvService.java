@@ -1,5 +1,6 @@
 package com.ssg.webpos.service.hqController.csv;
 
+import com.ssg.webpos.dto.hqSale.HqListForSaleDTO;
 import com.ssg.webpos.dto.hqSale.HqSaleOrderDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -52,6 +53,41 @@ public class CsvService {
                 System.out.println("Serial Number: " + orderDTO.getSerialNumber());
                 System.out.println("Store Name: " + orderDTO.getStoreName());
                 System.out.println("Order Date: " + orderDate);
+            }
+
+
+
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    // 매출 목록 불러오기(settlementDay)
+    public void exportToCsvSettlementDay(List<HqListForSaleDTO> HqListForSaleDTOList, String fileName) {
+        // 파일 저장 경로 설정
+        String filePath = "C:/Users/교육생56/Desktop/webpos/" + fileName; // 사용자가 파일 저장 장소 선택할 수 있게 코드 구현
+        try (BufferedWriter writer = new BufferedWriter( new OutputStreamWriter( new FileOutputStream(filePath), StandardCharsets.UTF_8))) {
+            writer.write('\ufeff');
+            // CSV 헤더 작성
+            writer.append("정산일자, 가게명, 수수료, 정산금액, 원가, 이익");
+            writer.append("\n");
+
+            // CSV 데이터 작성
+            for (HqListForSaleDTO HqListForSaleDTO : HqListForSaleDTOList) {
+                // 무조건 String 타입으로 만들어서 넣어야한다.
+                String settlementDate = String.valueOf(HqListForSaleDTO.getSettlementDate());
+                writer.append(settlementDate);
+                writer.append(",");
+                writer.append(HqListForSaleDTO.getStoreName());
+                writer.append(",");
+                writer.append(String.valueOf(HqListForSaleDTO.getCharge()));
+                writer.append(",");
+                writer.append(String.valueOf(HqListForSaleDTO.getSettlementPrice()));
+                writer.append(",");
+                writer.append(String.valueOf(HqListForSaleDTO.getOriginPrice()));
+                writer.append(",");
+                writer.append(String.valueOf(HqListForSaleDTO.getProfit()));
+                writer.append("\n");
             }
 
 
