@@ -119,7 +119,7 @@ public class SmsService {
   public String makeSmsContent(Order savedOrder) {
 //    GiftSmsDTO smsInfo = getInfoToUseInGiftSms(savedOrder);
     String giftUrl = "http://3.34.250.96:3000/enter-gift-address/" + savedOrder.getSerialNumber();
-    String receiptUrl = "http://3.34.250.96:3000/" + savedOrder.getMerchantUid();
+    String receiptUrl = "http://3.34.250.96:3000/recipt/" + savedOrder.getMerchantUid();
 
     System.out.println("giftUrl = " + giftUrl);
 
@@ -196,7 +196,7 @@ public class SmsService {
     messages.add(messageDTO);
 
     SmsRequestDTO request = SmsRequestDTO.builder()
-        .type("SMS")
+        .type("LMS")
         .contentType("COMM")
         .countryCode("82")
         .from(phone)
