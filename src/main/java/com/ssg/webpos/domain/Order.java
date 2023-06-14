@@ -35,6 +35,7 @@ public class Order extends BaseTime {
     private Pos pos;
 
     private LocalDateTime orderDate;
+    private LocalDateTime cancelDate;
     @NotNull
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
