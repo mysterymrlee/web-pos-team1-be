@@ -59,7 +59,7 @@ public class BranchAdminManagerController {
     @GetMapping("/store-name")
     public ResponseEntity storeName() {
         try {
-            List<Store> list = storeRepository.findAll();
+            List<Store> list = storeRepository.findAllByOrderByName();
             List<StoreName> storeNameList = new ArrayList<>();
             for(Store store : list) {
                 StoreName storeName = new StoreName();
