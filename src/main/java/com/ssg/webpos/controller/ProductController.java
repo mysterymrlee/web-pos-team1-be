@@ -21,12 +21,22 @@ public class ProductController {
     ProductService productService;
 
     @GetMapping
-    public ResponseEntity getProductList(@RequestParam("category") String category) {
+    public ResponseEntity getProductListByCategory(@RequestParam("category") String category) {
     List<Product> productList = productService.getProductsBySalesDateAndCategory(category);
     List<ProductListResponseDTO> productListResponseDTO =
             productList.stream().map(
                 (product) -> new ProductListResponseDTO(product, product.getEvent() != null)
             ).collect(Collectors.toList());
+        return new ResponseEntity(productListResponseDTO, HttpStatus.OK);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity getProductList() {
+        List<Product> productList = productService.getProductsBySalesDate();
+        List<ProductListResponseDTO> productListResponseDTO =
+                productList.stream().map(
+                        (product) -> new ProductListResponseDTO(product, product.getEvent() != null)
+                ).collect(Collectors.toList());
         return new ResponseEntity(productListResponseDTO, HttpStatus.OK);
     }
 }

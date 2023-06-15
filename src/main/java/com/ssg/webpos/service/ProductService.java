@@ -30,7 +30,15 @@ public class ProductService {
             .collect(Collectors.toList());
         System.out.println("filteredProducts = " + filteredProducts);
         return filteredProducts;
+    }
+    public List<Product> getProductsBySalesDate() {
+        LocalDateTime currentDate = LocalDateTime.now();
 
+        List<Product> allProducts = productRepository.findProductsBySalesDate(currentDate);
+        System.out.println("allProducts = " + allProducts);
+
+        System.out.println("allProducts = " + allProducts);
+        return allProducts;
     }
 
 }
