@@ -41,9 +41,9 @@ public class SecurityConfig {
                 .httpBasic().disable()
                 .csrf().disable()
                 .cors().and()
-                .sessionManagement()
-                .sessionCreationPolicy(STATELESS)
-                .and()
+//                .sessionManagement()
+//                .sessionCreationPolicy(STATELESS)
+//                .and()
                 .exceptionHandling()
                 .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
                 .and()
@@ -65,7 +65,7 @@ public class SecurityConfig {
                 .logout()
                 .logoutSuccessUrl("/")
                 .and()
-                .addFilterBefore(new JwtFilter(userRepository), UsernamePasswordAuthenticationFilter.class)
+//                .addFilterBefore(new JwtFilter(userRepository), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
