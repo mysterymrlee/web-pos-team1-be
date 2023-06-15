@@ -34,6 +34,7 @@ import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.http.entity.FileEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -41,12 +42,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.core.io.FileSystemResource;
-import java.io.File;
+
+import java.io.*;
 import java.math.BigDecimal;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -1094,25 +1098,26 @@ public class HqAdminController {
             if(storeId == 0) { // settlement_day 활용할 것이다.
                 if (date.equals("1week")&&startDate.equals("0")&&endDate.equals("0")) {
                     // windows
-                    List<SettlementDay> settlementDayList = settlementDayRepository.listFor1WeekASC();
-                    List<HqListForSaleDTO> list = saleMethodService.makeHqListForSaleDTO(settlementDayList);
-                    String fileName = "sale_report_1week" + nowString + ".csv";
-                    csvService.exportToCsvSettlementDay(list,fileName);
-                    String fileURL = "C:/Users/"+userName+"/Desktop/webpos/" + fileName;
-                    File file = new File(fileURL);
-                    HttpHeaders headers = saleMethodService.makeHttpHeaders(file);
-                    return new ResponseEntity<>(new FileSystemResource(file),headers, HttpStatus.OK);
-
-                    // mac
 //                    List<SettlementDay> settlementDayList = settlementDayRepository.listFor1WeekASC();
 //                    List<HqListForSaleDTO> list = saleMethodService.makeHqListForSaleDTO(settlementDayList);
 //                    String fileName = "sale_report_1week" + nowString + ".csv";
 //                    csvService.exportToCsvSettlementDay(list,fileName);
-//                    String fileURL = "/Users/"+userName+"/Desktop/webpos/" + fileName;
-//                    File file = new File(fileURL);
-//                    HttpHeaders headers = new HttpHeaders();
-//                    headers.add("Content-Disposition", "attachment; filename=" + fileName);
-//                    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+//                    String fileURL = "C:/Users/"+userName+"/Desktop/webpos/" + fileName; //ec2 파일 경로 설정
+//                    File file = new File(fileURL); // 강사님 코드 시작
+//                    HttpHeaders headers = saleMethodService.makeHttpHeaders(file);
+//                    return new ResponseEntity<>(new FileSystemResource(file),headers, HttpStatus.OK);
+
+                    // mac
+                    List<SettlementDay> settlementDayList = settlementDayRepository.listFor1WeekASC();
+                    List<HqListForSaleDTO> list = saleMethodService.makeHqListForSaleDTO(settlementDayList);
+                    String fileName = "sale_report_1week" + nowString + ".csv";
+                    csvService.exportToCsvSettlementDay(list,fileName);
+                    String fileURL = "/Users/"+userName+"/Desktop/webpos/" + fileName;
+                    File file = new File(fileURL);
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.add("Content-Disposition", "attachment; filename=" + fileName);
+                    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+                    return new ResponseEntity<>(new FileSystemResource(file),headers, HttpStatus.OK);
 
                 } if (date.equals("1month")&&startDate.equals("0")&&endDate.equals("0")) {
                     // 어제의 한달 전부터 어제까지의 전체 매출 기록
@@ -1214,6 +1219,87 @@ public class HqAdminController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
+
+    // orders 테이블을 활용한 controller
+    // 매출 목록 조회
+    @GetMapping("/sale-management/list-orders/date={date}/storeId={storeId}/startDate={startDate}/endDate={endDate}")
+    public ResponseEntity saleOrderListView1(@PathVariable("date") String date, @PathVariable("storeId") int storeId,@PathVariable("startDate") String startDate,@PathVariable("endDate") String endDate) {
+        try {
+            if(storeId == 0) {
+                if (date.equals("1week")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 일주일 전부터 어제까지의 전체 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy1Week();
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+                } if (date.equals("1month")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 한달 전부터 어제까지의 전체 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy1Month();
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                } if (date.equals("3month")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 세달 전부터 어제까지의 전체 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy3Month();
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                } if (date.equals("term")&&startDate.equals(startDate)&&endDate.equals(endDate)) {
+                    // 기간별 전체 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderByTerm(startDate,endDate);
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                }
+            } else if(storeId !=0 ) {
+                if (date.equals("1week")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 일주일 전부터 어제까지의 store_id별 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy1WeekByStoreId(storeId);
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                } if (date.equals("1month")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 한달 전부터 어제까지의 store_id별 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy1MonthByStoreId(storeId);
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                } if (date.equals("3month")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // 어제의 세달 전부터 어제까지의 store_id별 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderBy3MonthByStoreId(storeId);
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                } if (date.equals("term")&&startDate.equals(startDate)&&endDate.equals(endDate)) {
+                    // 기간별 store_id별 매출 기록
+                    List<Order> orderList = orderRepository.allStoreOrderByTermByStoreId(startDate,endDate,storeId);
+                    List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
+                    return new ResponseEntity(list, HttpStatus.OK);
+
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    // 프런트 엔드 csv 저장 기능 연동
+//    @GetMapping("/test-for-front")
+//    public void test() {
+//        LocalDate now = LocalDate.now();
+//        String nowString = now.toString();
+//
+//        // windows
+//        List<SettlementDay> settlementDayList = settlementDayRepository.listFor1WeekASC();
+//        List<HqListForSaleDTO> list = saleMethodService.makeHqListForSaleDTO(settlementDayList);
+//        String fileName = "test.csv";
+//        csvService.exportToCsvSettlementDay(list,fileName);
+//        String fileURL = "C:/Users/"+userName+"/Desktop/webpos/" + fileName; //ec2 파일 경로 설정
+//        File file = new File(fileURL); // 강사님 코드 시작
+//        HttpHeaders headers = saleMethodService.makeHttpHeaders(file);
+//
+//    }
 }
 
 
