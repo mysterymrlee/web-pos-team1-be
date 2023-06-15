@@ -1,6 +1,7 @@
 package com.ssg.webpos.controller.admin;
 import com.ssg.webpos.domain.*;
 import com.ssg.webpos.domain.enums.OrderStatus;
+import com.ssg.webpos.dto.StoreName;
 import com.ssg.webpos.dto.order.OrderDetailProductResponseDTO;
 import com.ssg.webpos.dto.order.OrderDetailResponseDTO;
 import com.ssg.webpos.dto.order.RequestOrderDTO;
@@ -51,6 +52,26 @@ public class BranchAdminManagerController {
     private final PointUseHistoryRepository pointUseHistoryRepository;
     private final CancelOrderService cancelOrderService;
     private final PointService pointService;
+
+    /**
+     * 가게 이름 13개를 API 로 던집니다.
+     * **/
+    @GetMapping("/store-name")
+    public ResponseEntity storeName() {
+        try {
+            List<Store> list = storeRepository.findAllByOrderByName();
+            List<StoreName> storeNameList = new ArrayList<>();
+            for(Store store : list) {
+                StoreName storeName = new StoreName();
+                storeName.setStoreName(store.getName());
+                storeNameList.add(storeName);
+            }
+            return new ResponseEntity<>(storeNameList, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
 
     // 주문취소
     // 주문 취소 이력을 추적하고 분석할 수 있도록 취소 열을 추가
