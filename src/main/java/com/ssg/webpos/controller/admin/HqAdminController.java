@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -53,9 +54,7 @@ import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/v1/hq")
@@ -138,7 +137,10 @@ public class HqAdminController {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            Map<String, String> msg = new HashMap<>();
+            msg.put("error-msg", "에러발생!");
+            System.out.println("msg = " + msg);
+            return new ResponseEntity<>(msg, HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -603,7 +605,7 @@ public class HqAdminController {
         }
     }
 
-    // 출력하기 위한 API(orders)
+    // order
     @GetMapping("/sale-management/list/date={date}/storeId={storeId}/startDate={startDate}/endDate={endDate}/export")
     public ResponseEntity exportSaleOrderListToCsv(@PathVariable("date") String date, @PathVariable("storeId") int storeId,
                                                    @PathVariable("startDate") String startDate, @PathVariable("endDate") String endDate) {
@@ -1091,16 +1093,27 @@ public class HqAdminController {
             }
             if(storeId == 0) { // settlement_day 활용할 것이다.
                 if (date.equals("1week")&&startDate.equals("0")&&endDate.equals("0")) {
+                    // windows
                     List<SettlementDay> settlementDayList = settlementDayRepository.listFor1WeekASC();
                     List<HqListForSaleDTO> list = saleMethodService.makeHqListForSaleDTO(settlementDayList);
                     String fileName = "sale_report_1week" + nowString + ".csv";
                     csvService.exportToCsvSettlementDay(list,fileName);
-                    // 사용자 이름으로 변경
-                    // 사용자의 배경화면에 저장
                     String fileURL = "C:/Users/"+userName+"/Desktop/webpos/" + fileName;
                     File file = new File(fileURL);
                     HttpHeaders headers = saleMethodService.makeHttpHeaders(file);
                     return new ResponseEntity<>(new FileSystemResource(file),headers, HttpStatus.OK);
+
+                    // mac
+//                    List<SettlementDay> settlementDayList = settlementDayRepository.listFor1WeekASC();
+//                    List<HqListForSaleDTO> list = saleMethodService.makeHqListForSaleDTO(settlementDayList);
+//                    String fileName = "sale_report_1week" + nowString + ".csv";
+//                    csvService.exportToCsvSettlementDay(list,fileName);
+//                    String fileURL = "/Users/"+userName+"/Desktop/webpos/" + fileName;
+//                    File file = new File(fileURL);
+//                    HttpHeaders headers = new HttpHeaders();
+//                    headers.add("Content-Disposition", "attachment; filename=" + fileName);
+//                    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
                 } if (date.equals("1month")&&startDate.equals("0")&&endDate.equals("0")) {
                     // 어제의 한달 전부터 어제까지의 전체 매출 기록
                     List<SettlementDay> settlementDayList = settlementDayRepository.listFor1MonthASC();
