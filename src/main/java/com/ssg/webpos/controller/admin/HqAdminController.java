@@ -1252,8 +1252,8 @@ public class HqAdminController {
                 }
             } else if(storeId !=0 ) {
                 if (date.equals("1week")&&startDate.equals("0")&&endDate.equals("0")) {
-                    // 어제의 일주일 전부터 어제까지의 store_id별 매출 기록
-                    List<Order> orderList = orderRepository.allStoreOrderBy1WeekByStoreId(storeId);
+                    // 어제의 일주일 전부터 어제까지의 store_id별 매출 기록         // order_date DESC
+                    List<Order> orderList = orderRepository.allStoreOrderBy1WeekByStoreIdOrderByDESC(storeId);
                     List<HqSaleOrderDTO> list = saleMethodService.orderListMethod(orderList);
                     return new ResponseEntity(list, HttpStatus.OK);
 

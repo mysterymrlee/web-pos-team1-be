@@ -138,6 +138,11 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
       "where o.order_date between DATE_SUB(CURDATE(), INTERVAL 7 DAY) ANd DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
   List<Order> allStoreOrderBy1Week();
 
+  // 날짜 최신순
+  @Query(value = "select * from orders o\n" +
+          "where o.order_date between DATE_SUB(CURDATE(), INTERVAL 7 DAY) ANd DATE_SUB(CURDATE(), INTERVAL 1 DAY) order by o.order_date DESC", nativeQuery = true)
+  List<Order> allStoreOrderBy1WeekOrderByDESC();
+
   // 1달 // 활용한 거
   @Query(value = "select * from orders o\n" +
       "where o.order_date between DATE_SUB(CURDATE(), INTERVAL 1 MONTH) ANd DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
@@ -158,6 +163,13 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
   @Query(value = "select * from orders o\n" +
       "where o.store_id = :storeId AND o.order_date between DATE_SUB(CURDATE(), INTERVAL 7 DAY) ANd DATE_SUB(CURDATE(), INTERVAL 1 DAY)", nativeQuery = true)
   List<Order> allStoreOrderBy1WeekByStoreId(@Param("storeId") int storeId);
+
+  // store_id별 기간별 조회
+  // 1주 // 날짜 DESC순
+  @Query(value = "select * from orders o\n" +
+          "where o.store_id = :storeId AND o.order_date between DATE_SUB(CURDATE(), INTERVAL 7 DAY) " +
+          "AND DATE_SUB(CURDATE(), INTERVAL 1 DAY) order by o.order_date DESC", nativeQuery = true)
+  List<Order> allStoreOrderBy1WeekByStoreIdOrderByDESC(@Param("storeId") int storeId);
 
   // 1달
   @Query(value = "select * from orders o\n" +
