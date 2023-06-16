@@ -81,7 +81,7 @@ public class SaleMethodService {
         List<HqSaleOrderDTO> list = new ArrayList<>();
         for (Order order : orderList) {
             HqSaleOrderDTO hqSaleOrderDTO = new HqSaleOrderDTO();
-            hqSaleOrderDTO.setSerialNumber(order.getSerialNumber());
+            hqSaleOrderDTO.setMerchantUid(order.getMerchantUid());
             hqSaleOrderDTO.setStoreName(order.getPos().getStore().getName());
             hqSaleOrderDTO.setOrderDate(order.getOrderDate());
             hqSaleOrderDTO.setOrderStatus(order.getOrderStatus());
