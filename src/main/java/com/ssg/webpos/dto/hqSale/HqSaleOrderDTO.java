@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class HqSaleOrderDTO {
-    private String serialNumber;
+    private String merchantUid; // serialNumber 삭제, merchantUid 추가
     private String storeName;
     private LocalDateTime orderDate;
     private OrderStatus orderStatus;
