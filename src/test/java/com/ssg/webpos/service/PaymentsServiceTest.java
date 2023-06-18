@@ -9,14 +9,13 @@ import com.ssg.webpos.dto.*;
 import com.ssg.webpos.dto.cartDto.CartAddDTO;
 import com.ssg.webpos.dto.cartDto.CartAddRequestDTO;
 import com.ssg.webpos.dto.coupon.CouponAddRequestDTO;
+import com.ssg.webpos.dto.delivery.DeliveryRedisAddRequestDTO;
 import com.ssg.webpos.dto.point.PointDTO;
 import com.ssg.webpos.dto.point.PointUseRequestDTO;
-import com.ssg.webpos.repository.CouponRepository;
-import com.ssg.webpos.repository.PointRepository;
-import com.ssg.webpos.repository.PointUseHistoryRepository;
-import com.ssg.webpos.repository.UserRepository;
+import com.ssg.webpos.repository.*;
 import com.ssg.webpos.repository.cart.CartRedisRepository;
 import com.ssg.webpos.repository.cart.CartRepository;
+import com.ssg.webpos.repository.delivery.DeliveryRedisImplRepository;
 import com.ssg.webpos.repository.order.OrderRepository;
 import com.ssg.webpos.repository.product.ProductRepository;
 import org.junit.jupiter.api.Assertions;
@@ -43,7 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 @SpringBootTest
-@Rollback(value = false)
+@Transactional
 public class PaymentsServiceTest {
   @Autowired
   PaymentsService paymentsService;
@@ -67,6 +66,10 @@ public class PaymentsServiceTest {
   PointRepository pointRepository;
   @Autowired
   CartRepository cartRepository;
+  @Autowired
+  PointSaveHistoryRepository pointSaveHistoryRepository;
+  @Autowired
+  DeliveryRedisImplRepository deliveryRedisImplRepository;
 
   @BeforeEach
   void setup() {
@@ -115,33 +118,23 @@ public class PaymentsServiceTest {
   @Test
   @DisplayName("장바구니 추가 후 쿠폰 적용: 비회원일 경우 쿠폰 상태 NOT_USED -> USED")
   void addToCartWithCouponIfPaymentSuccess() throws Exception {
-    Long productId1 = 1L;
-    Long productId2 = 2L;
+    Long productId1 = 50L;
+    Long productId2 = 51L;
     int cartQty1 = 3;
     int cartQty2 = 5;
     saveRedisCart(productId1, productId2, cartQty1, cartQty2);
-    Coupon createCoupon = createCoupon();
-    System.out.println("beforeCouponStatus" + createCoupon.getCouponStatus());
-    saveRedisCoupon(createCoupon);
-    processPayment();
-
-    CouponStatus afterCouponStatus = createCoupon.getCouponStatus();
-    System.out.println("afterCouponStatus = " + afterCouponStatus);
-
-    assertEquals(CouponStatus.USED, afterCouponStatus);
-  }
-  @Test
-  @DisplayName("장바구니 추가 후 쿠폰 적용: 회원일 경우 쿠폰 상태 NOT_USED -> USED")
-  void addToCartWithCouponIfPaymentSuccessAndUser() throws Exception {
-    Long productId1 = 11L;
-    Long productId2 = 12L;
-    int cartQty1 = 3;
-    int cartQty2 = 5;
-    saveRedisCart(productId1, productId2, cartQty1, cartQty2);
+    Order order = new Order();
+    order.setOrderStatus(OrderStatus.SUCCESS);
+    order.setPayMethod(PayMethod.CREDIT_CARD);
+    Order saveOrder = orderRepository.save(order);
     saveRedisPoint();
     Coupon createCoupon = createCoupon();
     System.out.println("beforeCouponStatus" + createCoupon.getCouponStatus());
     saveRedisCoupon(createCoupon);
+    Coupon coupon = couponService.updateCouponStatusToUsed(createCoupon.getId());
+    coupon.setOrder(order);
+    order.getCouponList().add(coupon);
+
     processPayment();
 
     CouponStatus afterCouponStatus = createCoupon.getCouponStatus();
@@ -149,50 +142,108 @@ public class PaymentsServiceTest {
 
     assertEquals(CouponStatus.USED, afterCouponStatus);
   }
+
+  @Test
+  void updateStockAndAddToCart() {
+    Long productId1 = 51L;
+    Long productId2 = 52L;
+    int cartQty1 = 3;
+    int cartQty2 = 5;
+    saveRedisCart(productId1, productId2, cartQty1, cartQty2);
+    Order order = new Order();
+    order.setOrderStatus(OrderStatus.SUCCESS);
+    order.setPayMethod(PayMethod.CREDIT_CARD);
+    Order saveOrder = orderRepository.save(order);
+
+    List<Map<String, Object>> cartItemList = cartRedisRepository.findCartItems("2-2");
+    for (Map<String, Object> cartItem : cartItemList) {
+      CartAddDTO cartAddDTO = new CartAddDTO();
+      cartAddDTO.setProductId((Long) cartItem.get("productId"));
+      cartAddDTO.setCartQty((int) cartItem.get("cartQty"));
+      Product product = paymentsService.updateStockAndAddToCart(cartAddDTO);
+      List<Cart> cartList = order.getCartList();
+      Cart cart = new Cart(product, saveOrder);
+      cart.setQty(cartAddDTO.getCartQty());
+      cartList.add(cart);
+      cartRepository.saveAll(cartList);
+    }
+  }
+  @Test
+  @DisplayName("장바구니 추가 후 쿠폰 적용: 회원일 경우 쿠폰 상태 NOT_USED -> USED")
+  void addToCartWithCouponIfPaymentSuccessAndUser() throws Exception {
+
+    Long productId1 = 50L;
+    Long productId2 = 51L;
+    int cartQty1 = 3;
+    int cartQty2 = 5;
+    saveRedisCart(productId1, productId2, cartQty1, cartQty2);
+    Long userId = saveRedisPoint();
+    Order order = new Order();
+    order.setOrderStatus(OrderStatus.SUCCESS);
+    order.setPayMethod(PayMethod.CREDIT_CARD);
+    Order saveOrder = orderRepository.save(order);
+    saveRedisPoint();
+    Coupon createCoupon = createCoupon();
+    System.out.println("beforeCouponStatus" + createCoupon.getCouponStatus());
+    saveRedisCoupon(createCoupon);
+    Coupon coupon = couponService.updateCouponStatusToUsed(createCoupon.getId());
+    coupon.setOrder(order);
+    order.getCouponList().add(coupon);
+    User user = userRepository.findById(userId).get();
+    coupon.setUser(user);
+
+    processPayment();
+
+    CouponStatus afterCouponStatus = createCoupon.getCouponStatus();
+    System.out.println("afterCouponStatus = " + afterCouponStatus);
+
+    assertEquals(CouponStatus.USED, afterCouponStatus);
+  }
+
+  
   @Test
   @DisplayName("point 테이블 point_amount 업데이트")
   void SavePointUseHistoryAndPointSaveHistory() {
-//    Assertions.assertThrows(IllegalArgumentException.class, () -> {
-//      // 음수 넣는거
-//    });
+    Long userId = saveRedisPoint();
+    System.out.println("userId = " + userId);
+    cartRedisRepository.findUserId("2-2");
+    Long productId1 = 50L;
+    Long productId2 = 51L;
+    int cartQty1 = 3;
+    int cartQty2 = 5;
+    saveRedisCart(productId1, productId2, cartQty1, cartQty2);
+    Order order = new Order();
+    order.setOrderStatus(OrderStatus.SUCCESS);
+    order.setPayMethod(PayMethod.CREDIT_CARD);
+    Order saveOrder = orderRepository.save(order);
+    PaymentsDTO paymentsDTO = new PaymentsDTO();
+    paymentsDTO.setPosId(2L);
+    paymentsDTO.setStoreId(2L);
+    paymentsDTO.setSuccess(true);
+    paymentsDTO.setName("사과");
+    paymentsDTO.setPointAmount(50);
+    paymentsDTO.setPg("kcp");
+    int finalTotalPrice = 100000;
+    paymentsDTO.setPaidAmount(BigDecimal.valueOf(finalTotalPrice));
+    int pointUseAmount = paymentsDTO.getPointAmount();
+    Point point = userRepository.findById(userId).get().getPoint();
+    PointUseHistory pointUseHistory = new PointUseHistory(pointUseAmount, saveOrder, point);
+    PointUseHistory savePointUse = pointUseHistoryRepository.save(pointUseHistory);
+    order.setPointUsePrice(pointUseAmount);
+    int pointSaveAmount = pointService.updatePoint(finalTotalPrice);
+    PointSaveHistory pointSaveHistory = new PointSaveHistory(pointSaveAmount, order, point);
+    PointSaveHistory savePointSave = pointSaveHistoryRepository.save(pointSaveHistory);
+    System.out.println("pointSaveHistory = " + pointSaveHistory);
+    paymentsService.processPaymentCallback(paymentsDTO);
+    int pointSaveAmount1 = savePointSave.getPointSaveAmount();
+    System.out.println("pointSaveAmount1 = " + pointSaveAmount1);
+    System.out.println("savePointUse = " + savePointUse);
 
-    // 사용자 생성 및 저장
-    User user = new User();
-    user.setName("고경환1111");
-    user.setEmail("1111@naver.com");
-    user.setPhoneNumber("01033334444");
-    user.setPassword("1234");
-    user.setRole(RoleUser.NORMAL);
-
-    Point point = new Point();
-    point.setPointAmount(100);
-    point.setUser(user);
-
-    user.setPoint(point);
-    userRepository.save(user);
-    // 주문 생성 및 저장
-    Order order = Order.builder()
-        .orderStatus(OrderStatus.SUCCESS)
-        .payMethod(PayMethod.CREDIT_CARD)
-        .orderName("키위 외 2건")
-        .build();
-    orderRepository.save(order);
-    System.out.println("orderTest = " + order);
-
-
-
-    // point_use_amount 설정
-    int pointUseAmount = 20;
-
-    // point_use_history 저장
-    PointUseHistory pointUseHistory = new PointUseHistory(pointUseAmount, order, point);
-    System.out.println("pointUseHistory = " + pointUseHistory);
-    pointUseHistoryRepository.save(pointUseHistory);
-
-    // point 업데이트 후
-    Point point1 = pointRepository.findByUserId(user.getId()).get();
-    System.out.println("point1 = " + point1);
   }
+
+
+
+
 //  @Test
 //  void test_processCartItems_Test() {
 //    Long productId1 = 11L;
@@ -358,11 +409,6 @@ public class PaymentsServiceTest {
   cartRedisRepository.delete(compositeId);
   cartRedisRepository.saveCart(requestDTO);
 }
-  @Test
-  @DisplayName("쿠폰 사용 및 설정 테스트")
-  void testSetCouponUsage() {
-
-  }
 
 
   private void saveRedisCoupon(Coupon coupon) throws Exception {
@@ -379,7 +425,7 @@ public class PaymentsServiceTest {
     Coupon coupon = new Coupon();
     coupon.setCouponStatus(CouponStatus.NOT_USED);
     coupon.setName("500원");
-    coupon.setSerialNumber("99999999");
+    coupon.setSerialNumber("666666666");
     coupon.setDeductedPrice(500);
     coupon.setExpiredDate(LocalDate.now().plusDays(7));
     Coupon saveCoupon = couponRepository.save(coupon);
@@ -395,30 +441,49 @@ public class PaymentsServiceTest {
     int finalTotalPrice = 100000;
     paymentsDTO.setPaidAmount(BigDecimal.valueOf(finalTotalPrice));
     paymentsDTO.setPg("kakaopay");
+    paymentsDTO.setCouponUsePrice(500);
     Order order = paymentsService.processPaymentCallback(paymentsDTO);
     System.out.println("processPayment order = " + order);
     return paymentsDTO;
   }
 
   private Long saveRedisPoint() {
+    cartRedisRepository.delete("2-2");
     User user = new User();
-    user.setName("고경환");
-    user.setEmail("1111@naver.com");
-    user.setPhoneNumber("01033334444");
+    user.setName("고경환12");
+    user.setEmail("5656@naver.com");
     user.setPassword("1234");
+    user.setPhoneNumber("01032244099");
     user.setRole(RoleUser.NORMAL);
-    userRepository.save(user);
+    User saveUser = userRepository.save(user);
     PointDTO pointDTO = new PointDTO();
-    pointDTO.setPhoneNumber(user.getPhoneNumber());
+    pointDTO.setPhoneNumber(saveUser.getPhoneNumber());
     pointDTO.setPointMethod("phoneNumber");
     pointDTO.setStoreId(2L);
     pointDTO.setPosId(2L);
     String compositeId = "2-2";
-    cartRedisRepository.delete(compositeId);
     cartRedisRepository.savePoint(pointDTO);
     Long userId = cartRedisRepository.findUserId(compositeId);
     return userId;
 
+  }
+
+  @Test
+  void saveRedisDelivery() {
+    DeliveryRedisAddRequestDTO deliveryRedisAddRequestDTO = DeliveryRedisAddRequestDTO.builder()
+        .storeId(2L)
+        .posId(2L)
+        .deliveryName("우리집")
+        .userName("김진아")
+        .phoneNumber("01032244099")
+        .address("부산광역시 남구")
+        .requestDeliveryTime("12:00~15:00")
+        .postCode("052508")
+        .requestInfo("부재 시, 경비실에 맡겨주세요.")
+        .build();
+//    deliveryRedisAddRequestDTOList.add(deliveryRedisAddRequestDTO);
+    // when
+    deliveryRedisImplRepository.saveDelivery(deliveryRedisAddRequestDTO);
   }
 
 }
