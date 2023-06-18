@@ -32,7 +32,8 @@ jacocoTestReport {
 					"com/ssg/webpos/service/NotificationService/*",
 					"com/ssg/webpos/service/NotificationService1/*",
 					"com/ssg/webpos/service/SmsService.class",
-					"com/ssg/webpos/WebposApplication.class"
+					"com/ssg/webpos/WebposApplication.class",
+					"com/ssg/webpos/service/managerController/CancelOrderService.class"
 			])
 		}))
 	}

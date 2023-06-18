@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class DeliveryService {
   private final DeliveryRepository deliveryRepository;
   private final DeliveryRedisImplRepository deliveryRedisImplRepository;
@@ -48,7 +49,6 @@ public class DeliveryService {
     System.out.println("LocalDateTime = " + dateTime); // 2023-05-25T17:25:00
     return dateTime;
   }
-
   // serialNumber 생성
   public String makeSerialNumber() {
     List<Delivery> deliveryList = deliveryRepository.findAll();
@@ -66,7 +66,6 @@ public class DeliveryService {
   }
 
   // 배송지 DB에 추가
-  @Transactional
   public void addDeliveryAddress(DeliveryAddDTO deliveryDTO, Long orderId) {
     Order order = orderRepository.findById(orderId).get();
     String deliverySerialNumber = makeSerialNumber();
@@ -177,6 +176,7 @@ public class DeliveryService {
     String compositeId = storeId + "-" + posId;
     System.out.println("compositeId = " + compositeId);
     List<Map<String, Object>> addedDelivery = deliveryRedisImplRepository.findAddedDelivery(compositeId);
+    System.out.println("addedDelivery = " + addedDelivery);
     String serialNumber = makeSerialNumber();
     System.out.println("serialNumber = " + serialNumber);
     Delivery savedDelivery = null;
