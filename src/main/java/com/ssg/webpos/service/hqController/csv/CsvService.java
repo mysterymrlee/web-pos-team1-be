@@ -25,7 +25,7 @@ public class CsvService {
                 String orderDate = String.valueOf(orderDTO.getOrderDate());
                 String orderStatus = String.valueOf(orderDTO.getOrderStatus());
                 String payMethod = String.valueOf(orderDTO.getPayMethod());
-                writer.append(orderDTO.getSerialNumber());
+                writer.append(orderDTO.getMerchantUid());
                 writer.append(",");
                 writer.append(orderDTO.getStoreName());
                 writer.append(",");
@@ -50,9 +50,6 @@ public class CsvService {
                 writer.append(String.valueOf(orderDTO.getProfit()));
                 writer.append("\n");
 
-                System.out.println("Serial Number: " + orderDTO.getSerialNumber());
-                System.out.println("Store Name: " + orderDTO.getStoreName());
-                System.out.println("Order Date: " + orderDate);
             }
 
 
