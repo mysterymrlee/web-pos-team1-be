@@ -66,6 +66,7 @@ public class BranchAdminManagerController {
             for(Store store : list) {
                 StoreName storeName = new StoreName();
                 storeName.setStoreName(store.getName());
+                storeName.setStoreId(store.getId());
                 storeNameList.add(storeName);
             }
             return new ResponseEntity<>(storeNameList, HttpStatus.OK);
