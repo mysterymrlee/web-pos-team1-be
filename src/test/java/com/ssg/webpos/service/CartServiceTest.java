@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 @SpringBootTest
 @Transactional
@@ -167,6 +168,81 @@ public class CartServiceTest {
 
     assertEquals(expectedResult, actualResult);
   }
+
+  @Test
+  public void testCancelOrder() throws UnsupportedEncodingException, URISyntaxException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
+    // 테스트에 필요한 데이터 설정
+    String merchantUid = "123456789";
+
+    // 주문 생성 및 저장
+    Order order = new Order();
+    order.setMerchantUid(merchantUid);
+    order.setOrderStatus(OrderStatus.SUCCESS);
+    order.setPayMethod(PayMethod.CREDIT_CARD);
+    Order savedOrder = orderRepository.save(order);
+
+    // 적립 포인트 내역 생성 및 저장
+    PointSaveHistory savePointHistory = new PointSaveHistory();
+    savePointHistory.setId(99999L);
+    savePointHistory.setPointStatus((byte) 0);
+    // 필요한 필드 값들 설정...
+    savePointHistory.setOrder(order);
+    PointSaveHistory savePoint = pointSaveHistoryRepository.save(savePointHistory);
+
+    // 포인트 사용 내역 생성 및 저장
+    PointUseHistory usePointHistory = new PointUseHistory();
+    // 필요한 필드 값들 설정...
+    usePointHistory.setId(99999L);
+    usePointHistory.setOrder(order);
+    usePointHistory.setPointStatus((byte) 0);
+    PointUseHistory usePoint = pointUseHistoryRepository.save(usePointHistory);
+
+    // 쿠폰 생성 및 저장
+    Coupon coupon = new Coupon();
+    coupon.setCouponStatus(CouponStatus.USED);
+    coupon.setOrder(order);
+    coupon.setExpiredDate(LocalDate.of(2023, 12, 31));
+    coupon.setName("5000원 쿠폰");
+    coupon.setSerialNumber("1111111111");
+    couponRepository.save(coupon);
+
+    // 상품 재고 수량 변경
+    List<Cart> cartList = savedOrder.getCartList();
+    for (Cart cart : cartList) {
+      Product product = cart.getProduct();
+      product.plusStockQuantity(cart.getQty());
+    }
+
+    // 주문 취소 테스트
+    Order canceledOrder = cartService.cancelOrder(merchantUid);
+
+    // 테스트 결과 검증
+    assertNotNull(canceledOrder);
+    assertEquals(OrderStatus.CANCEL, canceledOrder.getOrderStatus());
+    assertNotNull(canceledOrder.getCancelDate());
+
+    // 포인트 사용 내역 확인
+    System.out.println("savePoint = " + savePoint);
+    byte savePointStatus = savePoint.getPointStatus();
+    assertEquals(1, savePointStatus);
+
+    byte usePointStatus = usePoint.getPointStatus();
+    assertEquals(1, usePointStatus);
+
+
+    // 쿠폰 상태 변경 확인
+    Coupon updatedCoupon = couponRepository.findById(coupon.getId()).orElse(null);
+    assertNotNull(updatedCoupon);
+    assertEquals(CouponStatus.NOT_USED, updatedCoupon.getCouponStatus());
+
+    // 상품 재고 수량 확인
+    for (Cart cart : cartList) {
+      Product product = cart.getProduct();
+      assertEquals(10, product.getStock()); //
+    }
+  }
+
+
 
   Order addOrder() {
     PosStoreCompositeId posStoreCompositeId = new PosStoreCompositeId();

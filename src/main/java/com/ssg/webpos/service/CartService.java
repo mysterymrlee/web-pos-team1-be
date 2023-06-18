@@ -180,7 +180,7 @@ public class CartService {
 //    String phoneNumber = order.getUser().getPhoneNumber();
 //    System.out.println("phoneNumber = " + phoneNumber);
 //    messageDTO.setTo(phoneNumber);
-////    smsService.sendSms(messageDTO, null, order);
+//    smsService.sendSms(messageDTO, null, order);
     return order;
   }
 }

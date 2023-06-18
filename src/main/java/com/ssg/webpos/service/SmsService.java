@@ -120,6 +120,7 @@ public class SmsService {
 //    GiftSmsDTO smsInfo = getInfoToUseInGiftSms(savedOrder);
     String giftUrl = "http://3.34.250.96:3000/enter-gift-address/" + savedOrder.getSerialNumber();
     String receiptUrl = "http://3.34.250.96:3000/recipt/" + savedOrder.getMerchantUid();
+    String cancelReceiptUrl = "http://3.34.250.96:3000/cancel-receipt/" + savedOrder.getMerchantUid();
 
     System.out.println("giftUrl = " + giftUrl);
 
@@ -159,7 +160,9 @@ public class SmsService {
       if (savedOrder.getOrderStatus().equals(OrderStatus.CANCEL)) {
         // 주문 취소
 //          content = savedDelivery.getUserName() + "님께서 주문하신 " + orderName + " 주문 취소가 완료되었습니다.";
-          content = savedOrder.getUser().getName() +"님께서 주문하신\n " + orderName + " 주문 취소가 완료되었습니다.";
+          content = savedOrder.getUser().getName() +"님께서 주문하신\n " + orderName + " 주문 취소가 완료되었습니다."+
+//            "상세한 거래내역은 영수증 상세보기 링크를 통해 확인해주세요.\n\n" +
+            "- 취소 영수증 상세 보기: " + cancelReceiptUrl;
 
       } else if (savedOrder.getOrderStatus().equals(OrderStatus.SUCCESS) && savedOrder.getUser().getId() != null) {
         // 회원이 결제 완료하면 전자 영수증 발급 문자 전송
