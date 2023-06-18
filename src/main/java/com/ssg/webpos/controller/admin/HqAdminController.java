@@ -1088,6 +1088,7 @@ public class HqAdminController {
 
             // 사용자 이름으로 변경
             String userName = System.getProperty("user.name");
+            System.out.println("userName = " + userName);
             String folderPath = "C:/Users/" + userName + "/Desktop/webpos/";
 
             // webpos 폴더가 없으면 자동으로 생성
@@ -1097,29 +1098,38 @@ public class HqAdminController {
             }
             if(storeId == 0) { // settlement_day 활용할 것이다.
                 if (date.equals("1week")&&startDate.equals("0")&&endDate.equals("0")) {
+                    System.out.println("1week & 0 & 0 / directory = " + directory);
                     // windows
+                    List<SettlementDay> settlementDayList = settlementDayRepository.listFor1WeekASC();
+                    System.out.println("222222");
+                    List<HqListForSaleDTO> list = saleMethodService.makeHqListForSaleDTO(settlementDayList);
+                    System.out.println("33333");
+                    String fileName = "sale_report_1week" + nowString + ".csv";
+                    System.out.println("4444fileName = " + fileName);
+                    csvService.exportToCsvSettlementDay(list,fileName);
+                    System.out.println("555555555555555");
+                    String fileURL = "C:/Users/" + userName + "/Desktop/webpos/" + fileName; //ec2 파일 경로 설정
+                    System.out.println("6666fileURL = " + fileURL);
+                    File file = new File(fileURL); // 강사님 코드 시작
+                    System.out.println("77777");
+                    HttpHeaders headers = saleMethodService.makeHttpHeaders(file);
+                    System.out.println("88888");
+                    return new ResponseEntity<>(new FileSystemResource(file),headers, HttpStatus.OK);
+
+                    // mac
 //                    List<SettlementDay> settlementDayList = settlementDayRepository.listFor1WeekASC();
 //                    List<HqListForSaleDTO> list = saleMethodService.makeHqListForSaleDTO(settlementDayList);
 //                    String fileName = "sale_report_1week" + nowString + ".csv";
 //                    csvService.exportToCsvSettlementDay(list,fileName);
-//                    String fileURL = "C:/Users/"+userName+"/Desktop/webpos/" + fileName; //ec2 파일 경로 설정
-//                    File file = new File(fileURL); // 강사님 코드 시작
-//                    HttpHeaders headers = saleMethodService.makeHttpHeaders(file);
+//                    String fileURL = "/Users/"+ userName +"/Desktop/webpos/" + fileName;
+//                    File file = new File(fileURL);
+//                    HttpHeaders headers = new HttpHeaders();
+//                    headers.add("Content-Disposition", "attachment; filename=" + fileName);
+//                    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
 //                    return new ResponseEntity<>(new FileSystemResource(file),headers, HttpStatus.OK);
 
-                    // mac
-                    List<SettlementDay> settlementDayList = settlementDayRepository.listFor1WeekASC();
-                    List<HqListForSaleDTO> list = saleMethodService.makeHqListForSaleDTO(settlementDayList);
-                    String fileName = "sale_report_1week" + nowString + ".csv";
-                    csvService.exportToCsvSettlementDay(list,fileName);
-                    String fileURL = "/Users/"+userName+"/Desktop/webpos/" + fileName;
-                    File file = new File(fileURL);
-                    HttpHeaders headers = new HttpHeaders();
-                    headers.add("Content-Disposition", "attachment; filename=" + fileName);
-                    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-                    return new ResponseEntity<>(new FileSystemResource(file),headers, HttpStatus.OK);
-
-                } if (date.equals("1month")&&startDate.equals("0")&&endDate.equals("0")) {
+                } else if (date.equals("1month")&&startDate.equals("0")&&endDate.equals("0")) {
+                    System.out.println("1month & 0 & 0 / directory = " + directory);
                     // 어제의 한달 전부터 어제까지의 전체 매출 기록
                     List<SettlementDay> settlementDayList = settlementDayRepository.listFor1MonthASC();
                     List<HqListForSaleDTO> list = saleMethodService.makeHqListForSaleDTO(settlementDayList);
@@ -1127,12 +1137,12 @@ public class HqAdminController {
                     csvService.exportToCsvSettlementDay(list,fileName);
                     // 사용자 이름으로 변경
                     // 사용자의 배경화면에 저장
-                    String fileURL = "C:/Users/"+userName+"/Desktop/webpos/" + fileName;
+                    String fileURL = "C:/Users/"+ userName +"/Desktop/webpos/" + fileName;
                     File file = new File(fileURL);
                     HttpHeaders headers = saleMethodService.makeHttpHeaders(file);
                     return new ResponseEntity<>(new FileSystemResource(file),headers, HttpStatus.OK);
 
-                } if (date.equals("3month")&&startDate.equals("0")&&endDate.equals("0")) {
+                } else if (date.equals("3month")&&startDate.equals("0")&&endDate.equals("0")) {
                     // 어제의 세달 전부터 어제까지의 전체 매출 기록
                     List<SettlementDay> settlementDayList = settlementDayRepository.listFor3MonthASC();
                     List<HqListForSaleDTO> list = saleMethodService.makeHqListForSaleDTO(settlementDayList);
@@ -1140,12 +1150,12 @@ public class HqAdminController {
                     csvService.exportToCsvSettlementDay(list,fileName);
                     // 사용자 이름으로 변경
                     // 사용자의 배경화면에 저장
-                    String fileURL = "C:/Users/"+userName+"/Desktop/webpos/" + fileName;
+                    String fileURL = "C:/Users/"+ userName +"/Desktop/webpos/" + fileName;
                     File file = new File(fileURL);
                     HttpHeaders headers = saleMethodService.makeHttpHeaders(file);
                     return new ResponseEntity<>(new FileSystemResource(file),headers, HttpStatus.OK);
 
-                } if (date.equals("term")&&startDate.equals(startDate)&&endDate.equals(endDate)) {
+                } else if (date.equals("term")&&startDate.equals(startDate)&&endDate.equals(endDate)) {
                     // 기간별 전체 매출 기록
                     List<SettlementDay> settlementDayList = settlementDayRepository.listForTermASC(startDate, endDate);
                     List<HqListForSaleDTO> list = saleMethodService.makeHqListForSaleDTO(settlementDayList);
@@ -1153,7 +1163,7 @@ public class HqAdminController {
                     csvService.exportToCsvSettlementDay(list,fileName);
                     // 사용자 이름으로 변경
                     // 사용자의 배경화면에 저장
-                    String fileURL = "C:/Users/"+userName+"/Desktop/webpos/" + fileName;
+                    String fileURL = "C:/Users/"+ userName +"/Desktop/webpos/" + fileName;
                     File file = new File(fileURL);
                     HttpHeaders headers = saleMethodService.makeHttpHeaders(file);
                     return new ResponseEntity<>(new FileSystemResource(file),headers, HttpStatus.OK);
@@ -1169,12 +1179,11 @@ public class HqAdminController {
                     String storeName = store.get().getName();
                     String fileName = "sale_report_1week_"+storeName+nowString + ".csv";
                     csvService.exportToCsvSettlementDay(list,fileName);
-                    String fileURL = "C:/Users/"+userName+"/Desktop/webpos/" + fileName;
+                    String fileURL = "C:/Users/"+ userName  +"/Desktop/webpos/" + fileName;
                     File file = new File(fileURL);
                     HttpHeaders headers = saleMethodService.makeHttpHeaders(file);
                     return new ResponseEntity<>(new FileSystemResource(file),headers, HttpStatus.OK);
-                }
-                if (date.equals("1month") && startDate.equals("0") && endDate.equals("0")) {
+                } else if (date.equals("1month") && startDate.equals("0") && endDate.equals("0")) {
                     // 어제의 한달 전부터 어제까지의 store_id별 매출 기록
                     List<SettlementDay> settlementDayList = settlementDayRepository.listFor1MonthASCByStoreId(storeId);
                     List<HqListForSaleDTO> list = saleMethodService.makeHqListForSaleDTO(settlementDayList);
@@ -1182,12 +1191,11 @@ public class HqAdminController {
                     String storeName = store.get().getName();
                     String fileName = "sale_report_1month_"+storeName+nowString + ".csv";
                     csvService.exportToCsvSettlementDay(list,fileName);
-                    String fileURL = "C:/Users/"+userName+"/Desktop/webpos/" + fileName;
+                    String fileURL = "C:/Users/"+ "교육생68" +"/Desktop/webpos/" + fileName;
                     File file = new File(fileURL);
                     HttpHeaders headers = saleMethodService.makeHttpHeaders(file);
                     return new ResponseEntity<>(new FileSystemResource(file),headers, HttpStatus.OK);
-                }
-                if (date.equals("3month") && startDate.equals("0") && endDate.equals("0")) {
+                } else if (date.equals("3month") && startDate.equals("0") && endDate.equals("0")) {
                     // 어제의 세달 전부터 어제까지의 store_id별 매출 기록
                     List<SettlementDay> settlementDayList = settlementDayRepository.listFor3MonthASCByStoreId(storeId);
                     List<HqListForSaleDTO> list = saleMethodService.makeHqListForSaleDTO(settlementDayList);
@@ -1199,8 +1207,7 @@ public class HqAdminController {
                     File file = new File(fileURL);
                     HttpHeaders headers = saleMethodService.makeHttpHeaders(file);
                     return new ResponseEntity<>(new FileSystemResource(file),headers, HttpStatus.OK);
-                }
-                if (date.equals("term") && startDate.equals(startDate) && endDate.equals(endDate)) {
+                } else if (date.equals("term") && startDate.equals(startDate) && endDate.equals(endDate)) {
                     // 기간별 store_id별 매출 기록
                     List<SettlementDay> settlementDayList = settlementDayRepository.listForTermASCByStoreId(startDate,endDate,storeId);
                     List<HqListForSaleDTO> list = saleMethodService.makeHqListForSaleDTO(settlementDayList);
@@ -1214,6 +1221,7 @@ public class HqAdminController {
                     return new ResponseEntity<>(new FileSystemResource(file),headers, HttpStatus.OK);
                 }
             }
+            System.out.println("===end===");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
