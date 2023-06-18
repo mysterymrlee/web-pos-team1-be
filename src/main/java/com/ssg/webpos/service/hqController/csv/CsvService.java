@@ -13,7 +13,7 @@ import java.util.List;
 public class CsvService {
     public void exportToCsv(List<HqSaleOrderDTO> orderDTOList, String fileName) {
         // 파일 저장 경로 설정
-        String filePath = "C:/Users/교육생56/Desktop/webpos/" + fileName; // 사용자가 파일 저장 장소 선택할 수 있게 코드 구현
+        String filePath = "C:/Users/교육생54/Desktop/webpos/" + fileName; // 사용자가 파일 저장 장소 선택할 수 있게 코드 구현
         try (BufferedWriter writer = new BufferedWriter( new OutputStreamWriter( new FileOutputStream(filePath), StandardCharsets.UTF_8))) {
             writer.write('\ufeff');
             // CSV 헤더 작성
@@ -65,7 +65,7 @@ public class CsvService {
     // 매출 목록 불러오기(settlementDay)
     public void exportToCsvSettlementDay(List<HqListForSaleDTO> HqListForSaleDTOList, String fileName) {
         // 파일 저장 경로 설정
-        String filePath = "C:/Users/교육생56/Desktop/webpos/" + fileName; // 사용자가 파일 저장 장소 선택할 수 있게 코드 구현
+        String filePath = "C:/Users/교육생54/Desktop/webpos/" + fileName; // 사용자가 파일 저장 장소 선택할 수 있게 코드 구현
         try (BufferedWriter writer = new BufferedWriter( new OutputStreamWriter( new FileOutputStream(filePath), StandardCharsets.UTF_8))) {
             writer.write('\ufeff');
             // CSV 헤더 작성
