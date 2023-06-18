@@ -134,12 +134,12 @@ public class PaymentsService {
 
         if (savedOrder.getDelivery().getDeliveryType().equals(DeliveryType.GIFT)) {
           System.out.println("DeliveryType is GIFT");
-//          smsService.sendSms(messageDTO, delivery, savedOrder);
+          smsService.sendSms(messageDTO, delivery, savedOrder);
         }
         // 회원이면서 결제 완료일 경우
       } else if(userId != null && savedOrder.getOrderStatus().equals(OrderStatus.SUCCESS)) {
         // 전자 영수증 발급 문자 전송
-//        smsService.sendSms(messageDTO, delivery, savedOrder);
+        smsService.sendSms(messageDTO, delivery, savedOrder);
       }
 
       List<Map<String, Object>> cartItemList = cartRedisRepository.findCartItems(compositeId); // 캐싱된 cartItemList 가져오기
