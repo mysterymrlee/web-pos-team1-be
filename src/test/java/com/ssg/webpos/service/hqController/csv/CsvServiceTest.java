@@ -68,7 +68,7 @@ public void testExportToCsv() {
 
     // 가상의 주문 데이터 추가 예시
     HqSaleOrderDTO hqSaleOrderDTO1 = new HqSaleOrderDTO();
-    hqSaleOrderDTO1.setSerialNumber("00000000");
+    hqSaleOrderDTO1.setMerchantUid("00000000");
     hqSaleOrderDTO1.setStoreName("센텀시티점");
     hqSaleOrderDTO1.setOrderDate(LocalDateTime.now());
     hqSaleOrderDTO1.setOrderStatus(OrderStatus.SUCCESS);
@@ -83,7 +83,7 @@ public void testExportToCsv() {
     // 나머지 필드 값들 설정...
 
     HqSaleOrderDTO hqSaleOrderDTO2 = new HqSaleOrderDTO();
-    hqSaleOrderDTO2.setSerialNumber("11111111");
+    hqSaleOrderDTO2.setMerchantUid("11111111");
     hqSaleOrderDTO2.setStoreName("대구점");
     hqSaleOrderDTO2.setOrderDate(LocalDateTime.now());
     hqSaleOrderDTO2.setOrderStatus(OrderStatus.SUCCESS);
