@@ -1230,7 +1230,10 @@ public class HqAdminController {
 
     // orders 테이블을 활용한 controller
     // 매출 목록 조회
+    //
     @GetMapping("/sale-management/list-orders/date={date}/storeId={storeId}/startDate={startDate}/endDate={endDate}")
+//    @Cacheable(value = "orderListCache", key = "#date + '-' + #storeId + '-' + #startDate + '-' + #endDate",
+//            cacheManager = "cacheManager")
     public ResponseEntity saleOrderListView1(@PathVariable("date") String date, @PathVariable("storeId") int storeId,@PathVariable("startDate") String startDate,@PathVariable("endDate") String endDate) {
         try {
             if(storeId == 0) {

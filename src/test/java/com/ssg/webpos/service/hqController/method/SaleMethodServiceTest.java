@@ -180,7 +180,7 @@ class SaleMethodServiceTest {
 // Assertions
     assertEquals(2, result.size());
 
-    assertEquals("SN001", result.get(0).getSerialNumber());
+    assertEquals("SN001", result.get(0).getMerchantUid());
     assertEquals("Store 1", result.get(0).getStoreName());
     assertEquals(LocalDateTime.of(2023, 6, 1, 0, 0, 0), result.get(0).getOrderDate());
     assertEquals(OrderStatus.SUCCESS, result.get(0).getOrderStatus());
@@ -193,7 +193,7 @@ class SaleMethodServiceTest {
     assertEquals(7000, result.get(0).getTotalOriginPrice());
     assertEquals(100, result.get(0).getProfit());
 
-    assertEquals("SN002", result.get(1).getSerialNumber());
+    assertEquals("SN002", result.get(1).getMerchantUid());
     assertEquals("Store 2", result.get(1).getStoreName());
     assertEquals(LocalDateTime.of(2023, 6, 1, 0, 0, 0), result.get(1).getOrderDate());
     assertEquals(OrderStatus.SUCCESS, result.get(1).getOrderStatus());
