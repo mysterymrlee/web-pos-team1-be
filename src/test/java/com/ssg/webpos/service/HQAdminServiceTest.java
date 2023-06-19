@@ -22,11 +22,10 @@ class HQAdminServiceTest {
 
   @Test
   void login() throws UserPrincipalNotFoundException {
-//    HQAdminLoginRequestDTO hqAdminLoginRequestDTO = new HQAdminLoginRequestDTO();
-//    hqAdminLoginRequestDTO.setAdminNumber("1234");
-//    hqAdminLoginRequestDTO.setPassword("0000");
-//    hqAdminRepository.save();
-//    hqAdminService.login(hqAdminLoginRequestDTO);
+    HQAdminLoginRequestDTO hqAdminLoginRequestDTO = new HQAdminLoginRequestDTO();
+    hqAdminLoginRequestDTO.setAdminNumber("1234");
+    hqAdminLoginRequestDTO.setPassword("0000");
+    hqAdminService.login(hqAdminLoginRequestDTO);
   }
 
 }
