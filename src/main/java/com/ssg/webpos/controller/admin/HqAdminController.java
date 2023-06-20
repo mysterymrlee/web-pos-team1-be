@@ -1191,7 +1191,7 @@ public class HqAdminController {
                     String storeName = store.get().getName();
                     String fileName = "sale_report_1month_"+storeName+nowString + ".csv";
                     csvService.exportToCsvSettlementDay(list,fileName);
-                    String fileURL = "C:/Users/"+ "교육생68" +"/Desktop/webpos/" + fileName;
+                    String fileURL = "C:/Users/"+ userName +"/Desktop/webpos/" + fileName;
                     File file = new File(fileURL);
                     HttpHeaders headers = saleMethodService.makeHttpHeaders(file);
                     return new ResponseEntity<>(new FileSystemResource(file),headers, HttpStatus.OK);
