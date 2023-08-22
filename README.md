@@ -1,8 +1,9 @@
 # P.O.S(Power Of Search)
 P.O.S는 `안정성`과 `사용성`에 집중한 클라우드 기반 웹POS 시스템입니다.<br/>
 
-## 시연영상
-https://youtu.be/Vr5r86-4ZD4
+#### [시연영상](https://youtu.be/Vr5r86-4ZD4)
+
+#### [최종 산출물](https://drive.google.com/drive/folders/1DRXou06yzREKfCMPpMTFjdskvF2JchIj?usp=sharing)
 
 ## 💻 프로젝트 소개
  P.O.S는 RFP(Request for Proposal)와 현장조사를 통해 수집한 요구사항을 기반으로 개발되었습니다. 
@@ -64,6 +65,7 @@ SSG 서비스에는 픽업, 배송 및 선물 서비스가 포함되어 있습�
   <tr>
     <td><img src="https://github.com/web-pos-team1/web-pos-team1-be/assets/75387909/126c8793-5be0-4ecd-b1f3-214f134105fc" width="300"/> </td>
    <td><img src="https://velog.velcdn.com/images/kyunghwan1207/post/73df0890-efe0-463c-bda9-ef51761781bd/image.png" width="300"/></td>
+   <td><img src="https://velog.velcdn.com/images/kyunghwan1207/post/ebfb4999-0a25-41f3-8c1e-f0561f2dcab4/image.png" width="300"/></td>
   </tr>
 </table>
 </br>
