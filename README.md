@@ -110,6 +110,7 @@ SSG 서비스에는 픽업, 배송 및 선물 서비스가 포함되어 있습�
 #### [신세계 포인트 정책](https://branched-vibraphone-8ee.notion.site/188450811b714bcc88f14d35a3eaff23?pvs=4)
 
 ## ERD
+#### [ERD Cloud 접속 링크](https://www.erdcloud.com/d/mEymNF59NqR2xosaE)
 <img src="https://velog.velcdn.com/images/kyunghwan1207/post/466e4e3f-8d18-4b1d-9713-e961469f38f7/image.png" />
 
 ## 🔀 Infrastructure
