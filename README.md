@@ -68,6 +68,16 @@ SSG 서비스에는 픽업, 배송 및 선물 서비스가 포함되어 있습�
    <td><img src="https://velog.velcdn.com/images/kyunghwan1207/post/ebfb4999-0a25-41f3-8c1e-f0561f2dcab4/image.png" width="300"/></td>
   </tr>
 </table>
+<h3>6. 주문 취소 </h3>
+<p>
+구매를 취소하고 싶은 경우 관리자가 구매 내역을 취소할 수 있습니다. 바코드 리더기로 영수증 바코드를 스캔해서 취소할 수 있습니다. 바코드 리더기가 없는 경우에는 구매내역번호로 주문 취소할 수 있습니다.
+</p>
+<img src="https://github.com/web-pos-team1/web-pos-team1-be/assets/100182498/c06dcfcf-e335-474d-a3ff-a76b67061e24"></br>
+<h3>7. 내역 조회 및 csv 파일 저장 </h3>
+<p>
+매출, 정산, 발주, 재고, 주문 관리 조회 및 csv 파일 저장을 할 수 있습니다. 지점별, 기간별 조회할 수 있습니다.
+</p>
+<img src="https://github.com/web-pos-team1/web-pos-team1-be/assets/100182498/1b34e131-b11d-43a7-930c-907693b45e43"></br>
 </br>
 
 <br/>
